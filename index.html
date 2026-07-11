@@ -8,7 +8,7 @@
       content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"
     />
     <link rel="icon" href="favicon.ico" />
-    <title>pdj3</title>
+    <title>PDJ富文本思维导图</title>
     <style>
       * {
         margin: 0;
@@ -2209,6 +2209,14 @@
         border: 2px solid #fff;
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
         z-index: 11;
+        touch-action: none;
+      }
+      @media (pointer: coarse) {
+        .rte-resize-handle {
+          width: 24px;
+          height: 24px;
+          margin: -6px;
+        }
       }
       .rte-resize-handle:hover {
         background-color: #3a22ee;
@@ -3169,8 +3177,8 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 32px;
-        padding: 16px;
+        gap: 12px;
+        padding: 16px 0;
         background: hsla(0, 0%, 100%, 0.95);
         border-top: 1px solid #e4e7ed;
       }
@@ -5534,8 +5542,12 @@
         padding: 20px 24px;
         border-top: 1px solid #eee;
         display: flex;
-        justify-content: center;
-        gap: 12px;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .dt-speech-overlay-footer .dt-btn-large {
+        flex: 0 0 auto;
       }
       .dt-speech-auto-pause-option {
         padding: 10px 24px;
@@ -5559,7 +5571,6 @@
         flex-shrink: 0;
       }
       .dt-btn-large {
-        padding: 12px 40px;
         font-size: 16px;
       }
       .dt-btn-secondary {
@@ -5577,8 +5588,8 @@
   <body>
     <noscript
       ><strong
-        >We're sorry but pdj3 doesn't work properly without JavaScript enabled.
-        Please enable it to continue.</strong
+        >We're sorry but PDJ富文本思维导图 doesn't work properly without
+        JavaScript enabled. Please enable it to continue.</strong
       ></noscript
     >
     <div id="app"></div>
@@ -28001,7 +28012,7 @@
       (function () {
         "use strict";
         var t = {
-            830: function (t, e, i) {
+            5362: function (t, e, i) {
               var s = i(6848),
                 d =
                   (i(4423),
@@ -31103,7 +31114,19 @@
                                 ? e("div", { staticClass: "dt-edit-modal" }, [
                                     e(
                                       "div",
-                                      { staticClass: "dt-edit-modal-content" },
+                                      {
+                                        staticClass: "dt-edit-modal-content",
+                                        on: {
+                                          dblclick: function (e) {
+                                            return (
+                                              e.stopPropagation(),
+                                              t.dtOpenDescriptionEdit(
+                                                t.dtCurrentDescriptionNode,
+                                              )
+                                            );
+                                          },
+                                        },
+                                      },
                                       [
                                         e(
                                           "div",
@@ -31155,14 +31178,6 @@
                                                 click: function (e) {
                                                   return t.dtOnDescriptionHtmlContentClick(
                                                     e,
-                                                  );
-                                                },
-                                                dblclick: function (e) {
-                                                  return (
-                                                    e.stopPropagation(),
-                                                    t.dtOpenDescriptionEdit(
-                                                      t.dtCurrentDescriptionNode,
-                                                    )
                                                   );
                                                 },
                                               },
@@ -33688,6 +33703,17 @@
                                                                   )
                                                                 );
                                                               },
+                                                            touchstart:
+                                                              function (e) {
+                                                                return (
+                                                                  e.stopPropagation(),
+                                                                  t.dtEditorStartResize(
+                                                                    "nw",
+                                                                    e,
+                                                                    t.dtCurrentEditorName,
+                                                                  )
+                                                                );
+                                                              },
                                                           },
                                                         }),
                                                         e("div", {
@@ -33695,6 +33721,17 @@
                                                             "rte-resize-handle rte-handle-n",
                                                           on: {
                                                             mousedown:
+                                                              function (e) {
+                                                                return (
+                                                                  e.stopPropagation(),
+                                                                  t.dtEditorStartResize(
+                                                                    "n",
+                                                                    e,
+                                                                    t.dtCurrentEditorName,
+                                                                  )
+                                                                );
+                                                              },
+                                                            touchstart:
                                                               function (e) {
                                                                 return (
                                                                   e.stopPropagation(),
@@ -33722,6 +33759,17 @@
                                                                   )
                                                                 );
                                                               },
+                                                            touchstart:
+                                                              function (e) {
+                                                                return (
+                                                                  e.stopPropagation(),
+                                                                  t.dtEditorStartResize(
+                                                                    "ne",
+                                                                    e,
+                                                                    t.dtCurrentEditorName,
+                                                                  )
+                                                                );
+                                                              },
                                                           },
                                                         }),
                                                         e("div", {
@@ -33729,6 +33777,17 @@
                                                             "rte-resize-handle rte-handle-w",
                                                           on: {
                                                             mousedown:
+                                                              function (e) {
+                                                                return (
+                                                                  e.stopPropagation(),
+                                                                  t.dtEditorStartResize(
+                                                                    "w",
+                                                                    e,
+                                                                    t.dtCurrentEditorName,
+                                                                  )
+                                                                );
+                                                              },
+                                                            touchstart:
                                                               function (e) {
                                                                 return (
                                                                   e.stopPropagation(),
@@ -33756,6 +33815,17 @@
                                                                   )
                                                                 );
                                                               },
+                                                            touchstart:
+                                                              function (e) {
+                                                                return (
+                                                                  e.stopPropagation(),
+                                                                  t.dtEditorStartResize(
+                                                                    "e",
+                                                                    e,
+                                                                    t.dtCurrentEditorName,
+                                                                  )
+                                                                );
+                                                              },
                                                           },
                                                         }),
                                                         e("div", {
@@ -33763,6 +33833,17 @@
                                                             "rte-resize-handle rte-handle-sw",
                                                           on: {
                                                             mousedown:
+                                                              function (e) {
+                                                                return (
+                                                                  e.stopPropagation(),
+                                                                  t.dtEditorStartResize(
+                                                                    "sw",
+                                                                    e,
+                                                                    t.dtCurrentEditorName,
+                                                                  )
+                                                                );
+                                                              },
+                                                            touchstart:
                                                               function (e) {
                                                                 return (
                                                                   e.stopPropagation(),
@@ -33790,6 +33871,17 @@
                                                                   )
                                                                 );
                                                               },
+                                                            touchstart:
+                                                              function (e) {
+                                                                return (
+                                                                  e.stopPropagation(),
+                                                                  t.dtEditorStartResize(
+                                                                    "s",
+                                                                    e,
+                                                                    t.dtCurrentEditorName,
+                                                                  )
+                                                                );
+                                                              },
                                                           },
                                                         }),
                                                         e("div", {
@@ -33797,6 +33889,17 @@
                                                             "rte-resize-handle rte-handle-se",
                                                           on: {
                                                             mousedown:
+                                                              function (e) {
+                                                                return (
+                                                                  e.stopPropagation(),
+                                                                  t.dtEditorStartResize(
+                                                                    "se",
+                                                                    e,
+                                                                    t.dtCurrentEditorName,
+                                                                  )
+                                                                );
+                                                              },
+                                                            touchstart:
                                                               function (e) {
                                                                 return (
                                                                   e.stopPropagation(),
@@ -34162,6 +34265,13 @@
                                                     innerHTML: t._s(
                                                       t.ex(t.dtQuizContent),
                                                     ),
+                                                  },
+                                                  on: {
+                                                    click: function (e) {
+                                                      return t.dtOnNoteHtmlContentClick(
+                                                        e,
+                                                      );
+                                                    },
                                                   },
                                                 }),
                                               ],
@@ -36045,7 +36155,7 @@
                                               },
                                               [
                                                 t._v(
-                                                  " 更新地址:https://note.youdao.com/s/MI81scdr（注：PDJ思维导图是免费的 PDJ天天向上 学习软件套装里的一个功能，欢迎大家使用软件套装）。 ",
+                                                  " 更新地址:https://note.youdao.com/s/MI81scdr（注：PDJ富文本思维导图是免费的 PDJ天天向上 学习软件套装里的一个功能，欢迎大家使用软件套装）。 ",
                                                 ),
                                               ],
                                             ),
@@ -37220,7 +37330,7 @@
                                           }),
                                           e("span", [
                                             t._v(
-                                              "朗读完当前页自动暂停，点击继续朗读后继续下一页",
+                                              "朗读完当前页自动暂停，点击朗读后继续下一页",
                                             ),
                                           ]),
                                         ],
@@ -37236,6 +37346,23 @@
                                         {
                                           staticClass:
                                             "dt-btn dt-btn-secondary dt-btn-large",
+                                          attrs: {
+                                            disabled:
+                                              t.dtSpeechCurrentNodeIndex <= 0,
+                                          },
+                                          on: {
+                                            click: function (e) {
+                                              return t.dtSpeechGoPage(-1);
+                                            },
+                                          },
+                                        },
+                                        [t._v(" < ")],
+                                      ),
+                                      e(
+                                        "button",
+                                        {
+                                          staticClass:
+                                            "dt-btn dt-btn-secondary dt-btn-large",
                                           on: { click: t.dtTogglePause },
                                         },
                                         [
@@ -37243,8 +37370,8 @@
                                             " " +
                                               t._s(
                                                 t.dtIsSpeechPaused
-                                                  ? "继续朗读"
-                                                  : "暂停朗读",
+                                                  ? "朗读"
+                                                  : "暂停",
                                               ) +
                                               " ",
                                           ),
@@ -37257,7 +37384,25 @@
                                             "dt-btn dt-btn-primary dt-btn-large",
                                           on: { click: t.dtStopSpeak },
                                         },
-                                        [t._v(" 停止朗读 ")],
+                                        [t._v(" 退出 ")],
+                                      ),
+                                      e(
+                                        "button",
+                                        {
+                                          staticClass:
+                                            "dt-btn dt-btn-secondary dt-btn-large",
+                                          attrs: {
+                                            disabled:
+                                              t.dtSpeechCurrentNodeIndex >=
+                                              t.dtSpeechNodes.length - 1,
+                                          },
+                                          on: {
+                                            click: function (e) {
+                                              return t.dtSpeechGoPage(1);
+                                            },
+                                          },
+                                        },
+                                        [t._v(" > ")],
                                       ),
                                     ],
                                   ),
@@ -37568,6 +37713,9 @@
                       dtSummaryEditingId: null,
                       dtIsSpeaking: !1,
                       dtSpeechUtterance: null,
+                      dtSpeechTimer: null,
+                      dtSpeechAutoPaused: !1,
+                      dtSpeechEpoch: 0,
                       dtSpeechNodes: [],
                       dtSpeechCurrentNodeIndex: -1,
                       dtIsSpeechOverlayOpen: !1,
@@ -37934,8 +38082,8 @@
                             g = Math.atan2(h - p, c - u),
                             f = s(r),
                             v = d(r),
-                            C = s(l),
-                            S = d(l),
+                            S = s(l),
+                            C = d(l),
                             y = Math.cos(m),
                             N = Math.sin(m),
                             x = Math.cos(g),
@@ -37945,8 +38093,8 @@
                               v / 2 / Math.abs(N) || 1 / 0,
                             ),
                             E = Math.min(
-                              C / 2 / Math.abs(x) || 1 / 0,
-                              S / 2 / Math.abs(b) || 1 / 0,
+                              S / 2 / Math.abs(x) || 1 / 0,
+                              C / 2 / Math.abs(b) || 1 / 0,
                             ),
                             I = c + y * w,
                             M = h + N * w,
@@ -38260,6 +38408,12 @@
                       ),
                       document.addEventListener("mouseup", this.dtOnMouseUp),
                       document.addEventListener(
+                        "touchmove",
+                        this.dtOnMouseMove,
+                        { passive: !1 },
+                      ),
+                      document.addEventListener("touchend", this.dtOnMouseUp),
+                      document.addEventListener(
                         "fullscreenchange",
                         this.dtHandleFullscreenChange,
                       ),
@@ -38288,6 +38442,14 @@
                         this.dtOnMouseMove,
                       ),
                       document.removeEventListener("mouseup", this.dtOnMouseUp),
+                      document.removeEventListener(
+                        "touchmove",
+                        this.dtOnMouseMove,
+                      ),
+                      document.removeEventListener(
+                        "touchend",
+                        this.dtOnMouseUp,
+                      ),
                       document.removeEventListener(
                         "fullscreenchange",
                         this.dtHandleFullscreenChange,
@@ -38897,64 +39059,126 @@
                       if (!window.speechSynthesis)
                         return void alert("您的浏览器不支持语音朗读功能");
                       const t = this.dtGetNodeSubtreeDFS(this.dtSelectedNode);
-                      ((this.dtSpeechNodes = t),
+                      0 !== t.length &&
+                        ((this.dtSpeechNodes = t),
                         (this.dtSpeechCurrentNodeIndex = -1),
                         (this.dtIsSpeechOverlayOpen = !0),
                         (this.dtIsSpeaking = !0),
-                        window.speechSynthesis.cancel());
-                      for (let e = 0; e < t.length; e++) {
-                        const i = t[e],
-                          s = this.dtStripHtml(i.content);
-                        let d = `${s}。`;
-                        if (i.description) {
-                          const t = this.dtStripHtml(i.description);
-                          d += `注释：${t}。`;
-                        }
-                        const n = new SpeechSynthesisUtterance(d);
-                        if (
-                          ((n.lang = this.dtSettings.speechLang),
-                          (n.rate = this.dtGetSpeechRate()),
-                          (n.pitch = 1),
-                          this.dtSettings.speechVoice)
-                        ) {
-                          const t = this.dtSpeechVoices.find(
-                            (t) => t.name === this.dtSettings.speechVoice,
-                          );
-                          t && (n.voice = t);
-                        }
-                        ((n.onstart = () => {
-                          this.dtSpeechCurrentNodeIndex = e;
-                        }),
-                          e === t.length - 1
-                            ? ((n.onend = () => {
-                                ((this.dtIsSpeaking = !1),
-                                  (this.dtIsSpeechPaused = !1),
-                                  (this.dtIsSpeechOverlayOpen = !1),
-                                  (this.dtSpeechNodes = []),
-                                  (this.dtSpeechCurrentNodeIndex = -1));
-                              }),
-                              (n.onerror = () => {
-                                ((this.dtIsSpeaking = !1),
-                                  (this.dtIsSpeechPaused = !1),
-                                  (this.dtIsSpeechOverlayOpen = !1),
-                                  (this.dtSpeechNodes = []),
-                                  (this.dtSpeechCurrentNodeIndex = -1));
-                              }))
-                            : (n.onend = () => {
-                                this.dtSpeechAutoPause &&
-                                  (window.speechSynthesis.pause(),
-                                  (this.dtIsSpeechPaused = !0));
-                              }),
-                          window.speechSynthesis.speak(n));
+                        (this.dtIsSpeechPaused = !1),
+                        this.dtSpeechEpoch++,
+                        window.speechSynthesis.cancel(),
+                        this.dtSpeechTimer &&
+                          (clearTimeout(this.dtSpeechTimer),
+                          (this.dtSpeechTimer = null)),
+                        this._dtSpeakNext(0, t));
+                    },
+                    _dtSpeakNext(t, e) {
+                      if (t >= e.length) return;
+                      const i = this.dtSpeechEpoch,
+                        s = e[t],
+                        d = this.dtStripHtml(s.content);
+                      let n = `${d}。`;
+                      if (s.description) {
+                        const t = this.dtStripHtml(s.description);
+                        n += `注释：${t}。`;
                       }
+                      const a = new SpeechSynthesisUtterance(n);
+                      if (
+                        ((a.lang = this.dtSettings.speechLang),
+                        (a.rate = this.dtGetSpeechRate()),
+                        (a.pitch = 1),
+                        this.dtSettings.speechVoice)
+                      ) {
+                        const t = this.dtSpeechVoices.find(
+                          (t) => t.name === this.dtSettings.speechVoice,
+                        );
+                        t && (a.voice = t);
+                      }
+                      ((a.onstart = () => {
+                        i === this.dtSpeechEpoch &&
+                          (this.dtSpeechCurrentNodeIndex = t);
+                      }),
+                        t === e.length - 1
+                          ? ((a.onend = () => {
+                              i === this.dtSpeechEpoch &&
+                                ((this.dtIsSpeaking = !1),
+                                (this.dtIsSpeechPaused = !1),
+                                (this.dtIsSpeechOverlayOpen = !1),
+                                (this.dtSpeechNodes = []),
+                                (this.dtSpeechCurrentNodeIndex = -1));
+                            }),
+                            (a.onerror = () => {
+                              i === this.dtSpeechEpoch &&
+                                ((this.dtIsSpeaking = !1),
+                                (this.dtIsSpeechPaused = !1),
+                                (this.dtIsSpeechOverlayOpen = !1),
+                                (this.dtSpeechNodes = []),
+                                (this.dtSpeechCurrentNodeIndex = -1));
+                            }))
+                          : ((a.onend = () => {
+                              i === this.dtSpeechEpoch &&
+                                (this.dtSpeechAutoPause
+                                  ? ((this.dtIsSpeechPaused = !0),
+                                    (this.dtSpeechAutoPaused = !0))
+                                  : (this.dtSpeechTimer = setTimeout(() => {
+                                      this._dtSpeakNext(t + 1, e);
+                                    }, 1e3)));
+                            }),
+                            (a.onerror = () => {
+                              i === this.dtSpeechEpoch &&
+                                ((this.dtIsSpeaking = !1),
+                                (this.dtIsSpeechPaused = !1),
+                                (this.dtIsSpeechOverlayOpen = !1),
+                                (this.dtSpeechNodes = []),
+                                (this.dtSpeechCurrentNodeIndex = -1));
+                            })),
+                        window.speechSynthesis.speak(a));
                     },
                     dtTogglePause() {
-                      window.speechSynthesis &&
-                        (this.dtIsSpeechPaused
-                          ? (window.speechSynthesis.resume(),
-                            (this.dtIsSpeechPaused = !1))
-                          : (window.speechSynthesis.pause(),
-                            (this.dtIsSpeechPaused = !0)));
+                      if (window.speechSynthesis)
+                        if (this.dtIsSpeechPaused)
+                          if (this.dtSpeechAutoPaused) {
+                            if (
+                              ((this.dtSpeechAutoPaused = !1),
+                              (this.dtIsSpeechPaused = !1),
+                              this.dtSpeechCurrentNodeIndex <
+                                this.dtSpeechNodes.length - 1)
+                            ) {
+                              const t = this.dtSpeechCurrentNodeIndex + 1;
+                              this.dtSpeechTimer = setTimeout(() => {
+                                this._dtSpeakNext(t, this.dtSpeechNodes);
+                              }, 1e3);
+                            }
+                          } else
+                            window.speechSynthesis.paused
+                              ? (window.speechSynthesis.resume(),
+                                (this.dtIsSpeechPaused = !1))
+                              : ((this.dtIsSpeechPaused = !1),
+                                this._dtSpeakNext(
+                                  this.dtSpeechCurrentNodeIndex,
+                                  this.dtSpeechNodes,
+                                ));
+                        else
+                          (this.dtSpeechTimer &&
+                            (clearTimeout(this.dtSpeechTimer),
+                            (this.dtSpeechTimer = null)),
+                            window.speechSynthesis.pause(),
+                            (this.dtIsSpeechPaused = !0),
+                            (this.dtSpeechAutoPaused = !1));
+                    },
+                    dtSpeechGoPage(t) {
+                      if (!window.speechSynthesis) return;
+                      const e = this.dtSpeechCurrentNodeIndex + t;
+                      e < 0 ||
+                        e >= this.dtSpeechNodes.length ||
+                        (this.dtSpeechTimer &&
+                          (clearTimeout(this.dtSpeechTimer),
+                          (this.dtSpeechTimer = null)),
+                        this.dtSpeechEpoch++,
+                        window.speechSynthesis.cancel(),
+                        (this.dtSpeechCurrentNodeIndex = e),
+                        (this.dtIsSpeechPaused = !0),
+                        (this.dtSpeechAutoPaused = !1));
                     },
                     dtLoadSpeechVoices() {
                       window.speechSynthesis &&
@@ -38992,8 +39216,12 @@
                     },
                     dtStopSpeak() {
                       if (
-                        (window.speechSynthesis &&
-                          window.speechSynthesis.cancel(),
+                        (this.dtSpeechTimer &&
+                          (clearTimeout(this.dtSpeechTimer),
+                          (this.dtSpeechTimer = null)),
+                        window.speechSynthesis &&
+                          (this.dtSpeechEpoch++,
+                          window.speechSynthesis.cancel()),
                         (this.dtIsSpeaking = !1),
                         (this.dtIsSpeechPaused = !1),
                         (this.dtIsSpeechOverlayOpen = !1),
@@ -39008,7 +39236,8 @@
                       }
                       ((this.dtSpeechNodes = []),
                         (this.dtSpeechCurrentNodeIndex = -1),
-                        (this.dtSpeechUtterance = null));
+                        (this.dtSpeechUtterance = null),
+                        (this.dtSpeechAutoPaused = !1));
                     },
                     dtIncreaseMastery() {
                       if (!this.dtSelectedNode || !this.dtIsRealNodeSelected)
@@ -40212,9 +40441,9 @@
                         m = u.offsetHeight;
                       let g, f, v;
                       document.body.removeChild(u);
-                      const C = p + o + a + l;
-                      if (C <= i)
-                        ((g = Math.max(d, C)),
+                      const S = p + o + a + l;
+                      if (S <= i)
+                        ((g = Math.max(d, S)),
                           (v = m),
                           (f = Math.max(n, m + r + l + c)));
                       else {
@@ -42430,10 +42659,10 @@
                         f = (e + i) / 2,
                         v = (s + d) / 2;
                       ((this.dtScale = g), (this.dtOffsetX = o / 2 - f * g));
-                      const C = this.dtSettings.defaultFontSize || 14;
+                      const S = this.dtSettings.defaultFontSize || 14;
                       ((this.dtOffsetY = this.isMobile
-                        ? h / 2 - v * g + l + C
-                        : h / 2 - v * g + l + 2.4 * C),
+                        ? h / 2 - v * g + l + S
+                        : h / 2 - v * g + l + 2.4 * S),
                         this.$nextTick(() => {
                           (this.dtUpdatePositions(),
                             setTimeout(() => {
@@ -42517,14 +42746,14 @@
                                   );
                               if (0 === f.length) return;
                               const v = f.reduce((t, e) => t + h(e.id), 0);
-                              let C = g - v / 2;
+                              let S = g - v / 2;
                               f.forEach((t) => {
                                 const e = l(t),
                                   i = h(t.id);
                                 ((t.x = m + o + n),
-                                  (t.y = C + (i - e) / 2),
+                                  (t.y = S + (i - e) / 2),
                                   u(t.id),
-                                  (C += i));
+                                  (S += i));
                               });
                             },
                             p = (t) => {
@@ -42558,17 +42787,17 @@
                                   );
                               if (0 === f.length) return;
                               const v = f.reduce((t, e) => t + p(e.id), 0);
-                              let C = u - v / 2;
+                              let S = u - v / 2;
                               f.forEach((t) => {
                                 const e = r(t),
                                   i = l(t),
                                   s = p(t.id);
-                                ((t.x = C + (s - e) / 2),
+                                ((t.x = S + (s - e) / 2),
                                   (t.y = g + h + n),
                                   (t.width = e),
                                   (t.height = i),
                                   m(t.id),
-                                  (C += s));
+                                  (S += s));
                               });
                             },
                             g = this.dtNodes.filter((t) => 1 === t.level);
@@ -42667,18 +42896,18 @@
                                       : f.push(t);
                                 });
                                 const v = this.dtSettings.bothSideLeftCount;
-                                let C =
+                                let S =
                                   null !== v && void 0 !== v
                                     ? v
                                     : Math.ceil(f.length / 2);
-                                ((C = Math.max(0, Math.min(C, f.length))),
+                                ((S = Math.max(0, Math.min(S, f.length))),
                                   f.sort((t, e) =>
                                     t.id.localeCompare(e.id, void 0, {
                                       numeric: !0,
                                     }),
                                   ),
-                                  m.push(...f.slice(0, C)),
-                                  g.push(...f.slice(C)),
+                                  m.push(...f.slice(0, S)),
+                                  g.push(...f.slice(S)),
                                   m.sort((t, e) =>
                                     t.id.localeCompare(e.id, void 0, {
                                       numeric: !0,
@@ -42699,7 +42928,7 @@
                                 void 0 !== v._manualY &&
                                 ((m = v._manualX - o[v.id].x),
                                 (f = v._manualY - o[v.id].y));
-                              const C = (t, a) => {
+                              const S = (t, a) => {
                                 if (!c(t)) return;
                                 const o = this.dtNodes.find((e) => e.id === t),
                                   u = o ? r(o) : s,
@@ -42716,15 +42945,15 @@
                                   );
                                 if (0 === f.length) return;
                                 const v = f.reduce((t, e) => t + h(e.id), 0);
-                                let S = g - v / 2;
+                                let C = g - v / 2;
                                 f.forEach((t) => {
                                   const e = l(t),
                                     i = h(t.id);
                                   ((t.x =
                                     "left" === a ? m - n - r(t) : m + u + n),
-                                    (t.y = S + (i - e) / 2),
-                                    C(t.id, a),
-                                    (S += i));
+                                    (t.y = C + (i - e) / 2),
+                                    S(t.id, a),
+                                    (C += i));
                                 });
                               };
                               g.forEach((t) => {
@@ -42744,7 +42973,7 @@
                                     ((e.x = t.x - n - i),
                                       (e.y = d + (s - l(e)) / 2),
                                       (e._side = "left"),
-                                      C(e.id, "left"),
+                                      S(e.id, "left"),
                                       (d += s));
                                   });
                                 }
@@ -42759,7 +42988,7 @@
                                     ((e.x = t.x + r(t) + n),
                                       (e.y = d + (s - i) / 2),
                                       (e._side = "right"),
-                                      C(e.id, "right"),
+                                      S(e.id, "right"),
                                       (d += s));
                                   });
                                 }
@@ -42953,11 +43182,11 @@
                                   g = e ? -1 : 1,
                                   f = c + g * m,
                                   v = h,
-                                  C = u - g * m,
-                                  S = p;
+                                  S = u - g * m,
+                                  C = p;
                                 this.dtPaths.push({
                                   id: `${r.id}-${i.id}`,
-                                  d: `M ${c} ${h} C ${f} ${v}, ${C} ${S}, ${u} ${p}`,
+                                  d: `M ${c} ${h} C ${f} ${v}, ${S} ${C}, ${u} ${p}`,
                                 });
                               } else {
                                 const t = a(r),
@@ -43951,27 +44180,35 @@
                       }
                     },
                     dtEditorStartResize(t, e, i) {
-                      (e.preventDefault(),
-                        e.stopPropagation(),
-                        (this[i + "IsResizing"] = !0),
+                      (e.preventDefault(), e.stopPropagation());
+                      const s = e.touches ? e.touches[0] : e;
+                      ((this[i + "IsResizing"] = !0),
                         (this[i + "ResizeDirection"] = t),
-                        (this[i + "ResizeStartX"] = e.clientX),
-                        (this[i + "ResizeStartY"] = e.clientY));
-                      const s = this[i + "SelectedMedia"];
-                      if (s) {
-                        const t = s.getBoundingClientRect();
+                        (this[i + "ResizeStartX"] = s.clientX),
+                        (this[i + "ResizeStartY"] = s.clientY));
+                      const d = this[i + "SelectedMedia"];
+                      if (d) {
+                        const t = d.getBoundingClientRect();
                         ((this[i + "ResizeStartWidth"] = t.width),
                           (this[i + "ResizeStartHeight"] = t.height));
                       }
                     },
                     dtOnMouseMove(t) {
+                      const e = [
+                        "dtEditEditor",
+                        "dtDescriptionEditor",
+                        "dtSummaryEditor",
+                        "dtNoteEditor",
+                      ].some((t) => this[t + "IsResizing"]);
+                      e && t.cancelable && t.preventDefault();
+                      const i = t.touches ? t.touches[0] : t;
                       [
                         "dtEditEditor",
                         "dtDescriptionEditor",
                         "dtSummaryEditor",
                         "dtNoteEditor",
-                      ].forEach((e) => {
-                        this[e + "IsResizing"] && this.dtHandleResize(t, e);
+                      ].forEach((t) => {
+                        this[t + "IsResizing"] && this.dtHandleResize(i, t);
                       });
                     },
                     dtHandleResize(t, e) {
@@ -44206,7 +44443,7 @@
             };
           })(),
           (function () {
-            var t = { 524: 0 };
+            var t = { 57: 0 };
             i.O.j = function (e) {
               return 0 === t[e];
             };
@@ -44234,11 +44471,11 @@
               (s.push = e.bind(null, s.push.bind(s))));
           })());
         var s = i.O(void 0, [504], function () {
-          return i(830);
+          return i(5362);
         });
         s = i.O(s);
       })();
-      //# sourceMappingURL=app.a39d2d82.js.map
+      //# sourceMappingURL=index.296263c4.js.map
     </script>
   </body>
 </html>
