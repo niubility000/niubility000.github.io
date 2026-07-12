@@ -1093,20 +1093,11 @@
         attempts++;
       } while ((d < 0 || d >= 20) && attempts < 200);
 
-      // 随机选择未知数位置: 0:结果 1:c 2:b 3:a
-      const pos = forceRightSide ? 0 : rand(0, 3);
+      // 混合运算：?只在等号右边（求结果）
       if (pattern === 1) {
-        // a + b - c = d
-        if (pos === 0) { expr = `${a} + ${b} - ${c} = ?`; answer = d; }
-        else if (pos === 1) { expr = `${a} + ${b} - ? = ${d}`; answer = c; }
-        else if (pos === 2) { expr = `${a} + ? - ${c} = ${d}`; answer = b; }
-        else { expr = `? + ${b} - ${c} = ${d}`; answer = a; }
+        expr = `${a} + ${b} - ${c} = ?`; answer = d;
       } else {
-        // a - b + c = d
-        if (pos === 0) { expr = `${a} - ${b} + ${c} = ?`; answer = d; }
-        else if (pos === 1) { expr = `${a} - ${b} + ? = ${d}`; answer = c; }
-        else if (pos === 2) { expr = `${a} - ? + ${c} = ${d}`; answer = b; }
-        else { expr = `? - ${b} + ${c} = ${d}`; answer = a; }
+        expr = `${a} - ${b} + ${c} = ?`; answer = d;
       }
       return { expr, answer };
     }
@@ -1148,20 +1139,11 @@
         expr = `${a} + ${b} - ${c}`;
       }
 
-      // 随机选择未知数位置: 0:结果 1:c 2:b 3:a
-      const pos = forceRightSide ? 0 : rand(0, 3);
+      // 混合运算：?只在等号右边（求结果）
       if (pattern === 1 || (d < 0 || d >= 100)) {
-        // a + b - c = d
-        if (pos === 0) { expr = `${a} + ${b} - ${c} = ?`; answer = d; }
-        else if (pos === 1) { expr = `${a} + ${b} - ? = ${d}`; answer = c; }
-        else if (pos === 2) { expr = `${a} + ? - ${c} = ${d}`; answer = b; }
-        else { expr = `? + ${b} - ${c} = ${d}`; answer = a; }
+        expr = `${a} + ${b} - ${c} = ?`; answer = d;
       } else {
-        // a - b + c = d
-        if (pos === 0) { expr = `${a} - ${b} + ${c} = ?`; answer = d; }
-        else if (pos === 1) { expr = `${a} - ${b} + ? = ${d}`; answer = c; }
-        else if (pos === 2) { expr = `${a} - ? + ${c} = ${d}`; answer = b; }
-        else { expr = `? - ${b} + ${c} = ${d}`; answer = a; }
+        expr = `${a} - ${b} + ${c} = ?`; answer = d;
       }
       return { expr, answer };
     }
