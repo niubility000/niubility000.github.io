@@ -3,7 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>小学数学计算练习</title>
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="数学练习">
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icon-192.jpg">
+  <title>小学数学计算天天练</title>
   <style>
     * {
       margin: 0;
@@ -579,7 +585,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>小学数学计算练习</h1>
+    <h1>小学数学计算天天练</h1>
 
     <div class="user-switch" id="userSwitch">
       <button id="user1Btn" class="active" onclick="switchUser(1)">用户一</button>
@@ -645,9 +651,9 @@
         <button class="numpad-key" style="grid-column:1;grid-row:3" onclick="numpadInput('7')">7</button>
         <button class="numpad-key" style="grid-column:2;grid-row:3" onclick="numpadInput('8')">8</button>
         <button class="numpad-key" style="grid-column:3;grid-row:3" onclick="numpadInput('9')">9</button>
-        <button class="numpad-key numpad-back" style="grid-column:1;grid-row:4" onclick="numpadBackspace()">&#9003;</button>
+        <button class="numpad-key numpad-fav" style="grid-column:1;grid-row:4" id="favBtn" onclick="toggleFavorite()">&#9734;</button>
         <button class="numpad-key" style="grid-column:2;grid-row:4" onclick="numpadInput('0')">0</button>
-        <button class="numpad-key numpad-fav" style="grid-column:3;grid-row:4" id="favBtn" onclick="toggleFavorite()">&#9734;</button>
+        <button class="numpad-key numpad-back" style="grid-column:3;grid-row:4" onclick="numpadBackspace()">&#9003;</button>
       </div>
     </div>
 
@@ -1466,6 +1472,11 @@
       document.getElementById('resultArea').style.display = 'none';
       document.getElementById('startArea').style.display = 'block';
       document.getElementById('userSwitch').style.display = 'flex';
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(() => {});
     }
   </script>
 </body>
