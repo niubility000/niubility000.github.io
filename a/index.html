@@ -167,6 +167,10 @@
       text-align: center;
       margin-bottom: 12px;
       border: 2px solid #e9ecef;
+      height: 40vh;
+          display: flex;
+    flex-direction: column;
+    justify-content: center;
     }
 
     .question {
@@ -185,6 +189,30 @@
       border-radius: 10px;
       outline: none;
       transition: border-color 0.3s;
+    }
+
+    .answer-span {
+      display: none;
+      min-width: 110px;
+      font-size: 22px;
+      text-align: center;
+      border: 2px solid #667eea;
+      border-radius: 10px;
+      color: #333;
+      background: #f8f9fa;
+      min-height: 46px;
+      line-height: 46px;
+      box-sizing: border-box;
+    }
+
+    .answer-span.correct {
+      border-color: #4CAF50;
+      background: #e8f5e9;
+    }
+
+    .answer-span.wrong {
+      border-color: #f44336;
+      background: #ffebee;
     }
 
     .answer-input:focus {
@@ -529,10 +557,11 @@
     @media screen and (max-width: 600px) {
       body {
         padding: 0;
+        overflow: hidden;
       }
       .container {
         border-radius: 0;
-        padding: 16px;
+        padding: 32px 16px 16px 16px;
         max-width: 100%;
         width: 100%;
         min-height: 100vh;
@@ -555,8 +584,14 @@
         font-size: 28px;
       }
       .answer-input {
+        display: none;
+      }
+      .answer-span {
+        display: inline-block;
         width: 100px;
         font-size: 20px;
+        min-height: 50px;
+        line-height: 42px;
       }
       .numpad {
         max-width: 100%;
@@ -631,7 +666,8 @@
       <div class="question-card">
         <div class="question" id="questionText"></div>
         <div>
-          <input type="number" class="answer-input" id="answerInput" placeholder="?">
+          <input type="number" class="answer-input" id="answerInput" placeholder="?" inputmode="none">
+          <span class="answer-span" id="answerSpan"></span>
         </div>
         <div class="feedback" id="feedback"></div>
         <div class="feedback hint" id="hintText"></div>
@@ -680,6 +716,38 @@
     let soundEnabled = true;
     let waitingForNext = false;
     let favConsecutiveCorrect = {};  // { expr: 连续正确次数 }
+    let answerValue = '';
+    const isMobile = () => window.innerWidth <= 600;
+
+    function getAnswerEl() {
+      return isMobile()
+        ? document.getElementById('answerSpan')
+        : document.getElementById('answerInput');
+    }
+
+    function setAnswerValue(val) {
+      answerValue = val;
+      if (isMobile()) {
+        document.getElementById('answerSpan').textContent = val || '';
+      } else {
+        document.getElementById('answerInput').value = val || '';
+      }
+    }
+
+    function getAnswerValue() {
+      return answerValue;
+    }
+
+    function setAnswerClass(cls) {
+      const input = document.getElementById('answerInput');
+      const span = document.getElementById('answerSpan');
+      input.className = 'answer-input' + (cls ? ' ' + cls : '');
+      span.className = 'answer-span' + (cls ? ' ' + cls : '');
+    }
+
+    function isTouchDevice() {
+      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    }
     let startTime;
     let answered = false;
     let maxRange = 20;
@@ -1224,8 +1292,8 @@
       const q = questions[currentIndex];
       document.getElementById('currentNum').textContent = currentIndex + 1;
       document.getElementById('questionText').textContent = q.expr;
-      document.getElementById('answerInput').value = '';
-      document.getElementById('answerInput').className = 'answer-input';
+      setAnswerValue('');
+      setAnswerClass('');
       document.getElementById('answerInput').disabled = false;
       document.getElementById('feedback').textContent = '';
       document.getElementById('feedback').className = 'feedback';
@@ -1235,7 +1303,9 @@
       enterBtn.textContent = '\u23CE';
       enterBtn.classList.remove('next');
       updateFavButton();
-      document.getElementById('answerInput').focus();
+      if (!isMobile()) {
+        document.getElementById('answerInput').focus();
+      }
     }
 
     // 检查答案
@@ -1248,9 +1318,9 @@
       if (answered) return;
 
       const input = document.getElementById('answerInput');
-      const userAnswer = parseInt(input.value);
+      const userAnswer = parseInt(getAnswerValue());
       if (isNaN(userAnswer)) {
-        input.focus();
+        if (!isMobile()) input.focus();
         return;
       }
 
@@ -1268,7 +1338,7 @@
       if (correct) {
         score++;
         playSound('correct');
-        input.className = 'answer-input correct';
+        setAnswerClass('correct');
         feedback.textContent = '太棒了！答对了！';
         feedback.className = 'feedback correct pop';
         q.userAnswer = userAnswer;
@@ -1299,7 +1369,7 @@
         }, q.mulA !== undefined ? 2500 : 1200);
       } else {
         playSound('wrong');
-        input.className = 'answer-input wrong shake';
+        setAnswerClass('wrong shake');
         feedback.textContent = `答错了，正确答案是 ${q.answer}`;
         feedback.className = 'feedback wrong';
         hint.textContent = '按回车键继续下一题';
@@ -1352,7 +1422,7 @@
         if (waitingForNext) {
           e.preventDefault();
           goToNext();
-        } else if (!answered && document.activeElement !== answerInput) {
+        } else if (!answered && !isMobile() && document.activeElement !== answerInput) {
           answerInput.focus();
         } else if (!answered) {
           checkAnswer();
@@ -1473,16 +1543,16 @@
       if (answered && !waitingForNext) return;
       const input = document.getElementById('answerInput');
       if (input.disabled) return;
-      input.value = input.value + digit;
-      input.focus();
+      setAnswerValue(getAnswerValue() + digit);
+      if (!isMobile()) input.focus();
     }
 
     function numpadBackspace() {
       if (answered && !waitingForNext) return;
       const input = document.getElementById('answerInput');
       if (input.disabled) return;
-      input.value = input.value.slice(0, -1);
-      input.focus();
+      setAnswerValue(getAnswerValue().slice(0, -1));
+      if (!isMobile()) input.focus();
     }
 
     function numpadEnter() {
