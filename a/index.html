@@ -601,10 +601,14 @@
       </div>
 
       <div class="range-toggle">
-        <button id="range20" class="active" onclick="setRange(20)">二十以内</button>
-        <button id="range100" onclick="setRange(100)">一百以内</button>
+        <button id="range20" class="active" onclick="setRange(20)">二十以内加减</button>
+        <button id="range100" onclick="setRange(100)">一百以内加减</button>
         <button id="rangeMul" onclick="setRange('multiply')">乘法口诀</button>
         <button id="rangeFav" onclick="setRange('favorites')">收藏</button>
+      </div>
+
+      <div class="fav-auto-remove" id="favAutoRemove" style="display:none; text-align:center; color:#666; font-size:13px; margin-top:8px;">
+        如果收藏的题目连续正确 <input type="number" id="autoRemoveThreshold" value="3" min="1" max="20" style="width:40px; padding:2px 4px; font-size:13px; text-align:center; border:1px solid #ddd; border-radius:4px;"> 次，则自动移出收藏
       </div>
 
       <div class="sound-toggle">
@@ -683,6 +687,7 @@
     let favorites = [];
     let soundEnabled = true;
     let waitingForNext = false;
+    let favConsecutiveCorrect = {};  // { expr: 连续正确次数 }
     let startTime;
     let answered = false;
     let maxRange = 20;
@@ -740,6 +745,7 @@
     function loadUserData() {
       history = JSON.parse(localStorage.getItem('mathQuizHistory_u' + currentUser) || '[]');
       favorites = JSON.parse(localStorage.getItem('mathFavorites_u' + currentUser) || '[]');
+      favConsecutiveCorrect = JSON.parse(localStorage.getItem('mathFavConsec_u' + currentUser) || '{}');
     }
 
     function saveHistory() {
@@ -748,6 +754,10 @@
 
     function saveFavorites() {
       localStorage.setItem('mathFavorites_u' + currentUser, JSON.stringify(favorites));
+    }
+
+    function saveFavConsecutive() {
+      localStorage.setItem('mathFavConsec_u' + currentUser, JSON.stringify(favConsecutiveCorrect));
     }
 
     // 切换用户
@@ -873,6 +883,7 @@
       document.getElementById('range100').classList.toggle('active', range === 100);
       document.getElementById('rangeMul').classList.toggle('active', range === 'multiply');
       document.getElementById('rangeFav').classList.toggle('active', range === 'favorites');
+      document.getElementById('favAutoRemove').style.display = range === 'favorites' ? 'block' : 'none';
     }
 
     // 生成题目
@@ -901,9 +912,9 @@
       let a, b, attempts = 0;
       do {
         a = rand(2, maxVal - 2);
-        b = rand(2, maxVal - a);
+        b = rand(2, maxVal - a - 1);
         attempts++;
-      } while ((!hasCarry(a, b) || a + b > maxVal) && attempts < 500);
+      } while ((!hasCarry(a, b) || a + b >= maxVal) && attempts < 500);
       return { a, b };
     }
 
@@ -923,10 +934,10 @@
     function genPlainAddition(maxVal, minA, minB) {
       let a, b, attempts = 0;
       do {
-        a = rand(minA || 1, maxVal - 1);
-        b = rand(minB || 1, maxVal - a);
+        a = rand(minA || 1, maxVal - 2);
+        b = rand(minB || 1, maxVal - a - 1);
         attempts++;
-      } while (hasCarry(a, b) && attempts < 200);
+      } while ((hasCarry(a, b) || a + b >= maxVal) && attempts < 200);
       return { a, b };
     }
 
@@ -1012,19 +1023,21 @@
       do {
         if (pattern === 1) {
           a = rand(2, 10); b = rand(1, 10); c = rand(1, 10);
-          if (a + b > 20) a = rand(2, 20 - b);
+          if (a + b >= 20) a = rand(2, 19 - b);
           d = a + b - c;
           expr = `${a} + ${b} - ${c}`;
         } else {
           a = rand(5, 19); b = rand(1, 10); c = rand(1, 5);
           if (a < b) { a = b + rand(1, Math.min(10, 19 - b)); }
           if (a > 19) a = 19;
-          if (a - b + c > 20) c = rand(1, 20 - (a - b));
+          const maxC = 19 - (a - b);
+          if (maxC <= 0) { a = rand(10, 16); b = rand(1, 5); }
+          if (a - b + c >= 20) c = rand(1, Math.max(1, 19 - (a - b)));
           d = a - b + c;
           expr = `${a} - ${b} + ${c}`;
         }
         attempts++;
-      } while ((d < 0 || d > 20) && attempts < 200);
+      } while ((d < 0 || d >= 20) && attempts < 200);
 
       // 随机选择未知数位置: 0:结果 1:c 2:b 3:a
       const pos = forceRightSide ? 0 : rand(0, 3);
@@ -1169,10 +1182,16 @@
         function canUseLeftSide() {
           return leftSideCount < maxLeftSide;
         }
-        // 辅助函数：生成题目并统计
+        // 辅助函数：生成题目并统计（去重）
+        const usedExprs = new Set();
         function gen(forceType) {
-          const forceRightSide = !canUseLeftSide();
-          const q = generateQuestion(forceType, forceRightSide);
+          let q, attempts = 0;
+          do {
+            const forceRightSide = !canUseLeftSide();
+            q = generateQuestion(forceType, forceRightSide);
+            attempts++;
+          } while (usedExprs.has(q.expr) && attempts < 100);
+          usedExprs.add(q.expr);
           if (q.expr.indexOf('?') < q.expr.indexOf('=')) {
             leftSideCount++;
           }
@@ -1266,6 +1285,21 @@
         q.userAnswer = userAnswer;
         q.isCorrect = true;
 
+        // 收藏模式：追踪连续正确次数，达到阈值自动移出收藏
+        if (maxRange === 'favorites') {
+          favConsecutiveCorrect[q.expr] = (favConsecutiveCorrect[q.expr] || 0) + 1;
+          const threshold = parseInt(document.getElementById('autoRemoveThreshold').value) || 3;
+          if (favConsecutiveCorrect[q.expr] >= threshold && isFavorited(q)) {
+            const idx = favorites.findIndex(f => f.expr === q.expr);
+            if (idx >= 0) {
+              favorites.splice(idx, 1);
+              saveFavorites();
+              delete favConsecutiveCorrect[q.expr];
+            }
+          }
+          saveFavConsecutive();
+        }
+
         setTimeout(() => {
           currentIndex++;
           if (currentIndex < questions.length) {
@@ -1282,6 +1316,9 @@
         hint.textContent = '按回车键继续下一题';
         q.userAnswer = userAnswer;
         q.isCorrect = false;
+        // 答错时重置连续正确计数
+        favConsecutiveCorrect[q.expr] = 0;
+        saveFavConsecutive();
         // 错题自动加入收藏
         if (!isFavorited(q)) {
           const fav = { expr: q.expr, answer: q.answer };
