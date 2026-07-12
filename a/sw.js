@@ -1,4 +1,4 @@
-const CACHE_NAME = 'math-practice-v1';
+const CACHE_NAME = 'math-practice-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -24,23 +24,27 @@ self.addEventListener('activate', e => {
   self.clients.claim();
 });
 
-// 请求拦截：优先缓存，回退网络
+// 请求拦截：网络优先，缓存回退
 self.addEventListener('fetch', e => {
   e.respondWith(
-    caches.match(e.request).then(cached => {
-      return cached || fetch(e.request).then(response => {
-        // 仅缓存同源 GET 请求
-        if (response.ok && e.request.method === 'GET' && e.request.url.startsWith(self.location.origin)) {
+    // HTML 文件始终走网络，确保拿到最新版
+    if (e.request.mode === 'navigate' || e.request.url.endsWith('.html')) {
+      return fetch(e.request).then(response => {
+        if (response.ok) {
           const clone = response.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
         }
         return response;
-      });
-    }).catch(() => {
-      // 离线回退
-      if (e.request.mode === 'navigate') {
-        return caches.match('./index.html');
+      }).catch(() => caches.match('./index.html'));
+    }
+
+    // 其他资源：网络优先，离线回退缓存
+    return fetch(e.request).then(response => {
+      if (response.ok && e.request.method === 'GET' && e.request.url.startsWith(self.location.origin)) {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(e.request, clone));
       }
-    })
+      return response;
+    }).catch(() => caches.match(e.request));
   );
 });
