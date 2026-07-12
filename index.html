@@ -5438,7 +5438,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        z-index: 9999;
+        z-index: 9998;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -28008,7 +28008,7 @@
       (function () {
         "use strict";
         var t = {
-            6173: function (t, e, i) {
+            7873: function (t, e, i) {
               var s = i(6848),
                 d =
                   (i(4423),
@@ -28799,7 +28799,9 @@
                                       {
                                         staticClass: "dt-btn dt-btn-small",
                                         attrs: {
-                                          disabled: !t.dtSelectedNode,
+                                          disabled:
+                                            !t.dtSelectedNode ||
+                                            t.dtIsFullscreen,
                                           title: "添加同级节点",
                                         },
                                         on: { click: t.dtAddSiblingNode },
@@ -28830,7 +28832,9 @@
                                       {
                                         staticClass: "dt-btn dt-btn-small",
                                         attrs: {
-                                          disabled: !t.dtSelectedNode,
+                                          disabled:
+                                            !t.dtSelectedNode ||
+                                            t.dtIsFullscreen,
                                           title: "添加下级节点",
                                         },
                                         on: { click: t.dtAddChildNode },
@@ -28927,7 +28931,10 @@
                                           "button",
                                           {
                                             staticClass: "dt-btn dt-btn-small",
-                                            attrs: { title: "删除笔记" },
+                                            attrs: {
+                                              disabled: t.dtIsFullscreen,
+                                              title: "删除笔记",
+                                            },
                                             on: { click: t.dtDeleteNote },
                                           },
                                           [t._v(" ✕ ")],
@@ -28936,7 +28943,10 @@
                                           "button",
                                           {
                                             staticClass: "dt-btn dt-btn-small",
-                                            attrs: { title: "添加笔记" },
+                                            attrs: {
+                                              disabled: t.dtIsFullscreen,
+                                              title: "添加笔记",
+                                            },
                                             on: { click: t.dtAddNote },
                                           },
                                           [
@@ -28970,17 +28980,18 @@
                                       {
                                         staticClass: "dt-btn dt-btn-small",
                                         attrs: {
-                                          disabled: !(
-                                            t.dtIsRealNodeSelected &&
-                                            0 ==
-                                              t.dtSelectedNode.description
-                                                .replace(/<[^>]*>/g, "")
-                                                .trim().length &&
-                                            !/(img|video|audio)/i.test(
-                                              t.dtSelectedNode.description ||
-                                                "",
-                                            )
-                                          ),
+                                          disabled:
+                                            !(
+                                              t.dtIsRealNodeSelected &&
+                                              0 ==
+                                                t.dtSelectedNode.description
+                                                  .replace(/<[^>]*>/g, "")
+                                                  .trim().length &&
+                                              !/(img|video|audio)/i.test(
+                                                t.dtSelectedNode.description ||
+                                                  "",
+                                              )
+                                            ) || t.dtIsFullscreen,
                                           title: "添加注释",
                                         },
                                         on: { click: t.dtAddComment },
@@ -29016,7 +29027,8 @@
                                             !t.dtIsRealNodeSelected ||
                                             (t.dtSelectedNode.attachments &&
                                               t.dtSelectedNode.attachments
-                                                .length > 0),
+                                                .length > 0) ||
+                                            t.dtIsFullscreen,
                                           title: "添加附件",
                                         },
                                         on: { click: t.dtAddAttachmentBtn },
@@ -29048,7 +29060,9 @@
                                       {
                                         staticClass: "dt-btn dt-btn-small",
                                         attrs: {
-                                          disabled: !t.dtIsRealNodeSelected,
+                                          disabled:
+                                            !t.dtIsRealNodeSelected ||
+                                            t.dtIsFullscreen,
                                           title: "标签",
                                         },
                                         on: { click: t.dtOpenTagEditor },
@@ -29088,7 +29102,10 @@
                                           "button",
                                           {
                                             staticClass: "dt-btn dt-btn-small",
-                                            attrs: { title: "删除概要" },
+                                            attrs: {
+                                              disabled: t.dtIsFullscreen,
+                                              title: "删除概要",
+                                            },
                                             on: { click: t.dtDeleteSummary },
                                           },
                                           [
@@ -29128,7 +29145,8 @@
                                             attrs: {
                                               disabled:
                                                 !t.dtIsRealNodeSelected ||
-                                                1 === t.dtSelectedNode?.level,
+                                                1 === t.dtSelectedNode?.level ||
+                                                t.dtIsFullscreen,
                                               title: "添加概要",
                                             },
                                             on: { click: t.dtToggleSummary },
@@ -29272,7 +29290,8 @@
                                         attrs: {
                                           disabled:
                                             !t.dtIsRealNodeSelected ||
-                                            1 === t.dtSelectedNode.level,
+                                            1 === t.dtSelectedNode.level ||
+                                            t.dtIsFullscreen,
                                           title: "克隆节点",
                                         },
                                         on: { click: t.dtCloneNode },
@@ -29360,7 +29379,8 @@
                                               t.dtRootNodesCount <= 1 &&
                                               !t.dtSelectedNode.id.startsWith(
                                                 "summary_",
-                                              )),
+                                              )) ||
+                                            t.dtIsFullscreen,
                                           title: "删除节点",
                                         },
                                         on: { click: t.dtDeleteNode },
@@ -29565,7 +29585,10 @@
                                       "button",
                                       {
                                         staticClass: "dt-btn dt-btn-small",
-                                        attrs: { title: "AI生成思维导图" },
+                                        attrs: {
+                                          disabled: t.dtIsFullscreen,
+                                          title: "AI生成思维导图",
+                                        },
                                         on: { click: t.dtOpenAiModal },
                                       },
                                       [
@@ -29598,8 +29621,8 @@
                                         staticClass: "dt-btn dt-btn-small",
                                         attrs: {
                                           title: t.dtIsFullscreen
-                                            ? "退出全屏"
-                                            : "全屏",
+                                            ? "退出全屏-只读"
+                                            : "全屏-只读",
                                         },
                                         on: { click: t.dtToggleFullscreen },
                                       },
@@ -37221,6 +37244,13 @@
                                                         ].content,
                                                       ),
                                                     },
+                                                    on: {
+                                                      click: function (e) {
+                                                        return t.dtOnNoteHtmlContentClick(
+                                                          e,
+                                                        );
+                                                      },
+                                                    },
                                                   }),
                                                 ],
                                               ),
@@ -37250,6 +37280,13 @@
                                                                 .dtSpeechCurrentNodeIndex
                                                             ].description,
                                                           ),
+                                                        },
+                                                        on: {
+                                                          click: function (e) {
+                                                            return t.dtOnNoteHtmlContentClick(
+                                                              e,
+                                                            );
+                                                          },
                                                         },
                                                       }),
                                                     ],
@@ -38990,7 +39027,8 @@
                       return `${e.getFullYear()}-${(e.getMonth() + 1).toString().padStart(2, "0")}-${e.getDate().toString().padStart(2, "0")}`;
                     },
                     dtStartEditName() {
-                      ((this.dtIsEditingName = !0),
+                      this.dtIsFullscreen ||
+                        ((this.dtIsEditingName = !0),
                         this.$nextTick(() => {
                           (this.$refs.dtNameInput.focus(),
                             this.$refs.dtNameInput.select());
@@ -39696,6 +39734,7 @@
                         }, 600));
                     },
                     dtQuizEditContent() {
+                      if (this.dtIsFullscreen) return;
                       const t = this.dtQuizCurrentNode;
                       if (!t) return;
                       const e =
@@ -39859,6 +39898,7 @@
                       this.dtIsDragging = !1;
                     },
                     dtStartNodeDrag(t, e) {
+                      if (this.dtIsFullscreen) return;
                       ("touchstart" === t.type && t.preventDefault(),
                         (this.dtIsNodeDragging = !0),
                         (this.dtDragNode = e));
@@ -40214,6 +40254,7 @@
                       });
                     },
                     dtStartResize(t, e) {
+                      if (this.dtIsFullscreen) return;
                       ("touchstart" === t.type && t.preventDefault(),
                         (this.dtIsResizing = !0),
                         (this.dtResizeNode = e));
@@ -40281,6 +40322,7 @@
                         ));
                     },
                     dtStartEdit(t) {
+                      if (this.dtIsFullscreen) return;
                       ((this.dtIsEditing = !0), (this.dtEditingNode = t));
                       const e = t.level - 1;
                       ((this.dtEditingContent =
@@ -40486,7 +40528,8 @@
                         (this.dtCurrentDescriptionNode = null));
                     },
                     dtOpenDescriptionEdit(t) {
-                      ((this.dtEditingDescriptionNode = t),
+                      this.dtIsFullscreen ||
+                        ((this.dtEditingDescriptionNode = t),
                         (this.dtEditingDescription = t.description || ""),
                         (this.dtIsEditingDescription = !0),
                         this.$nextTick(() => {
@@ -41826,6 +41869,7 @@
                         this.dtCloseSummaryEditor());
                     },
                     dtStartEditSummary(t) {
+                      if (this.dtIsFullscreen) return;
                       const e = this.dtNodes.find(
                         (e) => e.id === t.startNodeId,
                       );
@@ -42181,20 +42225,22 @@
                       this.dtNoteCollapsed = !this.dtNoteCollapsed;
                     },
                     dtStartEditNote() {
-                      this.dtNoteNode &&
-                        ((this.dtEditingNoteContent = this.dtNoteNode.content),
-                        (this.dtIsEditingNote = !0),
-                        this.$nextTick(() => {
-                          this.$refs.dtNoteEditor &&
-                            ((this.$refs.dtNoteEditor.innerHTML =
-                              this.dtNoteNode.content),
-                            document.execCommand(
-                              "defaultParagraphSeparator",
-                              !1,
-                              "br",
-                            ),
-                            this.$refs.dtNoteEditor.focus());
-                        }));
+                      this.dtIsFullscreen ||
+                        (this.dtNoteNode &&
+                          ((this.dtEditingNoteContent =
+                            this.dtNoteNode.content),
+                          (this.dtIsEditingNote = !0),
+                          this.$nextTick(() => {
+                            this.$refs.dtNoteEditor &&
+                              ((this.$refs.dtNoteEditor.innerHTML =
+                                this.dtNoteNode.content),
+                              document.execCommand(
+                                "defaultParagraphSeparator",
+                                !1,
+                                "br",
+                              ),
+                              this.$refs.dtNoteEditor.focus());
+                          })));
                     },
                     dtSaveNote() {
                       if (this.dtNoteNode) {
@@ -42252,6 +42298,7 @@
                         (this.dtEditingNoteContent = ""));
                     },
                     dtStartNoteResize(t) {
+                      if (this.dtIsFullscreen) return;
                       ("touchstart" === t.type && t.preventDefault(),
                         (this.dtIsResizing = !0),
                         (this.dtResizeNode = this.dtNoteNode));
@@ -42325,6 +42372,7 @@
                         ));
                     },
                     dtStartSummaryResize(t, e) {
+                      if (this.dtIsFullscreen) return;
                       ("touchstart" === t.type && t.preventDefault(),
                         (this.dtIsResizing = !0),
                         (this.dtResizeNode = e));
@@ -44467,11 +44515,11 @@
               (s.push = e.bind(null, s.push.bind(s))));
           })());
         var s = i.O(void 0, [504], function () {
-          return i(6173);
+          return i(7873);
         });
         s = i.O(s);
       })();
-      //# sourceMappingURL=index.2f2d063a.js.map
+      //# sourceMappingURL=index.294986e3.js.map
     </script>
   </body>
 </html>
