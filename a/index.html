@@ -397,6 +397,13 @@
       color: #fff;
     }
 
+    .numpad-key.numpad-enter.next {
+      background: #2196F3;
+      color: #fff;
+      border-color: #2196F3;
+      font-size: 14px;
+    }
+
     .numpad-key.numpad-back {
       font-size: 20px;
       color: #f44336;
@@ -580,6 +587,8 @@
     </div>
 
     <div class="start-area" id="startArea">
+      <div class="session-stats" id="sessionStats" style="text-align:right; color:#666; font-size:13px; margin-bottom:10px;"></div>
+
       <div class="settings">
         <label for="questionCount">题目数量：</label>
         <input type="number" id="questionCount" value="10" min="1" max="50">
@@ -612,7 +621,7 @@
     <div class="question-area" id="questionArea">
       <div class="stats">
         <span>第 <b id="currentNum">1</b> / <b id="totalNum">10</b> 题</span>
-        <span>得分：<b id="currentScore">0</b></span>
+        <span>用时：<b id="timerDisplay">0秒</b> | 正确率：<b id="accuracyDisplay">0%</b></span>
       </div>
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
@@ -632,7 +641,7 @@
         <button class="numpad-key" style="grid-column:1;grid-row:2" onclick="numpadInput('4')">4</button>
         <button class="numpad-key" style="grid-column:2;grid-row:2" onclick="numpadInput('5')">5</button>
         <button class="numpad-key" style="grid-column:3;grid-row:2" onclick="numpadInput('6')">6</button>
-        <button class="numpad-key numpad-enter" onclick="numpadEnter()">&#8629;</button>
+        <button class="numpad-key numpad-enter" id="enterBtn" onclick="numpadEnter()">&#8629;</button>
         <button class="numpad-key" style="grid-column:1;grid-row:3" onclick="numpadInput('7')">7</button>
         <button class="numpad-key" style="grid-column:2;grid-row:3" onclick="numpadInput('8')">8</button>
         <button class="numpad-key" style="grid-column:3;grid-row:3" onclick="numpadInput('9')">9</button>
@@ -672,6 +681,54 @@
     let answered = false;
     let maxRange = 20;
     let currentUser = 1;
+    let sessionTotalTime = 0;
+    let sessionTotalQuestions = 0;
+    let sessionTotalWrong = 0;
+    let timerInterval = null;
+
+    function startTimer() {
+      stopTimer();
+      const timerEl = document.getElementById('timerDisplay');
+      const accEl = document.getElementById('accuracyDisplay');
+      timerEl.textContent = '0秒';
+      accEl.textContent = '0%';
+      timerInterval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - startTime) / 1000);
+        timerEl.textContent = formatDuration(elapsed);
+        const answeredCount = questions.slice(0, currentIndex + 1).filter(q => q.isCorrect !== undefined).length;
+        if (answeredCount > 0) {
+          const correctCount = questions.slice(0, currentIndex + 1).filter(q => q.isCorrect === true).length;
+          accEl.textContent = Math.round(correctCount / answeredCount * 100) + '%';
+        }
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
+
+    function formatDuration(seconds) {
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = seconds % 60;
+      let parts = [];
+      if (h > 0) parts.push(h + '小时');
+      if (m > 0) parts.push(m + '分');
+      parts.push(s + '秒');
+      return parts.join('');
+    }
+
+    function updateSessionStats() {
+      const el = document.getElementById('sessionStats');
+      if (sessionTotalQuestions === 0) {
+        el.textContent = '';
+        return;
+      }
+      el.textContent = `本次练习已用时${formatDuration(sessionTotalTime)}，已答${sessionTotalQuestions}题，错误${sessionTotalWrong}题`;
+    }
 
     // 按用户加载数据
     function loadUserData() {
@@ -757,6 +814,7 @@
 
     loadUserData();
     initHistory();
+    updateSessionStats();
 
     // 清空历史记录
     function clearHistory() {
@@ -773,10 +831,10 @@
       if (!soundEnabled) return;
 
       if (type === 'correct') {
-        const audio = new Audio('1.mp3');
+        const audio = new Audio('./1.mp3');
         audio.play().catch(() => {});
       } else if (type === 'wrong') {
-        const audio = new Audio('2.mp3');
+        const audio = new Audio('./2.mp3');
         audio.play().catch(() => {});
       } else if (type === 'celebrate') {
         // 庆祝音效 - 使用 Web Audio API 生成欢快琶音
@@ -1081,21 +1139,19 @@
       soundEnabled = document.getElementById('soundToggle').checked;
       questions = [];
 
-      // 收藏模式：从收藏题目中抽取
+      // 收藏模式：按实际收藏数量出题
       if (maxRange === 'favorites') {
         if (favorites.length === 0) {
           alert('收藏夹为空，请先在练习中收藏题目！');
           return;
         }
-        // 从收藏中随机抽取，不足则循环
+        // 从收藏中随机打乱，全部出题
         const favCopy = [...favorites];
         for (let i = favCopy.length - 1; i > 0; i--) {
           const j = Math.floor(Math.random() * (i + 1));
           [favCopy[i], favCopy[j]] = [favCopy[j], favCopy[i]];
         }
-        for (let i = 0; i < count; i++) {
-          questions.push({ ...favCopy[i % favCopy.length] });
-        }
+        questions = favCopy.map(f => ({ ...f }));
       } else {
         // 计算至少需要的混合运算题数（至少10%）
         const mixedCount = Math.max(1, Math.ceil(count * 0.1));
@@ -1136,12 +1192,13 @@
       score = 0;
       waitingForNext = false;
       startTime = Date.now();
+      startTimer();
 
       document.getElementById('startArea').style.display = 'none';
       document.getElementById('resultArea').style.display = 'none';
       document.getElementById('userSwitch').style.display = 'none';
       document.getElementById('questionArea').style.display = 'block';
-      document.getElementById('totalNum').textContent = count;
+      document.getElementById('totalNum').textContent = questions.length;
 
       showQuestion();
     }
@@ -1159,8 +1216,10 @@
       document.getElementById('feedback').textContent = '';
       document.getElementById('feedback').className = 'feedback';
       document.getElementById('hintText').textContent = '';
-      document.getElementById('currentScore').textContent = score;
       document.getElementById('progressFill').style.width = ((currentIndex + 1) / questions.length * 100) + '%';
+      const enterBtn = document.getElementById('enterBtn');
+      enterBtn.textContent = '\u23CE';
+      enterBtn.classList.remove('next');
       updateFavButton();
       document.getElementById('answerInput').focus();
     }
@@ -1201,8 +1260,6 @@
         q.userAnswer = userAnswer;
         q.isCorrect = true;
 
-        document.getElementById('currentScore').textContent = score;
-
         setTimeout(() => {
           currentIndex++;
           if (currentIndex < questions.length) {
@@ -1227,7 +1284,9 @@
           saveFavorites();
         }
         waitingForNext = true;
-        document.getElementById('currentScore').textContent = score;
+        const enterBtn = document.getElementById('enterBtn');
+        enterBtn.textContent = '下一题';
+        enterBtn.classList.add('next');
       }
     }
 
@@ -1275,10 +1334,17 @@
 
     // 显示结果
     function showResult() {
+      stopTimer();
       const endTime = Date.now();
       const timeUsed = Math.round((endTime - startTime) / 1000);
       const total = questions.length;
       const percentage = Math.round(score / total * 100);
+
+      // 累加到会话统计
+      sessionTotalTime += timeUsed;
+      sessionTotalQuestions += total;
+      sessionTotalWrong += (total - score);
+      updateSessionStats();
 
       document.getElementById('questionArea').style.display = 'none';
       document.getElementById('resultArea').style.display = 'block';
