@@ -1,0 +1,1406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>小学数学计算练习</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 12px;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 20px;
+      padding: 24px 30px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      position: relative;
+      z-index: 10;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 15px;
+      font-size: 26px;
+    }
+
+    .user-switch {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 15px;
+    }
+
+    .user-switch button {
+      padding: 8px 24px;
+      font-size: 14px;
+      border: 2px solid #ddd;
+      border-radius: 0;
+      background: #f8f9fa;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .user-switch button:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    .user-switch button:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
+    .user-switch button.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border-color: #667eea;
+    }
+
+    .user-switch button:not(.active):hover {
+      background: #e9ecef;
+    }
+
+    .settings {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 25px;
+    }
+
+    .settings label {
+      color: #555;
+      font-size: 16px;
+    }
+
+    .settings input[type="number"] {
+      width: 60px;
+      padding: 8px;
+      border: 2px solid #ddd;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 16px;
+    }
+
+    .btn {
+      padding: 12px 30px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      display: block;
+      margin: 0 auto 20px;
+    }
+
+    .btn-start:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-ok {
+      background: #4CAF50;
+      color: #fff;
+      padding: 10px 25px;
+    }
+
+    .btn-ok:hover {
+      background: #45a049;
+    }
+
+    .btn-ok:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: #eee;
+      border-radius: 3px;
+      margin-bottom: 12px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .question-area {
+      display: none;
+    }
+
+    .question-card {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 12px;
+      border: 2px solid #e9ecef;
+    }
+
+    .question {
+      font-size: 32px;
+      color: #333;
+      margin-bottom: 14px;
+      letter-spacing: 4px;
+    }
+
+    .answer-input {
+      width: 110px;
+      padding: 10px;
+      font-size: 22px;
+      text-align: center;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      outline: none;
+      transition: border-color 0.3s;
+    }
+
+    .answer-input:focus {
+      border-color: #667eea;
+    }
+
+    .answer-input.correct {
+      border-color: #4CAF50;
+      background: #e8f5e9;
+    }
+
+    .answer-input.wrong {
+      border-color: #f44336;
+      background: #ffebee;
+    }
+
+    .feedback {
+      font-size: 17px;
+      margin-top: 10px;
+      min-height: 22px;
+      font-weight: bold;
+    }
+
+    .feedback.correct {
+      color: #4CAF50;
+    }
+
+    .feedback.wrong {
+      color: #f44336;
+    }
+
+    .feedback.hint {
+      color: #FF9800;
+      font-size: 14px;
+      margin-top: 8px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 14px;
+      color: #666;
+    }
+
+    .result-area {
+      display: none;
+      text-align: center;
+    }
+
+    .result-card {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 20px;
+    }
+
+    .score-circle {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      color: #fff;
+      font-size: 36px;
+      font-weight: bold;
+    }
+
+    .result-details {
+      font-size: 16px;
+      color: #555;
+      line-height: 2;
+    }
+
+    .history-list {
+      max-height: 200px;
+      overflow-y: auto;
+      margin-top: 15px;
+      text-align: left;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 12px;
+      border-radius: 8px;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .history-item.correct {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .history-item.wrong {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .history-item span:first-child {
+      font-family: monospace;
+    }
+
+    .btn-retry {
+      background: #FF9800;
+      color: #fff;
+    }
+
+    .btn-retry:hover {
+      background: #f57c00;
+    }
+
+    .sound-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 20px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .sound-toggle input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .range-toggle {
+      display: flex;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 20px;
+    }
+
+    .range-toggle button {
+      padding: 10px 20px;
+      font-size: 14px;
+      border: 2px solid #ddd;
+      border-radius: 0;
+      background: #f8f9fa;
+      color: #666;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .range-toggle button:first-child {
+      border-radius: 8px 0 0 8px;
+    }
+
+    .range-toggle button:last-child {
+      border-radius: 0 8px 8px 0;
+    }
+
+    .range-toggle button.active {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      border-color: #667eea;
+    }
+
+    .range-toggle button:not(.active):hover {
+      background: #e9ecef;
+    }
+
+    .numpad {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr) 1.1fr;
+      grid-template-rows: repeat(4, 1fr);
+      gap: 6px;
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    .numpad-key {
+      padding: 12px 0;
+      font-size: 20px;
+      border: 2px solid #ddd;
+      border-radius: 10px;
+      background: #f8f9fa;
+      color: #333;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+      text-align: center;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .numpad-key:hover {
+      background: #e9ecef;
+      border-color: #667eea;
+    }
+
+    .numpad-key:active {
+      transform: scale(0.92);
+      background: #667eea;
+      color: #fff;
+    }
+
+    .numpad-key.numpad-enter {
+      grid-column: 4;
+      grid-row: 2 / 4;
+      font-size: 22px;
+      color: #4CAF50;
+      border-color: #c8e6c9;
+      background: #f1f8f1;
+    }
+
+    .numpad-key.numpad-enter:active {
+      background: #4CAF50;
+      color: #fff;
+    }
+
+    .numpad-key.numpad-back {
+      font-size: 20px;
+      color: #f44336;
+      border-color: #ffcdd2;
+    }
+
+    .numpad-key.numpad-back:active {
+      background: #f44336;
+      color: #fff;
+    }
+
+    .numpad-key.numpad-fav {
+      font-size: 20px;
+      color: #FF9800;
+      border-color: #ffe0b2;
+    }
+
+    .numpad-key.numpad-fav:active {
+      background: #FF9800;
+      color: #fff;
+    }
+
+    .numpad-key.numpad-fav.favorited {
+      color: #fff;
+      background: #FF9800;
+      border-color: #FF9800;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .shake {
+      animation: shake 0.4s ease;
+    }
+
+    @keyframes pop {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .pop {
+      animation: pop 0.3s ease;
+    }
+
+    /* 庆祝动画 */
+    .celebration-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+      display: none;
+    }
+
+    .celebration-overlay.active {
+      display: block;
+    }
+
+    .confetti {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      top: -10px;
+      animation: confetti-fall linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0% {
+        transform: translateY(0) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(100vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
+
+    .celebration-text {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      text-align: center;
+      z-index: 10000;
+      pointer-events: none;
+      display: none;
+    }
+
+    .celebration-text.active {
+      display: block;
+      animation: celebration-pop 1s ease forwards 0.3s;
+    }
+
+    .celebration-text .trophy {
+      font-size: 80px;
+      margin-bottom: 15px;
+    }
+
+    .celebration-text .msg {
+      font-size: 28px;
+      font-weight: bold;
+      color: #FFD700;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      background: rgba(255,255,255,0.95);
+      padding: 20px 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+    }
+
+    .celebration-text .submsg {
+      font-size: 18px;
+      color: #666;
+      margin-top: 10px;
+    }
+
+    @keyframes celebration-pop {
+      0% { transform: translate(-50%, -50%) scale(0); }
+      60% { transform: translate(-50%, -50%) scale(1.1); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    @media screen and (max-width: 600px) {
+      body {
+        padding: 0;
+      }
+      .container {
+        border-radius: 0;
+        padding: 16px;
+        max-width: 100%;
+        width: 100%;
+        min-height: 100vh;
+        box-shadow: none;
+      }
+      h1 {
+        font-size: 22px;
+        margin-bottom: 12px;
+      }
+      .user-switch button {
+        padding: 6px 18px;
+        font-size: 13px;
+      }
+      .range-toggle button {
+        padding: 8px 14px;
+        font-size: 12px;
+      }
+      .question {
+        font-size: 28px;
+      }
+      .answer-input {
+        width: 100px;
+        font-size: 20px;
+      }
+      .numpad {
+        max-width: 100%;
+        gap: 5px;
+      }
+      .numpad-key {
+        padding: 10px 0;
+        font-size: 18px;
+      }
+      .celebration-text {
+        font-size: 24px;
+        padding: 15px 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>小学数学计算练习</h1>
+
+    <div class="user-switch" id="userSwitch">
+      <button id="user1Btn" class="active" onclick="switchUser(1)">用户一</button>
+      <button id="user2Btn" onclick="switchUser(2)">用户二</button>
+    </div>
+
+    <div class="start-area" id="startArea">
+      <div class="settings">
+        <label for="questionCount">题目数量：</label>
+        <input type="number" id="questionCount" value="10" min="1" max="50">
+      </div>
+
+      <div class="range-toggle">
+        <button id="range20" class="active" onclick="setRange(20)">二十以内</button>
+        <button id="range100" onclick="setRange(100)">一百以内</button>
+        <button id="rangeMul" onclick="setRange('multiply')">乘法口诀</button>
+        <button id="rangeFav" onclick="setRange('favorites')">收藏</button>
+      </div>
+
+      <div class="sound-toggle">
+        <input type="checkbox" id="soundToggle" checked>
+        <label for="soundToggle">开启音效</label>
+      </div>
+
+      <button class="btn btn-start" onclick="startQuiz()">开始练习</button>
+
+      <div class="history-list" id="historyList" style="margin-top:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+          <h3 style="color:#666; font-size:16px;">历史记录</h3>
+          <span id="bestRecord" style="color:#FF9800; font-size:14px; font-weight:bold;"></span>
+          <button class="btn" onclick="clearHistory()" style="padding:6px 14px; font-size:13px; background:#f44336; color:#fff;">清空记录</button>
+        </div>
+        <div id="historyContent"></div>
+      </div>
+    </div>
+
+    <div class="question-area" id="questionArea">
+      <div class="stats">
+        <span>第 <b id="currentNum">1</b> / <b id="totalNum">10</b> 题</span>
+        <span>得分：<b id="currentScore">0</b></span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      <div class="question-card">
+        <div class="question" id="questionText"></div>
+        <div>
+          <input type="number" class="answer-input" id="answerInput" placeholder="?">
+        </div>
+        <div class="feedback" id="feedback"></div>
+        <div class="feedback hint" id="hintText"></div>
+      </div>
+      <div class="numpad">
+        <button class="numpad-key" style="grid-column:1;grid-row:1" onclick="numpadInput('1')">1</button>
+        <button class="numpad-key" style="grid-column:2;grid-row:1" onclick="numpadInput('2')">2</button>
+        <button class="numpad-key" style="grid-column:3;grid-row:1" onclick="numpadInput('3')">3</button>
+        <button class="numpad-key" style="grid-column:1;grid-row:2" onclick="numpadInput('4')">4</button>
+        <button class="numpad-key" style="grid-column:2;grid-row:2" onclick="numpadInput('5')">5</button>
+        <button class="numpad-key" style="grid-column:3;grid-row:2" onclick="numpadInput('6')">6</button>
+        <button class="numpad-key numpad-enter" onclick="numpadEnter()">&#8629;</button>
+        <button class="numpad-key" style="grid-column:1;grid-row:3" onclick="numpadInput('7')">7</button>
+        <button class="numpad-key" style="grid-column:2;grid-row:3" onclick="numpadInput('8')">8</button>
+        <button class="numpad-key" style="grid-column:3;grid-row:3" onclick="numpadInput('9')">9</button>
+        <button class="numpad-key numpad-back" style="grid-column:1;grid-row:4" onclick="numpadBackspace()">&#9003;</button>
+        <button class="numpad-key" style="grid-column:2;grid-row:4" onclick="numpadInput('0')">0</button>
+        <button class="numpad-key numpad-fav" style="grid-column:3;grid-row:4" id="favBtn" onclick="toggleFavorite()">&#9734;</button>
+      </div>
+    </div>
+
+    <div class="result-area" id="resultArea">
+      <div class="result-card">
+        <div class="score-circle" id="scoreCircle">0</div>
+        <div class="result-details" id="resultDetails"></div>
+      </div>
+      <div class="history-list" id="resultHistory"></div>
+      <button class="btn btn-retry" onclick="restart()">确定</button>
+    </div>
+  </div>
+
+  <!-- 庆祝动画层 -->
+  <div class="celebration-overlay" id="celebrationOverlay"></div>
+  <div class="celebration-text" id="celebrationText">
+    <div class="trophy">🏆</div>
+    <div class="msg">恭喜！全对且速度最快！</div>
+    <div class="submsg" id="celebrationSub"></div>
+  </div>
+
+  <script>
+    let questions = [];
+    let currentIndex = 0;
+    let score = 0;
+    let history = [];
+    let favorites = [];
+    let soundEnabled = true;
+    let waitingForNext = false;
+    let startTime;
+    let answered = false;
+    let maxRange = 20;
+    let currentUser = 1;
+
+    // 按用户加载数据
+    function loadUserData() {
+      history = JSON.parse(localStorage.getItem('mathQuizHistory_u' + currentUser) || '[]');
+      favorites = JSON.parse(localStorage.getItem('mathFavorites_u' + currentUser) || '[]');
+    }
+
+    function saveHistory() {
+      localStorage.setItem('mathQuizHistory_u' + currentUser, JSON.stringify(history));
+    }
+
+    function saveFavorites() {
+      localStorage.setItem('mathFavorites_u' + currentUser, JSON.stringify(favorites));
+    }
+
+    // 切换用户
+    function switchUser(user) {
+      currentUser = user;
+      document.getElementById('user1Btn').classList.toggle('active', user === 1);
+      document.getElementById('user2Btn').classList.toggle('active', user === 2);
+      loadUserData();
+      initHistory();
+    }
+
+    // 收藏题目
+
+    // 判断题目是否已收藏（用 expr 作为唯一标识）
+    function isFavorited(q) {
+      return favorites.some(f => f.expr === q.expr);
+    }
+
+    // 切换收藏状态
+    function toggleFavorite() {
+      if (answered && !waitingForNext) return;
+      const q = questions[currentIndex];
+      const idx = favorites.findIndex(f => f.expr === q.expr);
+      if (idx >= 0) {
+        favorites.splice(idx, 1);
+      } else {
+        const fav = { expr: q.expr, answer: q.answer };
+        if (q.mulA !== undefined) { fav.mulA = q.mulA; fav.mulB = q.mulB; }
+        favorites.push(fav);
+      }
+      saveFavorites();
+      updateFavButton();
+    }
+    function updateFavButton() {
+      const btn = document.getElementById('favBtn');
+      if (!btn) return;
+      const q = questions[currentIndex];
+      const fav = isFavorited(q);
+      btn.innerHTML = fav ? '&#9733;' : '&#9734;';
+      btn.classList.toggle('favorited', fav);
+    }
+
+    // 中文数字
+    const CN_NUMS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
+
+    // 初始化历史记录
+    function initHistory() {
+      const content = document.getElementById('historyContent');
+      const bestEl = document.getElementById('bestRecord');
+      if (history.length === 0) {
+        content.innerHTML = '<p style="text-align:center;color:#999;">暂无记录</p>';
+        bestEl.textContent = '';
+        return;
+      }
+      // 计算最快平均每题用时（仅全对记录）
+      const perfectRecords = history.filter(h => h.score === h.total && h.total > 0);
+      if (perfectRecords.length > 0) {
+        const best = Math.min(...perfectRecords.map(h => h.avgTime !== undefined ? h.avgTime : h.time / h.total));
+        bestEl.textContent = '最快：' + best.toFixed(1) + '秒/题';
+      } else {
+        bestEl.textContent = '';
+      }
+      content.innerHTML = history.slice(-10).reverse().map((h, i) => `
+        <div class="history-item ${h.score === h.total ? 'correct' : 'wrong'}">
+          <span>${h.date}</span>
+          <span>${h.score}/${h.total} 分 | ${h.avgTime !== undefined ? h.avgTime.toFixed(1) : (h.time / h.total).toFixed(1)}秒/题</span>
+        </div>
+      `).join('');
+    }
+
+    loadUserData();
+    initHistory();
+
+    // 清空历史记录
+    function clearHistory() {
+      if (history.length === 0) return;
+      if (confirm('确定要清空所有历史记录吗？收藏的题目不会被清空。')) {
+        history = [];
+        localStorage.removeItem('mathQuizHistory_u' + currentUser);
+        initHistory();
+      }
+    }
+
+    // 音效播放器
+    function playSound(type) {
+      if (!soundEnabled) return;
+
+      if (type === 'correct') {
+        const audio = new Audio('1.mp3');
+        audio.play().catch(() => {});
+      } else if (type === 'wrong') {
+        const audio = new Audio('2.mp3');
+        audio.play().catch(() => {});
+      } else if (type === 'celebrate') {
+        // 庆祝音效 - 使用 Web Audio API 生成欢快琶音
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const notes = [523, 659, 784, 1047, 784, 1047];
+        notes.forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gn = audioCtx.createGain();
+          osc.connect(gn);
+          gn.connect(audioCtx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.1);
+          gn.gain.setValueAtTime(0.2, audioCtx.currentTime + i * 0.1);
+          gn.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.1 + 0.3);
+          osc.start(audioCtx.currentTime + i * 0.1);
+          osc.stop(audioCtx.currentTime + i * 0.1 + 0.3);
+        });
+      }
+    }
+
+    // 生成随机数
+    function rand(min, max) {
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    // 切换范围
+    function setRange(range) {
+      maxRange = range;
+      document.getElementById('range20').classList.toggle('active', range === 20);
+      document.getElementById('range100').classList.toggle('active', range === 100);
+      document.getElementById('rangeMul').classList.toggle('active', range === 'multiply');
+      document.getElementById('rangeFav').classList.toggle('active', range === 'favorites');
+    }
+
+    // 生成题目
+    function generateQuestion(forceType, forceRightSide) {
+      if (maxRange === 'multiply') {
+        return generateQuestionMul(forceType);
+      }
+      if (maxRange <= 20) {
+        return generateQuestion20(forceType, forceRightSide);
+      }
+      return generateQuestion100(forceType, forceRightSide);
+    }
+
+    // 判断是否进位加法（个位加个位>=10）
+    function hasCarry(a, b) {
+      return (a % 10) + (b % 10) >= 10;
+    }
+
+    // 判断是否退位减法（被减数个位<减数个位，需要借位）
+    function hasBorrow(a, b) {
+      return (a % 10) < (b % 10);
+    }
+
+    // 生成进位加法 a+b，确保个位之和>=10，结果<=maxVal
+    function genCarryAddition(maxVal) {
+      let a, b, attempts = 0;
+      do {
+        a = rand(2, maxVal - 2);
+        b = rand(2, maxVal - a);
+        attempts++;
+      } while ((!hasCarry(a, b) || a + b > maxVal) && attempts < 500);
+      return { a, b };
+    }
+
+    // 生成退位减法 a-b，确保被减数个位<减数个位，结果>=0
+    function genBorrowSubtraction(maxVal) {
+      const maxA = maxVal <= 20 ? 19 : maxVal;
+      let a, b, attempts = 0;
+      do {
+        a = rand(11, maxA);
+        b = rand(1, a - 1);
+        attempts++;
+      } while (!hasBorrow(a, b) && attempts < 500);
+      return { a, b };
+    }
+
+    // 生成普通加法（无进位）
+    function genPlainAddition(maxVal, minA, minB) {
+      let a, b, attempts = 0;
+      do {
+        a = rand(minA || 1, maxVal - 1);
+        b = rand(minB || 1, maxVal - a);
+        attempts++;
+      } while (hasCarry(a, b) && attempts < 200);
+      return { a, b };
+    }
+
+    // 生成普通减法（无退位）
+    function genPlainSubtraction(maxVal, minA, minB) {
+      const maxA = maxVal <= 20 ? 19 : maxVal;
+      let a, b, attempts = 0;
+      do {
+        a = rand(minA || 2, maxA);
+        b = rand(minB || 1, a - 1);
+        attempts++;
+      } while (hasBorrow(a, b) && attempts < 200);
+      return { a, b };
+    }
+
+    // 生成一道加法或减法，可强制进位/退位，随机未知数位置
+    function genAddSub(maxVal, options) {
+      const { forceCarryBorrow, minA, minB, forceRightSide } = options || {};
+      const isAdd = Math.random() < 0.5;
+      let a, b, c, expr, answer;
+
+      if (isAdd) {
+        if (forceCarryBorrow) {
+          const pair = genCarryAddition(maxVal);
+          a = pair.a; b = pair.b;
+        } else {
+          const pair = genPlainAddition(maxVal, minA, minB);
+          a = pair.a; b = pair.b;
+        }
+        c = a + b;
+        const pos = forceRightSide ? 0 : rand(0, 2);
+        if (pos === 0) {
+          expr = `${a} + ${b} = ?`;
+          answer = c;
+        } else if (pos === 1) {
+          expr = `${a} + ? = ${c}`;
+          answer = b;
+        } else {
+          expr = `? + ${b} = ${c}`;
+          answer = a;
+        }
+      } else {
+        if (forceCarryBorrow) {
+          const pair = genBorrowSubtraction(maxVal);
+          a = pair.a; b = pair.b;
+        } else {
+          const pair = genPlainSubtraction(maxVal, minA, minB);
+          a = pair.a; b = pair.b;
+        }
+        c = a - b;
+        const pos = forceRightSide ? 0 : rand(0, 2);
+        if (pos === 0) {
+          expr = `${a} - ${b} = ?`;
+          answer = c;
+        } else if (pos === 1) {
+          expr = `${a} - ? = ${c}`;
+          answer = b;
+        } else {
+          expr = `? - ${b} = ${c}`;
+          answer = a;
+        }
+      }
+
+      return { expr, answer };
+    }
+
+    // ========== 二十以内加减法 ==========
+    function generateQuestion20(forceType, forceRightSide) {
+      if (forceType === 'mixed') {
+        return genMixed20(forceRightSide);
+      }
+      // 50% 进位/退位
+      if (Math.random() < 0.5) {
+        return genAddSub(20, { forceCarryBorrow: true, forceRightSide });
+      }
+      return genAddSub(20, { forceCarryBorrow: false, forceRightSide });
+    }
+
+    // 二十以内两步混合运算，随机未知数位置
+    function genMixed20(forceRightSide) {
+      const pattern = Math.random() < 0.5 ? 1 : 2;
+      let a, b, c, d, expr, answer, attempts = 0;
+      do {
+        if (pattern === 1) {
+          a = rand(2, 10); b = rand(1, 10); c = rand(1, 10);
+          if (a + b > 20) a = rand(2, 20 - b);
+          d = a + b - c;
+          expr = `${a} + ${b} - ${c}`;
+        } else {
+          a = rand(5, 19); b = rand(1, 10); c = rand(1, 5);
+          if (a < b) { a = b + rand(1, Math.min(10, 19 - b)); }
+          if (a > 19) a = 19;
+          if (a - b + c > 20) c = rand(1, 20 - (a - b));
+          d = a - b + c;
+          expr = `${a} - ${b} + ${c}`;
+        }
+        attempts++;
+      } while ((d < 0 || d > 20) && attempts < 200);
+
+      // 随机选择未知数位置: 0:结果 1:c 2:b 3:a
+      const pos = forceRightSide ? 0 : rand(0, 3);
+      if (pattern === 1) {
+        // a + b - c = d
+        if (pos === 0) { expr = `${a} + ${b} - ${c} = ?`; answer = d; }
+        else if (pos === 1) { expr = `${a} + ${b} - ? = ${d}`; answer = c; }
+        else if (pos === 2) { expr = `${a} + ? - ${c} = ${d}`; answer = b; }
+        else { expr = `? + ${b} - ${c} = ${d}`; answer = a; }
+      } else {
+        // a - b + c = d
+        if (pos === 0) { expr = `${a} - ${b} + ${c} = ?`; answer = d; }
+        else if (pos === 1) { expr = `${a} - ${b} + ? = ${d}`; answer = c; }
+        else if (pos === 2) { expr = `${a} - ? + ${c} = ${d}`; answer = b; }
+        else { expr = `? - ${b} + ${c} = ${d}`; answer = a; }
+      }
+      return { expr, answer };
+    }
+
+    // ========== 一百以内加减法 ==========
+    function generateQuestion100(forceType, forceRightSide) {
+      if (forceType === 'mixed') {
+        return genMixed100(forceRightSide);
+      }
+      // 50% 进位/退位
+      if (Math.random() < 0.5) {
+        return genAddSub(99, { forceCarryBorrow: true, forceRightSide });
+      }
+      return genAddSub(99, { forceCarryBorrow: false, forceRightSide });
+    }
+
+    // 一百以内两步混合运算，随机未知数位置
+    function genMixed100(forceRightSide) {
+      const pattern = Math.random() < 0.5 ? 1 : 2;
+      let a, b, c, d, expr, answer, attempts = 0;
+      do {
+        if (pattern === 1) {
+          a = rand(10, 80); b = rand(1, 20); c = rand(1, 20);
+          if (a + b >= 100) a = rand(10, 99 - b);
+          d = a + b - c;
+          expr = `${a} + ${b} - ${c}`;
+        } else {
+          a = rand(20, 99); b = rand(1, 20); c = rand(1, 20);
+          if (a < b) [a, b] = [b + 10, a];
+          if (a - b + c >= 100) c = rand(1, 99 - (a - b));
+          d = a - b + c;
+          expr = `${a} - ${b} + ${c}`;
+        }
+        attempts++;
+      } while ((d < 0 || d >= 100) && attempts < 100);
+      if (d < 0 || d >= 100) {
+        a = rand(10, 80); b = rand(1, 10); c = rand(1, 10);
+        d = a + b - c;
+        expr = `${a} + ${b} - ${c}`;
+      }
+
+      // 随机选择未知数位置: 0:结果 1:c 2:b 3:a
+      const pos = forceRightSide ? 0 : rand(0, 3);
+      if (pattern === 1 || (d < 0 || d >= 100)) {
+        // a + b - c = d
+        if (pos === 0) { expr = `${a} + ${b} - ${c} = ?`; answer = d; }
+        else if (pos === 1) { expr = `${a} + ${b} - ? = ${d}`; answer = c; }
+        else if (pos === 2) { expr = `${a} + ? - ${c} = ${d}`; answer = b; }
+        else { expr = `? + ${b} - ${c} = ${d}`; answer = a; }
+      } else {
+        // a - b + c = d
+        if (pos === 0) { expr = `${a} - ${b} + ${c} = ?`; answer = d; }
+        else if (pos === 1) { expr = `${a} - ${b} + ? = ${d}`; answer = c; }
+        else if (pos === 2) { expr = `${a} - ? + ${c} = ${d}`; answer = b; }
+        else { expr = `? - ${b} + ${c} = ${d}`; answer = a; }
+      }
+      return { expr, answer };
+    }
+
+    // ========== 乘法口诀 ==========
+    function generateQuestionMul(forceType) {
+      let a, b, expr, answer;
+      if (Math.random() < 0.5) {
+        a = rand(1, 9); b = rand(1, 9);
+      } else {
+        b = rand(1, 9); a = rand(1, 9);
+      }
+      answer = a * b;
+      expr = `${a} \u00d7 ${b} = ?`;
+      return { expr, answer, mulA: a, mulB: b };
+    }
+
+    // 乘积转中文（乘法口诀读法）
+    function mulResultToChinese(n) {
+      if (n === 0) return '零';
+      if (n < 10) return CN_NUMS[n];
+      if (n === 10) return '一十';
+      if (n < 20) return '一十' + CN_NUMS[n % 10];
+      const tens = Math.floor(n / 10);
+      const ones = n % 10;
+      if (ones === 0) return CN_NUMS[tens] + '十';
+      return CN_NUMS[tens] + '十' + CN_NUMS[ones];
+    }
+
+    // 朗读乘法口诀（使用 Web Speech API）
+    function speakFormula(a, b) {
+      if (!('speechSynthesis' in window)) return;
+      const small = Math.min(a, b);
+      const big = Math.max(a, b);
+      const product = small * big;
+      const resultCN = product < 10 ? '得' + CN_NUMS[product] : mulResultToChinese(product);
+      const formula = CN_NUMS[small] + CN_NUMS[big] + resultCN;
+      const utterance = new SpeechSynthesisUtterance(formula);
+      utterance.lang = 'zh-CN';
+      utterance.rate = 0.85;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+
+    // 开始练习
+    function startQuiz() {
+      const count = parseInt(document.getElementById('questionCount').value) || 10;
+      soundEnabled = document.getElementById('soundToggle').checked;
+      questions = [];
+
+      // 收藏模式：从收藏题目中抽取
+      if (maxRange === 'favorites') {
+        if (favorites.length === 0) {
+          alert('收藏夹为空，请先在练习中收藏题目！');
+          return;
+        }
+        // 从收藏中随机抽取，不足则循环
+        const favCopy = [...favorites];
+        for (let i = favCopy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [favCopy[i], favCopy[j]] = [favCopy[j], favCopy[i]];
+        }
+        for (let i = 0; i < count; i++) {
+          questions.push({ ...favCopy[i % favCopy.length] });
+        }
+      } else {
+        // 计算至少需要的混合运算题数（至少10%）
+        const mixedCount = Math.max(1, Math.ceil(count * 0.1));
+        // 问号在等号左侧的最大数量（不超过30%）
+        const maxLeftSide = Math.floor(count * 0.3);
+        let leftSideCount = 0;
+
+        // 辅助函数：判断当前是否还能生成左侧问号
+        function canUseLeftSide() {
+          return leftSideCount < maxLeftSide;
+        }
+        // 辅助函数：生成题目并统计
+        function gen(forceType) {
+          const forceRightSide = !canUseLeftSide();
+          const q = generateQuestion(forceType, forceRightSide);
+          if (q.expr.indexOf('?') < q.expr.indexOf('=')) {
+            leftSideCount++;
+          }
+          return q;
+        }
+
+        // 先生成混合运算题
+        for (let i = 0; i < mixedCount; i++) {
+          questions.push(gen('mixed'));
+        }
+        // 再生成剩余的普通题
+        for (let i = mixedCount; i < count; i++) {
+          questions.push(gen());
+        }
+
+        // 打乱题目顺序
+        for (let i = questions.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [questions[i], questions[j]] = [questions[j], questions[i]];
+        }
+      }
+      currentIndex = 0;
+      score = 0;
+      waitingForNext = false;
+      startTime = Date.now();
+
+      document.getElementById('startArea').style.display = 'none';
+      document.getElementById('resultArea').style.display = 'none';
+      document.getElementById('userSwitch').style.display = 'none';
+      document.getElementById('questionArea').style.display = 'block';
+      document.getElementById('totalNum').textContent = count;
+
+      showQuestion();
+    }
+
+    // 显示题目
+    function showQuestion() {
+      answered = false;
+      waitingForNext = false;
+      const q = questions[currentIndex];
+      document.getElementById('currentNum').textContent = currentIndex + 1;
+      document.getElementById('questionText').textContent = q.expr;
+      document.getElementById('answerInput').value = '';
+      document.getElementById('answerInput').className = 'answer-input';
+      document.getElementById('answerInput').disabled = false;
+      document.getElementById('feedback').textContent = '';
+      document.getElementById('feedback').className = 'feedback';
+      document.getElementById('hintText').textContent = '';
+      document.getElementById('currentScore').textContent = score;
+      document.getElementById('progressFill').style.width = ((currentIndex + 1) / questions.length * 100) + '%';
+      updateFavButton();
+      document.getElementById('answerInput').focus();
+    }
+
+    // 检查答案
+    function checkAnswer() {
+      if (answered && waitingForNext) {
+        // 正在等待按回车/确定键继续
+        goToNext();
+        return;
+      }
+      if (answered) return;
+
+      const input = document.getElementById('answerInput');
+      const userAnswer = parseInt(input.value);
+      if (isNaN(userAnswer)) {
+        input.focus();
+        return;
+      }
+
+      answered = true;
+      const q = questions[currentIndex];
+      const correct = userAnswer === q.answer;
+      const feedback = document.getElementById('feedback');
+      const hint = document.getElementById('hintText');
+
+      // 乘法口诀模式：答完即朗读
+      if (q.mulA !== undefined) {
+        speakFormula(q.mulA, q.mulB);
+      }
+
+      if (correct) {
+        score++;
+        playSound('correct');
+        input.className = 'answer-input correct';
+        feedback.textContent = '太棒了！答对了！';
+        feedback.className = 'feedback correct pop';
+        q.userAnswer = userAnswer;
+        q.isCorrect = true;
+
+        document.getElementById('currentScore').textContent = score;
+
+        setTimeout(() => {
+          currentIndex++;
+          if (currentIndex < questions.length) {
+            showQuestion();
+          } else {
+            showResult();
+          }
+        }, q.mulA !== undefined ? 2500 : 1200);
+      } else {
+        playSound('wrong');
+        input.className = 'answer-input wrong shake';
+        feedback.textContent = `答错了，正确答案是 ${q.answer}`;
+        feedback.className = 'feedback wrong';
+        hint.textContent = '按回车键继续下一题';
+        q.userAnswer = userAnswer;
+        q.isCorrect = false;
+        // 错题自动加入收藏
+        if (!isFavorited(q)) {
+          const fav = { expr: q.expr, answer: q.answer };
+          if (q.mulA !== undefined) { fav.mulA = q.mulA; fav.mulB = q.mulB; }
+          favorites.push(fav);
+          saveFavorites();
+        }
+        waitingForNext = true;
+        document.getElementById('currentScore').textContent = score;
+      }
+    }
+
+    // 进入下一题
+    function goToNext() {
+      if (!waitingForNext) return;
+      waitingForNext = false;
+      currentIndex++;
+      if (currentIndex < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    // 全局键盘监听
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        const overlay = document.getElementById('celebrationOverlay');
+        if (overlay.classList.contains('active')) {
+          e.preventDefault();
+          closeCelebration();
+          return;
+        }
+      }
+      if (e.key === 'Enter') {
+        const answerInput = document.getElementById('answerInput');
+        const questionArea = document.getElementById('questionArea');
+        if (questionArea.style.display === 'none') return;
+
+        if (waitingForNext) {
+          e.preventDefault();
+          goToNext();
+        } else if (!answered && document.activeElement !== answerInput) {
+          answerInput.focus();
+        } else if (!answered) {
+          checkAnswer();
+        }
+      }
+    });
+
+    // 点击庆祝动画区域关闭
+    document.getElementById('celebrationOverlay').addEventListener('click', closeCelebration);
+    document.getElementById('celebrationText').addEventListener('click', closeCelebration);
+
+    // 显示结果
+    function showResult() {
+      const endTime = Date.now();
+      const timeUsed = Math.round((endTime - startTime) / 1000);
+      const total = questions.length;
+      const percentage = Math.round(score / total * 100);
+
+      document.getElementById('questionArea').style.display = 'none';
+      document.getElementById('resultArea').style.display = 'block';
+      document.getElementById('scoreCircle').textContent = percentage + '%';
+      document.getElementById('resultDetails').innerHTML = `
+        答对 <b>${score}</b> 题，答错 <b>${total - score}</b> 题<br>
+        总用时 <b>${timeUsed}</b> 秒，平均每题 <b>${(timeUsed / total).toFixed(1)}</b> 秒<br>
+        <span style="color:#FF9800;font-size:14px;">错题已自动加入收藏</span>
+      `;
+
+      document.getElementById('resultHistory').innerHTML = questions.map((q, i) => `
+        <div class="history-item ${q.isCorrect ? 'correct' : 'wrong'}">
+          <span>${i + 1}. ${q.expr.replace('?', q.answer)}</span>
+          <span>${q.isCorrect ? '✓' : '✗ 你的答案：' + q.userAnswer}</span>
+        </div>
+      `).join('');
+
+      const avgTime = parseFloat((timeUsed / total).toFixed(2));
+
+      // 保存历史记录
+      const record = {
+        date: new Date().toLocaleString('zh-CN'),
+        score: score,
+        total: total,
+        time: timeUsed,
+        avgTime: avgTime
+      };
+      history.push(record);
+      if (history.length > 200) history = history.slice(-200);
+      saveHistory();
+      initHistory();
+
+      // 判断是否全对且历史最快（按平均每题用时比较，乘法口诀除外）
+      if (score === total && maxRange !== 'multiply') {
+        const perfectRecords = history.filter(h => h.score === h.total && h.total > 0);
+        // 排除当前记录，找之前的最快平均用时
+        const previousRecords = perfectRecords.slice(0, -1);
+        const prevAvgTimes = previousRecords.map(h => h.avgTime !== undefined ? h.avgTime : (h.time / h.total));
+        const isFastest = previousRecords.length === 0 || avgTime < Math.min(...prevAvgTimes);
+
+        if (isFastest) {
+          showCelebration(avgTime);
+        }
+      }
+    }
+
+    let celebrationTimer = null;
+
+    // 关闭庆祝动画
+    function closeCelebration() {
+      const overlay = document.getElementById('celebrationOverlay');
+      const text = document.getElementById('celebrationText');
+      overlay.classList.remove('active');
+      overlay.innerHTML = '';
+      text.classList.remove('active');
+      if (celebrationTimer) {
+        clearTimeout(celebrationTimer);
+        celebrationTimer = null;
+      }
+    }
+
+    // 显示庆祝动画
+    function showCelebration(avgTime) {
+      playSound('celebrate');
+      const overlay = document.getElementById('celebrationOverlay');
+      const text = document.getElementById('celebrationText');
+      const sub = document.getElementById('celebrationSub');
+
+      sub.textContent = `平均每题仅 ${avgTime.toFixed(1)} 秒，创造了新纪录！`;
+      overlay.classList.add('active');
+      text.classList.add('active');
+
+      // 生成彩带
+      const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
+      for (let i = 0; i < 80; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti';
+        confetti.style.left = Math.random() * 100 + '%';
+        confetti.style.background = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.width = (Math.random() * 8 + 6) + 'px';
+        confetti.style.height = (Math.random() * 8 + 6) + 'px';
+        confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '0';
+        confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+        confetti.style.animationDelay = (Math.random() * 1.5) + 's';
+        overlay.appendChild(confetti);
+      }
+
+      // 4.5秒后自动清除
+      celebrationTimer = setTimeout(closeCelebration, 4500);
+    }
+
+    // 数字键盘输入
+    function numpadInput(digit) {
+      if (answered && !waitingForNext) return;
+      const input = document.getElementById('answerInput');
+      if (input.disabled) return;
+      input.value = input.value + digit;
+      input.focus();
+    }
+
+    function numpadBackspace() {
+      if (answered && !waitingForNext) return;
+      const input = document.getElementById('answerInput');
+      if (input.disabled) return;
+      input.value = input.value.slice(0, -1);
+      input.focus();
+    }
+
+    function numpadEnter() {
+      if (answered && waitingForNext) {
+        goToNext();
+      } else if (!answered) {
+        checkAnswer();
+      }
+    }
+
+    // 重新开始
+    function restart() {
+      document.getElementById('resultArea').style.display = 'none';
+      document.getElementById('startArea').style.display = 'block';
+      document.getElementById('userSwitch').style.display = 'flex';
+    }
+  </script>
+</body>
+</html>
