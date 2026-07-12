@@ -2,7 +2,7 @@ const CACHE_NAME = 'math-practice-v1';
 const ASSETS = [
   './',
   './index.html',
-  './icon-192.jpg',
+  './icon-192.png',
   './manifest.json'
 ];
 
