@@ -514,7 +514,7 @@
       transform: translate(-50%, -50%) scale(0);
       text-align: center;
       z-index: 10000;
-      pointer-events: none;
+      pointer-events: auto;
       display: none;
     }
 
@@ -543,6 +543,28 @@
       font-size: 18px;
       color: #666;
       margin-top: 10px;
+    }
+
+    .celebration-close {
+      position: absolute;
+      top: -30px;
+      right: -30px;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.5);
+      color: #fff;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .celebration-close:hover {
+      background: rgba(0, 0, 0, 0.7);
+      transform: scale(1.1);
     }
 
     @keyframes celebration-pop {
@@ -655,6 +677,9 @@
         <span>第 <b id="currentNum">1</b> / <b id="totalNum">10</b> 题</span>
         <span>用时：<b id="timerDisplay">0秒</b> | 正确率：<b id="accuracyDisplay">0%</b></span>
       </div>
+      <div class="stats" id="historyStats" style="font-size:13px; color:#888; display:none; justify-content: flex-end;">
+        <span>历史平均用时：<b id="avgTimeDisplay">0</b>秒 | 历史平均正确率：<b id="avgAccuracyDisplay">0%</b></span>
+      </div>
       <div class="progress-bar">
         <div class="progress-fill" id="progressFill"></div>
       </div>
@@ -697,8 +722,9 @@
   <!-- 庆祝动画层 -->
   <div class="celebration-overlay" id="celebrationOverlay"></div>
   <div class="celebration-text" id="celebrationText">
+    <div class="celebration-close" id="celebrationClose" onclick="closeCelebration()">✕</div>
     <div class="trophy">🏆</div>
-    <div class="msg">恭喜！全对且速度最快！</div>
+    <div class="msg" id="celebrationMsg">恭喜！全对！</div>
     <div class="submsg" id="celebrationSub"></div>
   </div>
 
@@ -710,9 +736,26 @@
     let favorites = [];
     let soundEnabled = true;
     let waitingForNext = false;
-    let favConsecutiveCorrect = {};  // { expr: 连续正确次数 }
+    let favConsecutiveCorrect = {};
     let answerValue = '';
+    let quizStats = {};
     const isMobile = () => window.innerWidth <= 600;
+
+    const QUESTION_TYPE_NAMES = {
+      '20': '二十以内加减',
+      '100': '一百以内加减',
+      'multiply': '乘法口诀',
+      'favorites': '收藏中的题目'
+    };
+
+    function getQuizTypeName(range) {
+      return QUESTION_TYPE_NAMES[range] || '未知题型';
+    }
+
+    function initQuizStats() {
+      if (!quizStats['20']) quizStats['20'] = { bestRecords: [], totalTime: 0, totalQuestions: 0, totalCorrect: 0 };
+      if (!quizStats['100']) quizStats['100'] = { bestRecords: [], totalTime: 0, totalQuestions: 0, totalCorrect: 0 };
+    }
 
     function getAnswerEl() {
       return isMobile()
@@ -757,11 +800,21 @@
       const timerEl = document.getElementById('timerDisplay');
       const accEl = document.getElementById('accuracyDisplay');
       timerEl.textContent = '0秒';
+      timerEl.style.color = '';
       accEl.textContent = '0%';
       timerInterval = setInterval(() => {
         const elapsed = Math.floor((Date.now() - startTime) / 1000);
         timerEl.textContent = formatDuration(elapsed);
+
         const answeredCount = questions.slice(0, currentIndex + 1).filter(q => q.isCorrect !== undefined).length;
+
+        const stats = quizStats[maxRange];
+        if (stats && stats.totalQuestions > 0 && maxRange !== 'multiply' && maxRange !== 'favorites' && answeredCount > 0) {
+          const avgTimePerQuestion = stats.totalTime / stats.totalQuestions;
+          const expectedTime = Math.round(avgTimePerQuestion * answeredCount);
+          timerEl.style.color = elapsed > expectedTime ? '#f44336' : '';
+        }
+
         if (answeredCount > 0) {
           const correctCount = questions.slice(0, currentIndex + 1).filter(q => q.isCorrect === true).length;
           accEl.textContent = Math.round(correctCount / answeredCount * 100) + '%';
@@ -777,14 +830,12 @@
     }
 
     function formatDuration(seconds) {
-      const h = Math.floor(seconds / 3600);
-      const m = Math.floor((seconds % 3600) / 60);
+      const m = Math.floor(seconds / 60);
       const s = seconds % 60;
-      let parts = [];
-      if (h > 0) parts.push(h + '小时');
-      if (m > 0) parts.push(m + '分');
-      parts.push(s + '秒');
-      return parts.join('');
+      if (m > 0) {
+        return m + '分' + s + '秒';
+      }
+      return s + '秒';
     }
 
     function updateSessionStats() {}
@@ -794,10 +845,16 @@
       history = JSON.parse(localStorage.getItem('mathQuizHistory_u' + currentUser) || '[]');
       favorites = JSON.parse(localStorage.getItem('mathFavorites_u' + currentUser) || '[]');
       favConsecutiveCorrect = JSON.parse(localStorage.getItem('mathFavConsec_u' + currentUser) || '{}');
+      quizStats = JSON.parse(localStorage.getItem('mathQuizStats_u' + currentUser) || '{}');
+      initQuizStats();
     }
 
     function saveHistory() {
       localStorage.setItem('mathQuizHistory_u' + currentUser, JSON.stringify(history));
+    }
+
+    function saveQuizStats() {
+      localStorage.setItem('mathQuizStats_u' + currentUser, JSON.stringify(quizStats));
     }
 
     function saveFavorites() {
@@ -882,7 +939,7 @@
         const avg = dayMap[k].time / dayMap[k].total;
         return (!best || avg < best.avg) ? { avg } : best;
       }, null);
-      bestEl.textContent = bestDay ? '最快：' + bestDay.avg.toFixed(1) + '秒/题' : '';
+      bestEl.textContent = bestDay ? '日排名最快：' + bestDay.avg.toFixed(1) + '秒/题' : '';
 
       // 获取今天的日期（北京时间）
       const now = new Date();
@@ -1286,7 +1343,33 @@
       document.getElementById('questionArea').style.display = 'block';
       document.getElementById('totalNum').textContent = questions.length;
 
+      showHistoryStats();
       showQuestion();
+    }
+
+    function showHistoryStats() {
+      const historyStatsEl = document.getElementById('historyStats');
+      const avgTimeEl = document.getElementById('avgTimeDisplay');
+      const avgAccuracyEl = document.getElementById('avgAccuracyDisplay');
+
+      if (maxRange === 'multiply' || maxRange === 'favorites') {
+        historyStatsEl.style.display = 'none';
+        return;
+      }
+
+      const stats = quizStats[maxRange];
+      if (!stats || stats.totalQuestions === 0) {
+        historyStatsEl.style.display = 'none';
+        return;
+      }
+
+      const avgTimePerQuestion = stats.totalTime / stats.totalQuestions;
+      const avgTime = Math.round(avgTimePerQuestion * questions.length);
+      const avgAccuracy = Math.round(stats.totalCorrect / stats.totalQuestions * 100);
+
+      avgTimeEl.textContent = avgTime;
+      avgAccuracyEl.textContent = avgAccuracy + '%';
+      historyStatsEl.style.display = 'flex';
     }
 
     // 显示题目
@@ -1452,7 +1535,6 @@
       const total = questions.length;
       const percentage = Math.round(score / total * 100);
 
-      // 累加到会话统计
       sessionTotalTime += timeUsed;
       sessionTotalQuestions += total;
       sessionTotalWrong += (total - score);
@@ -1476,7 +1558,6 @@
 
       const avgTime = parseFloat((timeUsed / total).toFixed(2));
 
-      // 保存历史记录
       const record = {
         date: new Date().toLocaleString('zh-CN'),
         score: score,
@@ -1489,16 +1570,26 @@
       saveHistory();
       initHistory();
 
-      // 判断是否全对且历史最快（按平均每题用时比较，乘法口诀除外）
-      if (score === total && maxRange !== 'multiply') {
-        const perfectRecords = history.filter(h => h.score === h.total && h.total > 0);
-        // 排除当前记录，找之前的最快平均用时
-        const previousRecords = perfectRecords.slice(0, -1);
-        const prevAvgTimes = previousRecords.map(h => h.avgTime !== undefined ? h.avgTime : (h.time / h.total));
-        const isFastest = previousRecords.length === 0 || avgTime < Math.min(...prevAvgTimes);
+      if (maxRange !== 'multiply' && maxRange !== 'favorites') {
+        const stats = quizStats[maxRange];
+        stats.totalTime += timeUsed;
+        stats.totalQuestions += total;
+        stats.totalCorrect += score;
 
-        if (isFastest) {
-          showCelebration(avgTime);
+        if (score === total) {
+          stats.bestRecords.push({ avgTime: avgTime, date: new Date().toLocaleString('zh-CN') });
+          stats.bestRecords.sort((a, b) => a.avgTime - b.avgTime);
+          if (stats.bestRecords.length > 10) {
+            stats.bestRecords = stats.bestRecords.slice(0, 10);
+          }
+        }
+        saveQuizStats();
+
+        if (score === total) {
+          const rank = stats.bestRecords.findIndex(r => r.avgTime === avgTime) + 1;
+          if (rank <= 10) {
+            showCelebration(avgTime, rank);
+          }
         }
       }
     }
@@ -1519,17 +1610,38 @@
     }
 
     // 显示庆祝动画
-    function showCelebration(avgTime) {
+    function showCelebration(avgTime, rank) {
       playSound('celebrate');
       const overlay = document.getElementById('celebrationOverlay');
       const text = document.getElementById('celebrationText');
+      const msg = document.getElementById('celebrationMsg');
       const sub = document.getElementById('celebrationSub');
+      const trophy = text.querySelector('.trophy');
 
-      sub.textContent = `平均每题仅 ${avgTime.toFixed(1)} 秒，创造了新纪录！`;
+      const typeName = getQuizTypeName(maxRange);
+      if (rank === 1) {
+        trophy.textContent = '🏆';
+        trophy.style.display = 'block';
+        msg.textContent = '恭喜！获得第一名！';
+        sub.textContent = `全对！平均每题仅 ${avgTime.toFixed(1)} 秒，获得${typeName}历史成绩第一名！`;
+      } else if (rank === 2) {
+        trophy.textContent = '🥈';
+        trophy.style.display = 'block';
+        msg.textContent = '恭喜！获得第二名！';
+        sub.textContent = `全对！${typeName}历史成绩第二名！`;
+      } else if (rank === 3) {
+        trophy.textContent = '🥉';
+        trophy.style.display = 'block';
+        msg.textContent = '恭喜！获得第三名！';
+        sub.textContent = `全对！${typeName}历史成绩第三名！`;
+      } else {
+        trophy.style.display = 'none';
+        msg.textContent = '🎉 恭喜！全对！🎉';
+        sub.textContent = `全对！${typeName}历史成绩第${rank}名！`;
+      }
       overlay.classList.add('active');
       text.classList.add('active');
 
-      // 生成彩带
       const colors = ['#f44336', '#e91e63', '#9c27b0', '#673ab7', '#3f51b5', '#2196f3', '#03a9f4', '#00bcd4', '#009688', '#4caf50', '#8bc34a', '#cddc39', '#ffeb3b', '#ffc107', '#ff9800', '#ff5722'];
       for (let i = 0; i < 80; i++) {
         const confetti = document.createElement('div');
@@ -1544,8 +1656,6 @@
         overlay.appendChild(confetti);
       }
 
-      // 4.5秒后自动清除
-      celebrationTimer = setTimeout(closeCelebration, 4500);
     }
 
     // 数字键盘输入
@@ -1577,6 +1687,7 @@
 
     // 重新开始
     function restart() {
+      closeCelebration();
       document.getElementById('resultArea').style.display = 'none';
       document.getElementById('startArea').style.display = 'block';
       document.getElementById('userSwitch').style.display = 'flex';
