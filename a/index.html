@@ -123,22 +123,6 @@
       box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
     }
 
-    .btn-ok {
-      background: #4CAF50;
-      color: #fff;
-      padding: 10px 25px;
-    }
-
-    .btn-ok:hover {
-      background: #45a049;
-    }
-
-    .btn-ok:disabled {
-      background: #ccc;
-      cursor: not-allowed;
-      transform: none;
-    }
-
     .progress-bar {
       height: 6px;
       background: #eee;
@@ -738,10 +722,10 @@
         width: 85%;
       }
       .ok-toast {
-      top: 10%;
-      font-size: 28px;
-      padding: 10px;
-    }
+        top: 10%;
+        font-size: 28px;
+        padding: 10px;
+      }
     }
   </style>
 </head>
@@ -928,17 +912,11 @@
       span.className = 'answer-span' + (cls ? ' ' + cls : '');
     }
 
-    function isTouchDevice() {
-      return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    }
     let startTime;
     let elapsedTime = 0;
     let answered = false;
     let maxRange = 20;
     let currentUser = 1;
-    let sessionTotalTime = 0;
-    let sessionTotalQuestions = 0;
-    let sessionTotalWrong = 0;
     let timerInterval = null;
 
     function startTimer() {
@@ -986,8 +964,6 @@
       }
       return s + '秒';
     }
-
-    function updateSessionStats() {}
 
     // 按用户加载数据
     function loadUserData() {
@@ -1142,7 +1118,7 @@
       recognition = new SpeechRecognition();
       recognition.lang = 'zh-CN';
       recognition.continuous = true;
-      recognition.interimResults = true;
+      recognition.interimResults = false;
 
       recognition.onresult = function(event) {
         // 只处理最终结果，忽略中间结果
@@ -1309,7 +1285,6 @@
     if (document.getElementById('voiceToggle').checked) {
       document.getElementById('settingsVoiceHint').classList.add('active');
     }
-    updateSessionStats();
 
     // 清空历史记录
     function clearHistory() {
@@ -1653,8 +1628,8 @@
         }
         questions = favCopy.map(f => ({ ...f }));
       } else {
-        // 计算至少需要的混合运算题数（至少10%）
-        const mixedCount = Math.max(1, Math.ceil(count * 0.1));
+        // 计算至少需要的混合运算题数（至少10%，仅二十以内）
+        const mixedCount = maxRange <= 20 ? Math.max(1, Math.ceil(count * 0.1)) : 0;
         // 问号在等号左侧的最大数量（不超过30%）
         const maxLeftSide = Math.floor(count * 0.3);
         let leftSideCount = 0;
@@ -1921,11 +1896,6 @@
       const timeUsed = elapsedTime;
       const total = questions.length;
       const percentage = Math.round(score / total * 100);
-
-      sessionTotalTime += timeUsed;
-      sessionTotalQuestions += total;
-      sessionTotalWrong += (total - score);
-      updateSessionStats();
 
       document.getElementById('questionArea').style.display = 'none';
       document.getElementById('resultArea').style.display = 'block';
