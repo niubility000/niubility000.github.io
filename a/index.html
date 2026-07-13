@@ -860,14 +860,6 @@
         bestEl.textContent = '';
         return;
       }
-      // 计算最快平均每题用时（仅全对记录）
-      const perfectRecords = history.filter(h => h.score === h.total && h.total > 0);
-      if (perfectRecords.length > 0) {
-        const best = Math.min(...perfectRecords.map(h => h.avgTime !== undefined ? h.avgTime : h.time / h.total));
-        bestEl.textContent = '最快：' + best.toFixed(1) + '秒/题';
-      } else {
-        bestEl.textContent = '';
-      }
 
       // 按天分组（北京时间）
       const dayMap = {};
@@ -876,13 +868,21 @@
         // 转换为北京时间日期字符串
         const bjDate = new Date(d.getTime() + 8 * 3600000);
         const dayKey = `${bjDate.getUTCFullYear()}-${String(bjDate.getUTCMonth()+1).padStart(2,'0')}-${String(bjDate.getUTCDate()).padStart(2,'0')}`;
-        if (!dayMap[dayKey]) dayMap[dayKey] = { total: 0, wrong: 0 };
+        if (!dayMap[dayKey]) dayMap[dayKey] = { total: 0, wrong: 0, time: 0 };
         dayMap[dayKey].total += h.total;
         dayMap[dayKey].wrong += (h.total - h.score);
+        dayMap[dayKey].time += (h.avgTime !== undefined ? h.avgTime * h.total : h.time);
       });
 
       // 按日期降序排列
       const days = Object.keys(dayMap).sort((a, b) => b.localeCompare(a));
+
+      // 计算平均速度最快的那天
+      const bestDay = days.reduce((best, k) => {
+        const avg = dayMap[k].time / dayMap[k].total;
+        return (!best || avg < best.avg) ? { avg } : best;
+      }, null);
+      bestEl.textContent = bestDay ? '最快：' + bestDay.avg.toFixed(1) + '秒/题' : '';
 
       // 获取今天的日期（北京时间）
       const now = new Date();
@@ -900,7 +900,7 @@
         html += `
           <div class="history-item ${cls}">
             <span>${label}</span>
-            <span>练习 ${info.total} 题，错误 ${info.wrong} 题</span>
+            <span>练习 ${info.total} 题，错误 ${info.wrong} 题，平均 ${(info.time / info.total).toFixed(1)}秒/题</span>
           </div>`;
       });
 
@@ -930,6 +930,9 @@
         audio.play().catch(() => {});
       } else if (type === 'wrong') {
         const audio = new Audio('./2.mp3');
+        audio.play().catch(() => {});
+      } else if (type === 'key') {
+        const audio = new Audio('./3.mp3');
         audio.play().catch(() => {});
       } else if (type === 'celebrate') {
         // 庆祝音效 - 使用 Web Audio API 生成欢快琶音
@@ -1428,6 +1431,12 @@
         } else if (!answered) {
           checkAnswer();
         }
+      } else if (/^[0-9]$/.test(e.key) || e.key === 'Backspace') {
+        // 数字键和退格键播放按键音效
+        const questionArea = document.getElementById('questionArea');
+        if (questionArea.style.display !== 'none' && !answered) {
+          playSound('key');
+        }
       }
     });
 
@@ -1545,6 +1554,7 @@
       const input = document.getElementById('answerInput');
       if (input.disabled) return;
       setAnswerValue(getAnswerValue() + digit);
+      playSound('key');
       if (!isMobile()) input.focus();
     }
 
@@ -1553,6 +1563,7 @@
       const input = document.getElementById('answerInput');
       if (input.disabled) return;
       setAnswerValue(getAnswerValue().slice(0, -1));
+      playSound('key');
       if (!isMobile()) input.focus();
     }
 
