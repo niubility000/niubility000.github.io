@@ -1334,8 +1334,21 @@
         const audio = new Audio('./2.mp3');
         audio.play().catch(() => {});
       } else if (type === 'key') {
-        const audio = new Audio('./3.mp3');
-        audio.play().catch(() => {});
+        // 模拟键盘打字声 - Web Audio API 生成短促点击音
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gn = ctx.createGain();
+        const now = ctx.currentTime;
+        // 随机轻微偏移频率，模拟真实键盘的微小差异
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(800 + Math.random() * 400, now);
+        osc.frequency.exponentialRampToValueAtTime(200, now + 0.03);
+        gn.gain.setValueAtTime(0.3, now);
+        gn.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+        osc.connect(gn);
+        gn.connect(ctx.destination);
+        osc.start(now);
+        osc.stop(now + 0.05);
       } else if (type === 'celebrate') {
         // 庆祝音效 - 使用 Web Audio API 生成欢快琶音
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
