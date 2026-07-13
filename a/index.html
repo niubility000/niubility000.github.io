@@ -28,7 +28,7 @@
       background: #fff;
       border-radius: 20px;
       padding: 24px 30px;
-      max-width: 500px;
+      max-width: 800px;
       width: 100%;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
       position: relative;
@@ -171,10 +171,11 @@
     }
 
     .question {
-      font-size: 32px;
+      font-size: 4em;
       color: #333;
       margin-bottom: 14px;
       letter-spacing: 4px;
+      font-weight: bold;
     }
 
     .answer-input {
@@ -368,12 +369,22 @@
       box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
     }
 
+    .voice-indicator {
+      text-align: center;
+      font-size: 14px;
+      color: #667eea;
+      margin: 4px;
+      animation: voicePulse 1s infinite;
+    }
+    @keyframes voicePulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
     .next-question {
       text-align: center;
-      font-size: 18px;
+      font-size: 2em;
       color: #bbb;
-      margin-top: 10px;
-      padding-top: 10px;
       border-top: 1px dashed #e0e0e0;
     }
     .next-question span {
@@ -585,6 +596,94 @@
       100% { transform: translate(-50%, -50%) scale(1); }
     }
 
+    .ok-toast {
+      position: fixed;
+      top: 10%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: rgba(108, 183, 110, 0.95);
+      color: #fff;
+      font-size: 58px;
+      font-weight: bold;
+      padding: 10px 30px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 3000;
+      display: none;
+      pointer-events: none;
+    }
+
+    .ok-toast.active {
+      display: block;
+      animation: ok-pop 0.4s ease forwards;
+    }
+
+    @keyframes ok-pop {
+      0% { transform: translate(-50%, -50%) scale(0); }
+      70% { transform: translate(-50%, -50%) scale(1.1); }
+      100% { transform: translate(-50%, -50%) scale(1); }
+    }
+
+    .settings-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 2000;
+      display: none;
+    }
+
+    .settings-overlay.active {
+      display: block;
+    }
+
+    .settings-modal {
+      position: fixed;
+      top: 30%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #fff;
+      padding: 24px 32px;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+      z-index: 2001;
+      display: none;
+      max-width: 580px;
+      text-align: center;
+      width: 90%;
+    }
+
+    .settings-modal.active {
+      display: block;
+    }
+
+    .settings-item {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 8px;
+      margin: 14px 0;
+      color: #666;
+      font-size: 14px;
+    }
+
+    .settings-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .settings-voice-hint {
+      color: #4CAF50;
+      font-size: 13px;
+      margin-top: 4px;
+      display: none;
+      text-align: justify;
+      text-align-last: left;
+    }
+
+    .settings-voice-hint.active {
+      display: block;
+    }
+
     @media screen and (max-width: 600px) {
       body {
         padding: 0;
@@ -592,7 +691,7 @@
       }
       .container {
         border-radius: 0;
-        padding: 32px 16px 16px 16px;
+        padding: 50px 16px 16px 16px;
         max-width: 100%;
         width: 100%;
         min-height: 100vh;
@@ -634,8 +733,13 @@
       }
       .celebration-text {
         font-size: 24px;
-        padding: 15px 25px;
+        width: 85%;
       }
+      .ok-toast {
+      top: 10%;
+      font-size: 28px;
+      padding: 10px;
+    }
     }
   </style>
 </head>
@@ -668,12 +772,7 @@
       </div>
 
       <div class="sound-toggle">
-        <input type="checkbox" id="soundToggle" checked>
-        <label for="soundToggle">开启音效</label>
-        <span style="margin-left:16px; display:inline-flex; align-items:center; gap:8px;">
-          <input type="checkbox" id="showNextToggle">
-          <label for="showNextToggle">显示下一题</label>
-        </span>
+        <button class="btn" onclick="openSettings()" style="padding:6px 22px; font-size:14px; background:#2196F3; color:#fff;">设置</button>
       </div>
 
       <button class="btn btn-start" onclick="startQuiz()">开始练习</button>
@@ -707,6 +806,7 @@
         </div>
         <div class="feedback" id="feedback"></div>
         <div class="feedback hint" id="hintText"></div>
+        <div class="voice-indicator" id="voiceIndicator" style="display:none;">🎤</div>
         <div class="next-question" id="nextQuestion"></div>
       </div>
       <div class="numpad">
@@ -743,6 +843,32 @@
     <div class="trophy">🏆</div>
     <div class="msg" id="celebrationMsg">恭喜！全对！</div>
     <div class="submsg" id="celebrationSub"></div>
+  </div>
+
+  <div class="ok-toast" id="okToast">OK</div>
+
+  <!-- 设置弹窗 -->
+  <div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+  <div class="settings-modal" id="settingsModal">
+    <h3 style="margin-top:0; color:#333; font-size:18px;">设置</h3>
+    <div class="settings-item">
+      <input type="checkbox" id="soundToggle" checked>
+      <label for="soundToggle">开启音效</label>
+    </div>
+    <div class="settings-item">
+      <input type="checkbox" id="showNextToggle">
+      <label for="showNextToggle">显示下一题</label>
+    </div>
+    <div class="settings-item">
+      <input type="checkbox" id="voiceToggle" disabled>
+      <label for="voiceToggle" id="voiceToggleLabel">开启语音输入</label>
+    </div>
+    <div class="settings-voice-hint" id="settingsVoiceHint">
+      <p>推荐使用edge、google、safari浏览器，将自动调用浏览器自带语音识别接口。识别速度取决于网速。</p>
+      <p>可在对应页面朗读按钮内容'开始练习'、'确定'进行语音控制。</p>
+      <p>答题时可直接说数字。但由于语音识别引擎对单独的一位数'1''2''8'识别欠准确，可以加前缀，说'等于1，等于2'等。同时，有容错机制，在出现错题时，会提示'是错题吗？'，回答'是'或'不是'以继续。</p>
+    </div>
+    <button class="btn" onclick="closeSettings()" style="margin-top:16px; padding:8px 24px;">关闭</button>
   </div>
 
   <script>
@@ -995,16 +1121,204 @@
       content.innerHTML = html;
     }
 
+    // ========== 语音输入 ==========
+    let voiceEnabled = false;
+    let recognition = null;
+    let voiceAvailable = false;
+    let voiceSeq = 0;
+
+    function initVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        voiceAvailable = false;
+        document.getElementById('voiceToggleLabel').textContent = '开启语音输入（不支持）';
+        return;
+      }
+      voiceAvailable = true;
+      document.getElementById('voiceToggle').disabled = false;
+
+      recognition = new SpeechRecognition();
+      recognition.lang = 'zh-CN';
+      recognition.continuous = true;
+      recognition.interimResults = true;
+
+      recognition.onresult = function(event) {
+        // 只处理最终结果，忽略中间结果
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          if (event.results[i].isFinal) {
+            const transcript = event.results[i][0].transcript.trim();
+
+            // 结果页面：说"确定"自动执行确定按钮
+            if (/确定/.test(transcript)) {
+              if (document.getElementById('resultArea').style.display === 'block') {
+                restart();
+                continue;
+              }
+            }
+
+            // 首页：说"开始练习"自动开始
+            if (/开始练习/.test(transcript)) {
+              const startArea = document.getElementById('startArea');
+              if (startArea.style.display !== 'none') {
+                startQuiz();
+                continue;
+              }
+            }
+
+            // 答题页面答错后：说"不是"则算对并取消收藏，然后进入下一题
+            if (/不是/.test(transcript)) {
+              if (waitingForNext) {
+                const q = questions[currentIndex];
+                q.isCorrect = true;
+                score++;
+                const idx = favorites.findIndex(f => f.expr === q.expr);
+                if (idx >= 0) {
+                  favorites.splice(idx, 1);
+                  saveFavorites();
+                }
+                const toast = document.getElementById('okToast');
+                toast.textContent = '已记录';
+                setTimeout(() => { goToNext(); }, 1000);
+                continue;
+              }
+            }
+
+            // 答题页面答错后：说"是"则进入下一题（保留错题和收藏）
+            if (/^(是|是的)/.test(transcript)) {
+              if (waitingForNext) {
+                const toast = document.getElementById('okToast');
+                toast.textContent = '已记录';
+                setTimeout(() => { goToNext(); }, 1000);
+                continue;
+              }
+            }
+
+            const num = extractNumber(transcript);
+            if (num === null) continue;
+            // 用序号过滤：如果结果到达时已经换题了，就忽略
+            const seqWhenResult = voiceSeq;
+            setTimeout(() => {
+              if (seqWhenResult !== voiceSeq) return; // 已经换题，忽略旧结果
+              if (answered) return;
+              setAnswerValue(String(num));
+              checkAnswer();
+            }, 0);
+          }
+        }
+      };
+
+      recognition.onerror = function() {
+        // 静默处理错误
+      };
+
+      recognition.onend = function() {
+        voiceRunning = false;
+        // continuous模式下，如果被意外停止，尝试重启
+        // 只在答题页面（内联display非none）且未答完时重启
+        // 注意：首页时CSS隐藏questionArea但style.display为空，不能用!=='none'判断
+        if (voiceEnabled && !answered && document.getElementById('questionArea').style.display !== 'none' && document.getElementById('questionArea').style.display !== '') {
+          setTimeout(() => {
+            if (voiceEnabled && !answered && !voiceRunning) {
+              try { recognition.start(); voiceRunning = true; } catch(e) {}
+            }
+          }, 300);
+        }
+      };
+    }
+
+    // 从语音文本中提取数字
+    function extractNumber(text) {
+      const cnMap = {'零':0,'一':1,'二':2,'两':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10};
+      // 优先匹配纯数字
+      const digitMatch = text.match(/\d+/);
+      if (digitMatch) return parseInt(digitMatch[0]);
+
+      // 中文数字：逐字映射
+      let result = '';
+      for (const ch of text) {
+        if (cnMap[ch] !== undefined) {
+          result += cnMap[ch];
+        }
+      }
+      if (result.length > 0) {
+        const n = parseInt(result);
+        if (!isNaN(n)) return n;
+      }
+
+      return null;
+    }
+
+    function startVoice() {
+      if (!recognition) return;
+      document.getElementById('voiceIndicator').style.display = 'block';
+      // 如果已经在运行，不重复启动（避免重复弹窗）
+      if (!voiceRunning) {
+        try {
+          recognition.start();
+          voiceRunning = true;
+        } catch(e) {}
+      }
+    }
+    // 设置弹窗
+    function openSettings() {
+      document.getElementById('settingsOverlay').classList.add('active');
+      document.getElementById('settingsModal').classList.add('active');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsOverlay').classList.remove('active');
+      document.getElementById('settingsModal').classList.remove('active');
+    }
+
+    // 语音开关变化
+    let voiceRunning = false;
+
+    document.getElementById('voiceToggle').addEventListener('change', function() {
+      voiceEnabled = this.checked;
+      const hint = document.getElementById('settingsVoiceHint');
+      if (this.checked) {
+        hint.classList.add('active');
+        if (recognition && !voiceRunning) {
+          try {
+            recognition.start();
+            voiceRunning = true;
+          } catch(e) {}
+        }
+      } else {
+        hint.classList.remove('active');
+        stopVoice();
+      }
+    });
+
+    // 音效开关：立即生效
+    document.getElementById('soundToggle').addEventListener('change', function() {
+      soundEnabled = this.checked;
+    });
+
+    // 显示下一题开关：立即持久化
+    document.getElementById('showNextToggle').addEventListener('change', function() {
+      localStorage.setItem('mathShowNext_u' + currentUser, this.checked);
+    });
+
     loadUserData();
     initHistory();
+    initVoice();
+    // 根据语音开关初始状态显示提示
+    if (document.getElementById('voiceToggle').checked) {
+      document.getElementById('settingsVoiceHint').classList.add('active');
+    }
     updateSessionStats();
 
     // 清空历史记录
     function clearHistory() {
-      if (history.length === 0) return;
-      if (confirm('确定要清空所有历史记录吗？收藏的题目不会被清空。')) {
+      if (history.length === 0 && favorites.length === 0) return;
+      if (confirm('确定要清空所有历史记录和收藏题目吗？')) {
         history = [];
         localStorage.removeItem('mathQuizHistory_u' + currentUser);
+        favorites = [];
+        favConsecutiveCorrect = {};
+        localStorage.removeItem('mathFavorites_u' + currentUser);
+        localStorage.removeItem('mathFavConsec_u' + currentUser);
         initHistory();
       }
     }
@@ -1306,6 +1620,7 @@
       const count = parseInt(document.getElementById('questionCount').value) || 10;
       localStorage.setItem('mathQuestionCount_u' + currentUser, count);
       soundEnabled = document.getElementById('soundToggle').checked;
+      voiceEnabled = document.getElementById('voiceToggle').checked;
       localStorage.setItem('mathShowNext_u' + currentUser, document.getElementById('showNextToggle').checked);
       questions = [];
 
@@ -1378,6 +1693,9 @@
       document.getElementById('totalNum').textContent = questions.length;
 
       showHistoryStats();
+      if (voiceEnabled) {
+        startVoice();
+      }
       showQuestion();
     }
 
@@ -1410,6 +1728,7 @@
     function showQuestion() {
       answered = false;
       waitingForNext = false;
+      voiceSeq++;
       const q = questions[currentIndex];
       document.getElementById('currentNum').textContent = currentIndex + 1;
       document.getElementById('questionText').textContent = q.expr;
@@ -1419,6 +1738,7 @@
       document.getElementById('feedback').textContent = '';
       document.getElementById('feedback').className = 'feedback';
       document.getElementById('hintText').textContent = '';
+      document.getElementById('okToast').classList.remove('active');
       document.getElementById('progressFill').style.width = ((currentIndex + 1) / questions.length * 100) + '%';
       const enterBtn = document.getElementById('enterBtn');
       enterBtn.textContent = '\u23CE';
@@ -1520,6 +1840,13 @@
         const enterBtn = document.getElementById('enterBtn');
         enterBtn.textContent = '下一题';
         enterBtn.classList.add('next');
+
+        // 语音输入模式下，显示"是错题吗？"提示等待用户回答
+        if (voiceEnabled) {
+          const toast = document.getElementById('okToast');
+          toast.textContent = '是错题吗？';
+          toast.classList.add('active');
+        }
       }
     }
 
@@ -1527,6 +1854,7 @@
     function goToNext() {
       if (!waitingForNext) return;
       waitingForNext = false;
+      document.getElementById('okToast').classList.remove('active');
       currentIndex++;
       if (currentIndex < questions.length) {
         startTimer();
@@ -1734,6 +2062,7 @@
       document.getElementById('resultArea').style.display = 'none';
       document.getElementById('startArea').style.display = 'block';
       document.getElementById('userSwitch').style.display = 'flex';
+      document.getElementById('voiceIndicator').style.display = 'none';
     }
   </script>
 </body>
