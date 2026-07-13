@@ -45,12 +45,17 @@
 
     .user-switch {
       display: flex;
-      justify-content: center;
-      gap: 0;
+      justify-content: space-between;
+      align-items: center;
       margin-bottom: 15px;
     }
 
-    .user-switch button {
+    .user-switch-group {
+      display: flex;
+      gap: 0;
+    }
+
+    .user-switch-group button {
       padding: 8px 24px;
       font-size: 14px;
       border: 2px solid #ddd;
@@ -62,44 +67,38 @@
       font-family: inherit;
     }
 
-    .user-switch button:first-child {
+    .user-switch-group button:first-child {
       border-radius: 8px 0 0 8px;
     }
 
-    .user-switch button:last-child {
+    .user-switch-group button:last-child {
       border-radius: 0 8px 8px 0;
     }
 
-    .user-switch button.active {
+    .user-switch-group button.active {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: #fff;
       border-color: #667eea;
     }
 
-    .user-switch button:not(.active):hover {
+    .user-switch-group button:not(.active):hover {
       background: #e9ecef;
     }
 
-    .settings {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      margin-bottom: 25px;
-    }
-
-    .settings label {
-      color: #555;
-      font-size: 16px;
-    }
-
-    .settings input[type="number"] {
-      width: 60px;
-      padding: 8px;
-      border: 2px solid #ddd;
+    .user-switch .btn-settings {
+      padding: 6px 18px;
+      font-size: 14px;
+      background: #2196F3;
+      color: #fff;
+      border: none;
       border-radius: 8px;
-      text-align: center;
-      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .user-switch .btn-settings:hover {
+      background: #1976D2;
     }
 
     .btn {
@@ -312,22 +311,6 @@
       background: #f57c00;
     }
 
-    .sound-toggle {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 20px;
-      color: #666;
-      font-size: 14px;
-    }
-
-    .sound-toggle input[type="checkbox"] {
-      width: 18px;
-      height: 18px;
-      cursor: pointer;
-    }
-
     .range-select {
       display: flex;
       justify-content: center;
@@ -352,6 +335,35 @@
       outline: none;
       border-color: #667eea;
       box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+    }
+
+    .mul-filter {
+      display: none;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .mul-filter.active {
+      display: flex;
+    }
+
+    .mul-filter-item {
+      display: flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 14px;
+      color: #555;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .mul-filter-item input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      cursor: pointer;
+      accent-color: #667eea;
     }
 
     .voice-indicator {
@@ -687,8 +699,12 @@
         font-size: 22px;
         margin-bottom: 12px;
       }
-      .user-switch button {
+      .user-switch-group button {
         padding: 6px 18px;
+        font-size: 13px;
+      }
+      .user-switch .btn-settings {
+        padding: 5px 14px;
         font-size: 13px;
       }
       .range-select select {
@@ -734,16 +750,14 @@
     <h1>PDJ计算天天练</h1>
 
     <div class="user-switch" id="userSwitch">
-      <button id="user1Btn" class="active" onclick="switchUser(1)">用户一</button>
-      <button id="user2Btn" onclick="switchUser(2)">用户二</button>
+      <div class="user-switch-group">
+        <button id="user1Btn" class="active" onclick="switchUser(1)">用户一</button>
+        <button id="user2Btn" onclick="switchUser(2)">用户二</button>
+      </div>
+      <button class="btn-settings" onclick="openSettings()">设置</button>
     </div>
 
     <div class="start-area" id="startArea">
-      <div class="settings">
-        <label for="questionCount">题目数量：</label>
-        <input type="number" id="questionCount" value="10" min="1" max="50" onchange="saveQuestionCount(this.value)">
-      </div>
-
       <div class="range-select">
         <select id="rangeSelect" onchange="setRange(this.value)">
           <option value="20" selected>一年级上：二十以内加减</option>
@@ -753,12 +767,20 @@
         </select>
       </div>
 
-      <div class="fav-auto-remove" id="favAutoRemove" style="display:none; text-align:center; color:#666; font-size:13px; margin-top:8px;">
-        如果收藏的题目连续正确 <input type="number" id="autoRemoveThreshold" value="3" min="1" max="20" style="width:40px; padding:2px 4px; font-size:13px; text-align:center; border:1px solid #ddd; border-radius:4px;"> 次，则自动移出收藏
+      <div class="mul-filter" id="mulFilter">
+        <label class="mul-filter-item"><input type="checkbox" value="1" onchange="saveMulFilter()">1</label>
+        <label class="mul-filter-item"><input type="checkbox" value="2" onchange="saveMulFilter()">2</label>
+        <label class="mul-filter-item"><input type="checkbox" value="3" onchange="saveMulFilter()">3</label>
+        <label class="mul-filter-item"><input type="checkbox" value="4" onchange="saveMulFilter()">4</label>
+        <label class="mul-filter-item"><input type="checkbox" value="5" onchange="saveMulFilter()">5</label>
+        <label class="mul-filter-item"><input type="checkbox" value="6" onchange="saveMulFilter()">6</label>
+        <label class="mul-filter-item"><input type="checkbox" value="7" onchange="saveMulFilter()">7</label>
+        <label class="mul-filter-item"><input type="checkbox" value="8" onchange="saveMulFilter()">8</label>
+        <label class="mul-filter-item"><input type="checkbox" value="9" onchange="saveMulFilter()">9</label>
       </div>
 
-      <div class="sound-toggle">
-        <button class="btn" onclick="openSettings()" style="padding:6px 22px; font-size:14px; background:#2196F3; color:#fff;">设置</button>
+      <div class="fav-auto-remove" id="favAutoRemove" style="display:none; text-align:center; color:#666; font-size:13px; margin-top:8px;">
+        如果收藏的题目连续正确 <input type="number" id="autoRemoveThreshold" value="3" min="1" max="20" style="width:40px; padding:2px 4px; font-size:13px; text-align:center; border:1px solid #ddd; border-radius:4px;"> 次，则自动移出收藏
       </div>
 
       <button class="btn btn-start" onclick="startQuiz()">开始练习</button>
@@ -837,6 +859,11 @@
   <div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
   <div class="settings-modal" id="settingsModal">
     <h3 style="margin-top:0; color:#333; font-size:18px;">设置</h3>
+    <div class="settings-item">
+      <label for="questionCount" style="flex-shrink:0;">题目数量：</label>
+      <input type="number" id="questionCount" value="10" min="1" max="50" style="width:60px; padding:4px 8px; border:2px solid #ddd; border-radius:8px; text-align:center; font-size:14px;" onchange="saveQuestionCount(this.value)">
+      <span style="color:#999; font-size:12px;">题</span>
+    </div>
     <div class="settings-item">
       <input type="checkbox" id="soundToggle" checked>
       <label for="soundToggle">开启音效</label>
@@ -918,6 +945,7 @@
     let maxRange = 20;
     let currentUser = 1;
     let timerInterval = null;
+    let mulFilterNums = []; // 乘法口诀筛选的数字列表
 
     function startTimer() {
       stopTimer();
@@ -978,6 +1006,7 @@
       }
       const savedShowNext = localStorage.getItem('mathShowNext_u' + currentUser);
       document.getElementById('showNextToggle').checked = savedShowNext === 'true';
+      loadMulFilter();
     }
 
     function saveHistory() {
@@ -1355,6 +1384,33 @@
       maxRange = range;
       document.getElementById('rangeSelect').value = range;
       document.getElementById('favAutoRemove').style.display = range === 'favorites' ? 'block' : 'none';
+      document.getElementById('mulFilter').classList.toggle('active', range === 'multiply');
+    }
+
+    // 获取乘法口诀筛选的数字
+    function getMulFilter() {
+      const checks = document.querySelectorAll('#mulFilter input[type="checkbox"]');
+      const nums = [];
+      checks.forEach(cb => { if (cb.checked) nums.push(parseInt(cb.value)); });
+      return nums;
+    }
+
+    // 保存乘法口诀筛选状态
+    function saveMulFilter() {
+      mulFilterNums = getMulFilter();
+      localStorage.setItem('mathMulFilter_u' + currentUser, JSON.stringify(mulFilterNums));
+    }
+
+    // 加载乘法口诀筛选状态
+    function loadMulFilter() {
+      const saved = localStorage.getItem('mathMulFilter_u' + currentUser);
+      if (saved) {
+        mulFilterNums = JSON.parse(saved);
+      } else {
+        mulFilterNums = [];
+      }
+      const checks = document.querySelectorAll('#mulFilter input[type="checkbox"]');
+      checks.forEach(cb => { cb.checked = mulFilterNums.includes(parseInt(cb.value)); });
     }
 
     // 生成题目
@@ -1568,10 +1624,24 @@
     // ========== 乘法口诀 ==========
     function generateQuestionMul(forceType) {
       let a, b, expr, answer;
-      if (Math.random() < 0.5) {
-        a = rand(1, 9); b = rand(1, 9);
+      const filter = getMulFilter();
+      if (filter.length > 0) {
+        // 按筛选数字出题：先随机选一个数字 N，再随机选 1~N 中的乘数
+        const n = filter[Math.floor(Math.random() * filter.length)];
+        const m = rand(1, n);
+        // 随机决定 a×b 还是 b×a 的显示顺序
+        if (Math.random() < 0.5) {
+          a = m; b = n;
+        } else {
+          a = n; b = m;
+        }
       } else {
-        b = rand(1, 9); a = rand(1, 9);
+        // 未筛选：全部 1-9 随机
+        if (Math.random() < 0.5) {
+          a = rand(1, 9); b = rand(1, 9);
+        } else {
+          b = rand(1, 9); a = rand(1, 9);
+        }
       }
       answer = a * b;
       expr = `${a} \u00d7 ${b} = ?`;
