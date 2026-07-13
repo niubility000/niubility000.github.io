@@ -6,7 +6,7 @@
   <script>
     !function(){if(document.getElementById("baidu-tongji-script"))return;window._hmt=window._hmt||[];var t=document.createElement("script");t.id="baidu-tongji-script",t.src="https://hm.baidu.com/hm.js?8cd25f4a6ff603e61707fa049681a149";var e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(t,e)}();
   </script>
-  <title>小学数学计算天天练</title>
+  <title>PDJ计算天天练</title>
   <style>
     * {
       margin: 0;
@@ -368,18 +368,6 @@
       box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
     }
 
-    .voice-indicator {
-      text-align: center;
-      font-size: 14px;
-      color: #667eea;
-      margin-top: 4px;
-      animation: voicePulse 1s infinite;
-    }
-    @keyframes voicePulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-
     .next-question {
       text-align: center;
       font-size: 18px;
@@ -653,7 +641,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>小学数学计算天天练</h1>
+    <h1>PDJ计算天天练</h1>
 
     <div class="user-switch" id="userSwitch">
       <button id="user1Btn" class="active" onclick="switchUser(1)">用户一</button>
@@ -685,10 +673,6 @@
         <span style="margin-left:16px; display:inline-flex; align-items:center; gap:8px;">
           <input type="checkbox" id="showNextToggle">
           <label for="showNextToggle">显示下一题</label>
-        </span>
-        <span id="voiceToggleWrap" style="margin-left:16px; display:inline-flex; align-items:center; gap:8px;">
-          <input type="checkbox" id="voiceToggle" disabled>
-          <label for="voiceToggle" id="voiceToggleLabel">开启语音输入</label>
         </span>
       </div>
 
@@ -723,7 +707,6 @@
         </div>
         <div class="feedback" id="feedback"></div>
         <div class="feedback hint" id="hintText"></div>
-        <div class="voice-indicator" id="voiceIndicator" style="display:none;">🎤</div>
         <div class="next-question" id="nextQuestion"></div>
       </div>
       <div class="numpad">
@@ -849,7 +832,7 @@
         if (stats && stats.totalQuestions > 0 && maxRange !== 'multiply' && maxRange !== 'favorites' && answeredCount > 0) {
           const avgTimePerQuestion = stats.totalTime / stats.totalQuestions;
           const expectedTime = Math.round(avgTimePerQuestion * answeredCount);
-          timerEl.style.color = elapsed > expectedTime ? '#f44336' : '';
+          timerEl.style.color = elapsedTime > expectedTime ? '#f44336' : '';
         }
 
         if (answeredCount > 0) {
@@ -1012,105 +995,8 @@
       content.innerHTML = html;
     }
 
-    // ========== 语音输入 ==========
-    let voiceEnabled = false;
-    let recognition = null;
-    let voiceAvailable = false;
-
-    function initVoice() {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SpeechRecognition) {
-        voiceAvailable = false;
-        document.getElementById('voiceToggleLabel').textContent = '开启语音输入（不支持）';
-        return;
-      }
-      voiceAvailable = true;
-      document.getElementById('voiceToggle').disabled = false;
-
-      recognition = new SpeechRecognition();
-      recognition.lang = 'zh-CN';
-      recognition.continuous = true;
-      recognition.interimResults = true;
-
-      recognition.onresult = function(event) {
-        // 只处理最终结果，忽略中间结果
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (event.results[i].isFinal) {
-            const transcript = event.results[i][0].transcript;
-            const num = extractNumber(transcript);
-            if (num !== null && !answered) {
-              setAnswerValue(String(num));
-              checkAnswer();
-            }
-          }
-        }
-      };
-
-      recognition.onerror = function() {
-        // 静默处理错误
-      };
-
-      recognition.onend = function() {
-        // continuous模式下，如果被意外停止，尝试重启
-        if (voiceEnabled && !answered && document.getElementById('questionArea').style.display !== 'none') {
-          setTimeout(() => {
-            if (voiceEnabled && !answered) {
-              try { recognition.start(); } catch(e) {}
-            }
-          }, 300);
-        }
-      };
-    }
-
-    // 从语音文本中提取数字
-    function extractNumber(text) {
-      const cnMap = {'零':0,'一':1,'二':2,'两':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10};
-      // 优先匹配纯数字
-      const digitMatch = text.match(/\d+/);
-      if (digitMatch) return parseInt(digitMatch[0]);
-
-      // 中文数字：逐字映射
-      let result = '';
-      for (const ch of text) {
-        if (cnMap[ch] !== undefined) {
-          result += cnMap[ch];
-        }
-      }
-      if (result.length > 0) {
-        const n = parseInt(result);
-        if (!isNaN(n)) return n;
-      }
-
-      return null;
-    }
-
-    function startVoice() {
-      if (!recognition) return;
-      document.getElementById('voiceIndicator').style.display = 'block';
-      try { recognition.start(); } catch(e) {}
-    }
-
-    function stopVoice() {
-      if (!recognition) return;
-      document.getElementById('voiceIndicator').style.display = 'none';
-      try { recognition.stop(); } catch(e) {}
-    }
-
-    // 语音开关变化
-    document.getElementById('voiceToggle').addEventListener('change', function() {
-      voiceEnabled = this.checked;
-      if (this.checked && recognition) {
-        // 勾选时立即触发一次识别，让浏览器弹出麦克风权限请求
-        try {
-          recognition.start();
-          setTimeout(() => { try { recognition.stop(); } catch(e) {} }, 1000);
-        } catch(e) {}
-      }
-    });
-
     loadUserData();
     initHistory();
-    initVoice();
     updateSessionStats();
 
     // 清空历史记录
@@ -1420,7 +1306,6 @@
       const count = parseInt(document.getElementById('questionCount').value) || 10;
       localStorage.setItem('mathQuestionCount_u' + currentUser, count);
       soundEnabled = document.getElementById('soundToggle').checked;
-      voiceEnabled = document.getElementById('voiceToggle').checked;
       localStorage.setItem('mathShowNext_u' + currentUser, document.getElementById('showNextToggle').checked);
       questions = [];
 
@@ -1493,10 +1378,6 @@
       document.getElementById('totalNum').textContent = questions.length;
 
       showHistoryStats();
-      // 语音输入：整个练习期间只启动一次（continuous模式持续监听）
-      if (voiceEnabled) {
-        startVoice();
-      }
       showQuestion();
     }
 
@@ -1694,7 +1575,6 @@
     // 显示结果
     function showResult() {
       stopTimer();
-      stopVoice();
       const timeUsed = elapsedTime;
       const total = questions.length;
       const percentage = Math.round(score / total * 100);
@@ -1854,7 +1734,6 @@
       document.getElementById('resultArea').style.display = 'none';
       document.getElementById('startArea').style.display = 'block';
       document.getElementById('userSwitch').style.display = 'flex';
-      document.getElementById('voiceIndicator').style.display = 'none';
     }
   </script>
 </body>
