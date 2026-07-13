@@ -639,7 +639,7 @@
     <div class="start-area" id="startArea">
       <div class="settings">
         <label for="questionCount">题目数量：</label>
-        <input type="number" id="questionCount" value="10" min="1" max="50">
+        <input type="number" id="questionCount" value="10" min="1" max="50" onchange="saveQuestionCount(this.value)">
       </div>
 
       <div class="range-select">
@@ -787,6 +787,7 @@
       return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
     }
     let startTime;
+    let elapsedTime = 0;
     let answered = false;
     let maxRange = 20;
     let currentUser = 1;
@@ -799,12 +800,14 @@
       stopTimer();
       const timerEl = document.getElementById('timerDisplay');
       const accEl = document.getElementById('accuracyDisplay');
-      timerEl.textContent = '0秒';
       timerEl.style.color = '';
-      accEl.textContent = '0%';
+      if (elapsedTime === 0) {
+        accEl.textContent = '0%';
+      }
+      startTime = Date.now();
       timerInterval = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - startTime) / 1000);
-        timerEl.textContent = formatDuration(elapsed);
+        const currentElapsed = elapsedTime + Math.floor((Date.now() - startTime) / 1000);
+        timerEl.textContent = formatDuration(currentElapsed);
 
         const answeredCount = questions.slice(0, currentIndex + 1).filter(q => q.isCorrect !== undefined).length;
 
@@ -824,6 +827,7 @@
 
     function stopTimer() {
       if (timerInterval) {
+        elapsedTime += Math.floor((Date.now() - startTime) / 1000);
         clearInterval(timerInterval);
         timerInterval = null;
       }
@@ -847,6 +851,10 @@
       favConsecutiveCorrect = JSON.parse(localStorage.getItem('mathFavConsec_u' + currentUser) || '{}');
       quizStats = JSON.parse(localStorage.getItem('mathQuizStats_u' + currentUser) || '{}');
       initQuizStats();
+      const savedCount = localStorage.getItem('mathQuestionCount_u' + currentUser);
+      if (savedCount) {
+        document.getElementById('questionCount').value = savedCount;
+      }
     }
 
     function saveHistory() {
@@ -855,6 +863,10 @@
 
     function saveQuizStats() {
       localStorage.setItem('mathQuizStats_u' + currentUser, JSON.stringify(quizStats));
+    }
+
+    function saveQuestionCount(count) {
+      localStorage.setItem('mathQuestionCount_u' + currentUser, count);
     }
 
     function saveFavorites() {
@@ -1273,6 +1285,7 @@
     // 开始练习
     function startQuiz() {
       const count = parseInt(document.getElementById('questionCount').value) || 10;
+      localStorage.setItem('mathQuestionCount_u' + currentUser, count);
       soundEnabled = document.getElementById('soundToggle').checked;
       questions = [];
 
@@ -1333,6 +1346,7 @@
       }
       currentIndex = 0;
       score = 0;
+      elapsedTime = 0;
       waitingForNext = false;
       startTime = Date.now();
       startTimer();
@@ -1412,6 +1426,7 @@
       }
 
       answered = true;
+      stopTimer();
       const q = questions[currentIndex];
       const correct = userAnswer === q.answer;
       const feedback = document.getElementById('feedback');
@@ -1449,6 +1464,7 @@
         setTimeout(() => {
           currentIndex++;
           if (currentIndex < questions.length) {
+            startTimer();
             showQuestion();
           } else {
             showResult();
@@ -1485,6 +1501,7 @@
       waitingForNext = false;
       currentIndex++;
       if (currentIndex < questions.length) {
+        startTimer();
         showQuestion();
       } else {
         showResult();
@@ -1530,8 +1547,7 @@
     // 显示结果
     function showResult() {
       stopTimer();
-      const endTime = Date.now();
-      const timeUsed = Math.round((endTime - startTime) / 1000);
+      const timeUsed = elapsedTime;
       const total = questions.length;
       const percentage = Math.round(score / total * 100);
 
@@ -1577,19 +1593,18 @@
         stats.totalCorrect += score;
 
         if (score === total) {
+          const currentRank = stats.bestRecords.filter(r => r.avgTime < avgTime).length + 1;
           stats.bestRecords.push({ avgTime: avgTime, date: new Date().toLocaleString('zh-CN') });
           stats.bestRecords.sort((a, b) => a.avgTime - b.avgTime);
           if (stats.bestRecords.length > 10) {
             stats.bestRecords = stats.bestRecords.slice(0, 10);
           }
-        }
-        saveQuizStats();
-
-        if (score === total) {
-          const rank = stats.bestRecords.findIndex(r => r.avgTime === avgTime) + 1;
-          if (rank <= 10) {
-            showCelebration(avgTime, rank);
+          saveQuizStats();
+          if (currentRank <= 10) {
+            showCelebration(avgTime, currentRank);
           }
+        } else {
+          saveQuizStats();
         }
       }
     }
@@ -1623,21 +1638,21 @@
         trophy.textContent = '🏆';
         trophy.style.display = 'block';
         msg.textContent = '恭喜！获得第一名！';
-        sub.textContent = `全对！平均每题仅 ${avgTime.toFixed(1)} 秒，获得${typeName}历史成绩第一名！`;
+        sub.textContent = `全对！平均 ${avgTime.toFixed(1)}秒/题，${typeName}历史成绩第一名！`;
       } else if (rank === 2) {
         trophy.textContent = '🥈';
         trophy.style.display = 'block';
         msg.textContent = '恭喜！获得第二名！';
-        sub.textContent = `全对！${typeName}历史成绩第二名！`;
+        sub.textContent = `全对！平均 ${avgTime.toFixed(1)}秒/题，${typeName}历史成绩第二名！`;
       } else if (rank === 3) {
         trophy.textContent = '🥉';
         trophy.style.display = 'block';
         msg.textContent = '恭喜！获得第三名！';
-        sub.textContent = `全对！${typeName}历史成绩第三名！`;
+        sub.textContent = `全对！平均 ${avgTime.toFixed(1)}秒/题，${typeName}历史成绩第三名！`;
       } else {
         trophy.style.display = 'none';
         msg.textContent = '🎉 恭喜！全对！🎉';
-        sub.textContent = `全对！${typeName}历史成绩第${rank}名！`;
+        sub.textContent = `全对！平均 ${avgTime.toFixed(1)}秒/题，${typeName}历史成绩第${rank}名！`;
       }
       overlay.classList.add('active');
       text.classList.add('active');
