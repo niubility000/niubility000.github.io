@@ -615,8 +615,6 @@
     </div>
 
     <div class="start-area" id="startArea">
-      <div class="session-stats" id="sessionStats" style="text-align:right; color:#666; font-size:13px; margin-bottom:10px;"></div>
-
       <div class="settings">
         <label for="questionCount">题目数量：</label>
         <input type="number" id="questionCount" value="10" min="1" max="50">
@@ -789,14 +787,7 @@
       return parts.join('');
     }
 
-    function updateSessionStats() {
-      const el = document.getElementById('sessionStats');
-      if (sessionTotalQuestions === 0) {
-        el.textContent = '';
-        return;
-      }
-      el.textContent = `本次练习已用时${formatDuration(sessionTotalTime)}，已答${sessionTotalQuestions}题，错误${sessionTotalWrong}题`;
-    }
+    function updateSessionStats() {}
 
     // 按用户加载数据
     function loadUserData() {
@@ -860,7 +851,7 @@
     // 中文数字
     const CN_NUMS = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
 
-    // 初始化历史记录
+    // 初始化历史记录（按天统计）
     function initHistory() {
       const content = document.getElementById('historyContent');
       const bestEl = document.getElementById('bestRecord');
@@ -877,12 +868,43 @@
       } else {
         bestEl.textContent = '';
       }
-      content.innerHTML = history.slice(-10).reverse().map((h, i) => `
-        <div class="history-item ${h.score === h.total ? 'correct' : 'wrong'}">
-          <span>${h.date}</span>
-          <span>${h.score}/${h.total} 分 | ${h.avgTime !== undefined ? h.avgTime.toFixed(1) : (h.time / h.total).toFixed(1)}秒/题</span>
-        </div>
-      `).join('');
+
+      // 按天分组（北京时间）
+      const dayMap = {};
+      history.forEach(h => {
+        const d = new Date(h.date);
+        // 转换为北京时间日期字符串
+        const bjDate = new Date(d.getTime() + 8 * 3600000);
+        const dayKey = `${bjDate.getUTCFullYear()}-${String(bjDate.getUTCMonth()+1).padStart(2,'0')}-${String(bjDate.getUTCDate()).padStart(2,'0')}`;
+        if (!dayMap[dayKey]) dayMap[dayKey] = { total: 0, wrong: 0 };
+        dayMap[dayKey].total += h.total;
+        dayMap[dayKey].wrong += (h.total - h.score);
+      });
+
+      // 按日期降序排列
+      const days = Object.keys(dayMap).sort((a, b) => b.localeCompare(a));
+
+      // 获取今天的日期（北京时间）
+      const now = new Date();
+      const bjNow = new Date(now.getTime() + 8 * 3600000);
+      const todayKey = `${bjNow.getUTCFullYear()}-${String(bjNow.getUTCMonth()+1).padStart(2,'0')}-${String(bjNow.getUTCDate()).padStart(2,'0')}`;
+
+      let html = '';
+      days.forEach(dayKey => {
+        const info = dayMap[dayKey];
+        const isToday = dayKey === todayKey;
+        const label = isToday
+          ? '今日'
+          : dayKey.replace(/(\d{4})-(\d{2})-(\d{2})/, '$1年$2月$3日');
+        const cls = info.wrong === 0 ? 'correct' : 'wrong';
+        html += `
+          <div class="history-item ${cls}">
+            <span>${label}</span>
+            <span>练习 ${info.total} 题，错误 ${info.wrong} 题</span>
+          </div>`;
+      });
+
+      content.innerHTML = html;
     }
 
     loadUserData();
