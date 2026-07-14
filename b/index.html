@@ -100,7 +100,6 @@
     white-space: pre-wrap;
     word-break: break-all;
     cursor: default;
-    user-select: none;
   }
   .reader-content .para-gap {
     display: block;
@@ -151,6 +150,17 @@
     background: linear-gradient(135deg, #4A90D9, #7B68EE) !important;
     color: #fff !important;
     box-shadow: 0 2px 8px rgba(74,144,217,.3);
+  }
+
+  /* Word selection highlight */
+  .word-selection {
+    background: rgba(255, 193, 7, 0.35) !important;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background .15s;
+  }
+  .word-selection:hover {
+    background: rgba(255, 193, 7, 0.55) !important;
   }
 
   /* Hover tooltip for collected chars */
@@ -348,7 +358,63 @@
     justify-content: space-between;
     align-items: center;
   }
-  .collections-header h2 { font-size: 18px; }
+  .collections-header h2 { font-size: 18px; margin: 0; }
+  .col-filter-wrap {
+    position: relative;
+    display: inline-block;
+    margin-left: 8px;
+  }
+  .col-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #888;
+    padding: 2px 4px;
+    vertical-align: middle;
+  }
+  .col-filter-btn:hover { color: var(--primary-dark); }
+  .col-filter-btn .filter-arrow {
+    font-size: 12px;
+    transition: transform .2s;
+  }
+  .col-filter-btn .filter-arrow.open { transform: rotate(180deg); }
+  .col-filter-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    padding: 6px 0;
+    z-index: 910;
+    min-width: 120px;
+  }
+  .col-filter-dropdown.show { display: block; }
+  .col-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #333;
+    white-space: nowrap;
+  }
+  .col-filter-option:hover { background: #F0F4FF; }
+  .col-filter-option.active { color: var(--primary-dark); font-weight: 600; }
+  .col-filter-option .mastery-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
   .collections-body {
     flex: 1;
     overflow-y: auto;
@@ -391,6 +457,49 @@
     transition: color .2s;
   }
   .collection-item .col-del:hover { color: #E53935; }
+
+  /* Mastery level control */
+  .col-mastery {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 15px;
+    color: #666;
+    margin-right: 8px;
+  }
+  .col-mastery-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 14px;
+    color: #666;
+    transition: all .15s;
+    flex-shrink: 0;
+  }
+  .col-mastery-btn:hover { background: #f0f0f0; border-color: #bbb; }
+  .col-mastery-btn:active { background: #e0e0e0; }
+  .col-mastery-val {
+    font-weight: 700;
+    font-size: 16px;
+    min-width: 18px;
+    text-align: center;
+  }
+  .mastery-1 { color: #E53935; }
+  .mastery-2 { color: #F4511E; }
+  .mastery-3 { color: #FF9800; }
+  .mastery-4 { color: #FFC107; }
+  .mastery-5 { color: #CDDC39; }
+  .mastery-6 { color: #8BC34A; }
+  .mastery-7 { color: #4CAF50; }
+  .mastery-8 { color: #009688; }
+  .mastery-9 { color: #2196F3; }
+
   .collections-footer {
     padding: 16px 20px;
     border-top: 1px solid var(--border);
@@ -477,6 +586,56 @@
     flex-shrink: 0;
   }
   .article-item .art-del:hover { color: #E53935; background: #FFEBEE; }
+
+  /* ===== MOBILE ADAPTATION ===== */
+  @media (max-width: 768px) {
+    .header {
+      padding: 10px 12px;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .header h1 { font-size: 18px; letter-spacing: 1px; }
+    .header-actions { gap: 6px; }
+    .btn { padding: 8px 12px; font-size: 13px; min-height: 40px; }
+
+    .upload-area {
+      margin: 16px auto;
+      padding: 40px 20px;
+      border-radius: 14px;
+    }
+    .upload-area .icon { font-size: 48px; }
+    .upload-area h2 { font-size: 17px; }
+
+    .reader { padding: 12px; }
+    .reader-content {
+      padding: 16px;
+      border-radius: 12px;
+      line-height: 1.8;
+    }
+    .reader-content .char { font-size: inherit; }
+
+    .modal {
+      width: calc(100vw - 24px);
+      max-height: 85vh;
+      border-radius: 14px;
+    }
+    .modal-header .char-display { font-size: 36px; }
+    .modal-body { padding: 12px 16px 16px; }
+    .modal-section textarea { min-height: 60px; }
+
+    .collections-panel, .settings-panel {
+      width: 100vw;
+      max-width: 100vw;
+      right: -110vw;
+    }
+    .collections-panel.show, .settings-panel.show { right: 0; }
+
+    .collection-item { padding: 10px; gap: 8px; }
+    .collection-item .col-char { font-size: 26px; }
+    .col-mastery-btn { width: 32px; height: 32px; font-size: 16px; }
+
+    .user-btn { padding: 6px 14px !important; font-size: 14px !important; }
+  }
 </style>
 </head>
 <body>
@@ -653,7 +812,12 @@
 <div class="collections-overlay" id="collectionsOverlay" onclick="closeCollections()"></div>
 <div class="collections-panel" id="collectionsPanel">
   <div class="collections-header">
-    <h2>⭐ 收藏夹</h2>
+    <h2>⭐ 收藏夹<span class="col-filter-wrap">
+      <button class="col-filter-btn" onclick="toggleColFilter(event)">
+        <span class="filter-arrow" id="filterArrow">掌握程度 ▾</span>
+      </button>
+      <div class="col-filter-dropdown" id="colFilterDropdown"></div>
+    </span></h2>
     <button class="btn btn-primary" onclick="closeCollections()" style="font-size:13px;padding:6px 14px;">关闭</button>
   </div>
   <div class="collections-body" id="collectionsBody"></div>
@@ -664,10 +828,12 @@
 //  STATE
 // ============================================================
 let collections = {};        // { "字": { pinyin, note } }
+let colMasteryFilter = 0;     // 0 = 全部, 1-9 = 筛选对应掌握度
 let currentChar = '';
 let rawText = '';
 let speechVoices = [];
 let lastReadStartIndex = -1;  // index in rawText where the last clicked char's paragraph starts
+let justSelectedWord = false; // flag to prevent click from clearing selection immediately
 
 const DB_VERSION = 2;
 const DB_STORE = 'articles';
@@ -833,8 +999,19 @@ async function deleteArticle(name) {
     if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
   });
 
-  // Click blank area to stop read aloud
+  // Text selection (划词选字)
+  document.getElementById('readerContent').addEventListener('mouseup', handleTextSelection);
+
+  // Click blank area to stop read aloud / clear word selection
   document.getElementById('readerContent').addEventListener('click', e => {
+    // Skip clearing if a word was just selected (mouseup -> click sequence)
+    if (justSelectedWord) {
+      justSelectedWord = false;
+      return;
+    }
+    if (!e.target.classList.contains('word-selection')) {
+      clearWordSelection();
+    }
     if (isReadAloud && !e.target.classList.contains('char') && !e.target.classList.contains('para-speaker')) {
       stopReadAloud();
     }
@@ -966,6 +1143,31 @@ function renderText(text) {
     }
   }
   container.innerHTML = html;
+
+  // Highlight collected multi-char words in the text
+  highlightCollectedWords();
+}
+
+function highlightCollectedWords() {
+  const wordKeys = Object.keys(collections).filter(k => k.length > 1);
+  if (wordKeys.length === 0) return;
+
+  const chars = document.querySelectorAll('#readerContent .char');
+  if (chars.length === 0) return;
+
+  // Build a mapping of char index -> DOM element
+  const charList = Array.from(chars);
+  const text = charList.map(span => span.dataset.char).join('');
+
+  for (const word of wordKeys) {
+    let idx = 0;
+    while ((idx = text.indexOf(word, idx)) !== -1) {
+      for (let i = 0; i < word.length; i++) {
+        charList[idx + i].classList.add('collected');
+      }
+      idx += 1; // find next occurrence
+    }
+  }
 }
 
 function updateFontSize(val) {
@@ -996,6 +1198,13 @@ function openCharModal(el) {
     isElement = true;
   }
   if (!ch) return;
+
+  // If this char is part of a word selection, open word modal instead
+  if (isElement && el.classList.contains('word-selection') && el.dataset.selectedWord) {
+    openWordModal(el.dataset.selectedWord);
+    return;
+  }
+
   currentChar = ch;
 
   // Find paragraph start index in rawText (only when clicking from reader)
@@ -1047,12 +1256,190 @@ function openCharModal(el) {
   }, 1000);
 }
 
+function clearWordSelection() {
+  document.querySelectorAll('#readerContent .word-selection').forEach(el => {
+    el.classList.remove('word-selection');
+    el.removeAttribute('data-selected-word');
+  });
+}
+
+function handleTextSelection(e) {
+  const selection = window.getSelection();
+  if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
+
+  const selectedText = selection.toString().trim();
+  // Filter only CJK chars
+  const cjkText = selectedText.replace(/[^\u4e00-\u9fff\u3400-\u4dbf]/g, '');
+  if (cjkText.length < 2) return;
+
+  // Clear previous selection highlight
+  clearWordSelection();
+
+  // Find all .char spans within the selection range
+  const range = selection.getRangeAt(0);
+  const chars = [];
+  // Walk through all char spans in readerContent and check if inside range
+  document.querySelectorAll('#readerContent .char').forEach(span => {
+    const spanRange = document.createRange();
+    spanRange.selectNodeContents(span);
+    // Check overlap
+    const isBefore = range.compareBoundaryPoints(Range.START_TO_END, spanRange) < 0;
+    const isAfter = range.compareBoundaryPoints(Range.END_TO_START, spanRange) > 0;
+    if (!isBefore && !isAfter) {
+      chars.push(span);
+    }
+  });
+
+  if (chars.length < 2) return;
+
+  // Highlight and attach click handler
+  chars.forEach(span => {
+    span.classList.add('word-selection');
+    span.dataset.selectedWord = cjkText;
+  });
+
+  // Clear native selection
+  selection.removeAllRanges();
+
+  // Mark that a word was just selected so the upcoming click event
+  // knows not to clear the highlight immediately
+  justSelectedWord = true;
+
+  // Prevent the click event from opening single-char modal immediately
+  // (the click will be handled by the .word-selection handler instead)
+  e.stopPropagation();
+}
+
+function openWordModal(word) {
+  if (!word) return;
+  currentChar = word; // reuse currentChar for simplicity
+
+  document.getElementById('modalChar').textContent = word;
+  document.getElementById('modalNotes').value = '';
+
+  // Star state
+  const starBtn = document.getElementById('modalStar');
+  starBtn.style.visibility = '';
+  starBtn.textContent = collections[word] ? '★' : '☆';
+  starBtn.className = 'star-btn' + (collections[word] ? ' active' : '');
+
+  // Show loading
+  document.getElementById('modalPinyin').textContent = '加载中...';
+  document.getElementById('modalDefinition').textContent = '加载中...';
+  document.getElementById('modalWords').textContent = '加载中...';
+  document.getElementById('modalAiTips').textContent = '加载中...';
+
+  // Hide stroke animation section for multi-char words
+  document.getElementById('strokeImg').parentElement.parentElement.style.display = 'none';
+
+  document.getElementById('modalOverlay').classList.add('show');
+
+  // Fetch word info
+  fetchWordInfo(word);
+
+  // Auto-read after 1s
+  setTimeout(() => {
+    if (currentChar === word) speakSingleChar(word);
+  }, 1000);
+}
+
+async function fetchWordInfo(word) {
+  let pinyin = '';
+
+  // Priority 1: local pinyin-pro
+  try {
+    if (window.pinyinPro && typeof window.pinyinPro.pinyin === 'function') {
+      pinyin = window.pinyinPro.pinyin(word) || '';
+    }
+  } catch (e) {}
+
+  // Try moedict for word definition (moedict supports multi-char entries)
+  let defText = '';
+  try {
+    const res = await fetch(`https://www.moedict.tw/raw/${encodeURIComponent(word)}`);
+    if (res.ok) {
+      const data = await res.json();
+      const defs = data.heteronyms && data.heteronyms[0] && data.heteronyms[0].definitions;
+      if (defs && defs.length) {
+        defs.forEach((d, i) => {
+          if (d.type) defText += `【${d.type}】`;
+          defText += d.def;
+          if (d.example) defText += `\n例：${d.example}`;
+          if (i < defs.length - 1) defText += '\n';
+        });
+      }
+      // Use online pinyin if local missing
+      if (!pinyin) {
+        pinyin = (data.heteronyms && data.heteronyms[0] && data.heteronyms[0].pinyin) || '';
+      }
+    }
+  } catch (err) {
+    console.error('Word dictionary fetch error:', err);
+  }
+
+  // Fallback: query each char separately
+  if (!defText) {
+    const charDefs = [];
+    for (const ch of word) {
+      if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(ch)) {
+        try {
+          const res = await fetch(`https://www.moedict.tw/raw/${encodeURIComponent(ch)}`);
+          if (res.ok) {
+            const data = await res.json();
+            const defs = data.heteronyms && data.heteronyms[0] && data.heteronyms[0].definitions;
+            if (defs && defs.length) {
+              const firstDef = defs[0];
+              let d = firstDef.def;
+              if (firstDef.type) d = `【${firstDef.type}】${d}`;
+              charDefs.push(`${ch}：${d}`);
+            }
+          }
+        } catch (e) {}
+      }
+    }
+    if (charDefs.length) {
+      defText = charDefs.join('\n');
+    }
+  }
+
+  // Fallback pinyin
+  if (!pinyin) {
+    try {
+      const pyRes = await fetch(`https://pinyinapi.sstration.cn/api/v1/pinyin/${encodeURIComponent(word)}`);
+      if (pyRes.ok) {
+        const pyData = await pyRes.json();
+        if (pyData && pyData.pinyin) pinyin = pyData.pinyin;
+      }
+    } catch (e) {}
+  }
+
+  document.getElementById('modalPinyin').textContent = pinyin || '未知';
+  document.getElementById('modalDefinition').textContent = defText || '暂无释义';
+  document.getElementById('modalWords').textContent = '（组词功能待补充）';
+
+  // AI Tips: generate mnemonic for the whole word
+  const tips = generateMnemonic(word);
+  document.getElementById('modalAiTips').textContent = tips;
+
+  // Auto-collect (respect user setting)
+  const autoCollect = document.getElementById('autoCollectCheckbox');
+  if (pinyin && autoCollect && autoCollect.checked) {
+    autoCollectChar(word, pinyin);
+  }
+}
+
 function closeModal() {
   document.getElementById('modalOverlay').classList.remove('show');
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   // Save note if any
   saveCurrentNote();
   currentChar = '';
+  // Reset star button visibility
+  document.getElementById('modalStar').style.visibility = '';
+  // Show stroke animation section back
+  document.getElementById('strokeImg').parentElement.parentElement.style.display = '';
+  // Refresh collections panel to show updated notes
+  renderCollections();
 }
 
 function speakSingleChar(ch) {
@@ -1360,7 +1747,8 @@ function saveCurrentNote() {
 function autoCollectChar(char, pinyin) {
   const wasNew = !collections[char];
   const oldNote = collections[char] ? collections[char].note : '';
-  collections[char] = { pinyin: pinyin, note: oldNote };
+  const oldMastery = collections[char] ? collections[char].mastery : 5;
+  collections[char] = { pinyin: pinyin, note: oldNote, mastery: oldMastery };
   persistCollections();
   renderCollections();
   if (wasNew && rawText) renderText(rawText);
@@ -1533,7 +1921,8 @@ function toggleCollect() {
     // Add
     collections[ch] = {
       pinyin: document.getElementById('modalPinyin').textContent,
-      note: document.getElementById('modalNotes').value
+      note: document.getElementById('modalNotes').value,
+      mastery: 5
     };
     starBtn.textContent = '★';
     starBtn.classList.add('active');
@@ -1564,9 +1953,12 @@ function closeCollections() {
 
 function toggleCollectionDetail(itemEl) {
   const detail = itemEl.querySelector('.col-detail');
+  const mastery = itemEl.querySelector('.col-mastery');
   if (!detail) return;
   const isExpanding = detail.style.display === 'none';
   detail.style.display = isExpanding ? '' : 'none';
+  // Show mastery control when detail is hidden, hide when shown
+  if (mastery) mastery.style.display = isExpanding ? 'none' : '';
 
   // Speak the character when expanding detail
   if (isExpanding) {
@@ -1577,11 +1969,22 @@ function toggleCollectionDetail(itemEl) {
 
 function renderCollections() {
   const body = document.getElementById('collectionsBody');
-  const keys = Object.keys(collections);
-  document.getElementById('colCount').textContent = keys.length;
+  const allKeys = Object.keys(collections);
+  document.getElementById('colCount').textContent = allKeys.length;
+
+  if (allKeys.length === 0) {
+    body.innerHTML = '<div class="empty-hint">还没有收藏任何字/词<br>阅读时点击汉字或划词即可收藏</div>';
+    return;
+  }
+
+  // Apply mastery filter
+  let keys = allKeys;
+  if (colMasteryFilter > 0) {
+    keys = allKeys.filter(ch => (collections[ch].mastery || 5) === colMasteryFilter);
+  }
 
   if (keys.length === 0) {
-    body.innerHTML = '<div class="empty-hint">还没有收藏任何字<br>阅读时点击汉字即可收藏</div>';
+    body.innerHTML = `<div class="empty-hint">没有掌握度为 ${colMasteryFilter} 的字/词<br>点击下拉箭头切换筛选条件</div>`;
     return;
   }
 
@@ -1589,7 +1992,11 @@ function renderCollections() {
   keys.sort((a,b) => a.localeCompare(b, 'zh'));
   keys.forEach(ch => {
     const item = collections[ch];
-    html += `<div class="collection-item" onclick="toggleCollectionDetail(this)" ondblclick="event.preventDefault();openCharModal('${escapeHtml(ch)}')">
+    const isWord = ch.length > 1;
+    const dblClick = isWord
+      ? `openWordModal('${escapeHtml(ch)}')`
+      : `openCharModal('${escapeHtml(ch)}')`;
+    html += `<div class="collection-item" onclick="toggleCollectionDetail(this)" ondblclick="event.preventDefault();${dblClick}">
       <span class="col-char" style="cursor:pointer;">${escapeHtml(ch)}</span>
       <div class="col-info">
         <div class="col-detail" style="display:none;">
@@ -1597,11 +2004,82 @@ function renderCollections() {
           ${item.note ? `<div class="col-note">${escapeHtml(item.note)}</div>` : ''}
         </div>
       </div>
+      <div class="col-mastery" id="mastery_${escapeHtml(ch)}">
+        <button class="col-mastery-btn" onclick="event.stopPropagation();adjustMastery('${escapeHtml(ch)}',-1)" ondblclick="event.stopPropagation()" title="降低掌握度">▼</button>
+        <span class="col-mastery-val mastery-${item.mastery || 5}">${item.mastery || 5}</span>
+        <button class="col-mastery-btn" onclick="event.stopPropagation();adjustMastery('${escapeHtml(ch)}',1)" ondblclick="event.stopPropagation()" title="提高掌握度">▲</button>
+      </div>
       <button class="col-del" onclick="event.stopPropagation();deleteCollection('${escapeHtml(ch)}')" title="删除">✕</button>
     </div>`;
   });
   body.innerHTML = html;
 }
+
+// ============================================================
+//  MASTERY LEVEL
+// ============================================================
+function adjustMastery(ch, delta) {
+  if (!collections[ch]) return;
+  let level = collections[ch].mastery || 5;
+  level = Math.max(1, Math.min(9, level + delta));
+  collections[ch].mastery = level;
+  persistCollections();
+  // Update display without full re-render
+  const item = document.getElementById('mastery_' + ch);
+  if (item) {
+    const valEl = item.querySelector('.col-mastery-val');
+    valEl.textContent = level;
+    valEl.className = 'col-mastery-val mastery-' + level;
+  }
+}
+
+// ============================================================
+//  COLLECTIONS MASTERY FILTER
+// ============================================================
+const masteryColors = ['','#E53935','#F4511E','#FF9800','#FFC107','#CDDC39','#8BC34A','#4CAF50','#009688','#2196F3'];
+const masteryLabels = ['全部','1 ★','2 ★★','3 ★★★','4 ★★★★','5 ★★★★★','6 ★★★★★★','7 ★★★★★★★','8 ★★★★★★★★','9 ★★★★★★★★★'];
+
+function toggleColFilter(e) {
+  e.stopPropagation();
+  const dd = document.getElementById('colFilterDropdown');
+  const arrow = document.getElementById('filterArrow');
+  const isOpen = dd.classList.contains('show');
+  if (isOpen) {
+    dd.classList.remove('show');
+    arrow.classList.remove('open');
+  } else {
+    buildFilterDropdown();
+    dd.classList.add('show');
+    arrow.classList.add('open');
+  }
+}
+
+function buildFilterDropdown() {
+  const dd = document.getElementById('colFilterDropdown');
+  let html = '';
+  for (let i = 0; i <= 9; i++) {
+    const active = colMasteryFilter === i ? ' active' : '';
+    const dot = i > 0 ? `<span class="mastery-dot" style="background:${masteryColors[i]}"></span>` : '';
+    html += `<div class="col-filter-option${active}" onclick="setColFilter(${i})">${dot}${masteryLabels[i]}</div>`;
+  }
+  dd.innerHTML = html;
+}
+
+function setColFilter(level) {
+  colMasteryFilter = level;
+  document.getElementById('colFilterDropdown').classList.remove('show');
+  document.getElementById('filterArrow').classList.remove('open');
+  renderCollections();
+}
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+  const dd = document.getElementById('colFilterDropdown');
+  if (dd && dd.classList.contains('show')) {
+    dd.classList.remove('show');
+    document.getElementById('filterArrow').classList.remove('open');
+  }
+});
 
 // ============================================================
 //  SETTINGS PERSISTENCE
