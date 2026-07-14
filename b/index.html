@@ -1007,6 +1007,7 @@ async function openArticle(name) {
     rawText = req.result.content;
     renderText(rawText);
     document.getElementById('uploadArea').style.display = 'none';
+    document.getElementById('pasteArea').style.display = 'none';
     document.getElementById('articleList').style.display = 'none';
     document.getElementById('userSwitcher').style.display = 'none';
     document.getElementById('reader').classList.add('show');
