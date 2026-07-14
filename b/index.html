@@ -102,6 +102,10 @@
     cursor: default;
     user-select: none;
   }
+  .reader-content .para-gap {
+    display: block;
+    height: 4px;
+  }
   .reader-content .char {
     cursor: pointer;
     transition: background .15s, color .15s, border-radius .15s;
@@ -126,7 +130,7 @@
   .para-speaker {
     display: inline-block;
     cursor: pointer;
-    opacity: 0.35;
+    opacity: 0.6;
     font-size: 14px;
     vertical-align: middle;
     margin-right: 4px;
@@ -135,11 +139,18 @@
     user-select: none;
   }
   .para-speaker:hover {
-    opacity: 0.8;
+    opacity: 1;
   }
   .para-speaker.active {
     opacity: 1;
     color: var(--primary-dark);
+  }
+
+  /* User switcher buttons */
+  .user-btn.active {
+    background: linear-gradient(135deg, #4A90D9, #7B68EE) !important;
+    color: #fff !important;
+    box-shadow: 0 2px 8px rgba(74,144,217,.3);
   }
 
   /* Hover tooltip for collected chars */
@@ -341,6 +352,7 @@
   .collections-body {
     flex: 1;
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding: 12px 16px;
   }
   .collection-item {
@@ -476,10 +488,18 @@
     <button class="btn btn-secondary" id="headerHomeBtn" onclick="goHome()" style="font-size:13px;padding:6px 14px;display:none;">🏠 返回首页</button>
   </div>
   <div class="header-actions">
-    <button class="btn btn-secondary" id="readAloudBtn" onclick="toggleReadAloud()" style="font-size:13px;padding:6px 14px;">🔊 朗读</button>
     <button class="btn btn-secondary" onclick="openCollections()" style="font-size:13px;padding:6px 14px;">⭐ 收藏夹 (<span id="colCount">0</span>)</button>
     <button class="btn btn-secondary" onclick="openSettings()" style="font-size:13px;padding:6px 14px;">⚙ 设置</button>
   </div>
+</div>
+
+<!-- ===== USER SWITCHER ===== -->
+<div id="userSwitcher" style="max-width:600px;margin:0 auto 16px;padding:0 24px;text-align:center;">
+  <div style="display:inline-flex;gap:8px;background:#fff;padding:4px;border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.06);">
+    <button class="user-btn active" id="user1Btn" onclick="switchUser('user1')" style="padding:8px 20px;border:none;border-radius:10px;font-size:15px;cursor:pointer;background:transparent;color:#666;transition:all .2s;">👶 用户一</button>
+    <button class="user-btn" id="user2Btn" onclick="switchUser('user2')" style="padding:8px 20px;border:none;border-radius:10px;font-size:15px;cursor:pointer;background:transparent;color:#666;transition:all .2s;">👶 用户二</button>
+  </div>
+  <div id="currentUserLabel" style="margin-top:8px;font-size:13px;color:#999;">当前：用户一</div>
 </div>
 
 <!-- ===== UPLOAD AREA ===== -->
@@ -551,7 +571,7 @@
     <h2>⚙ 阅读设置</h2>
     <button class="btn btn-primary" onclick="closeSettings()" style="font-size:13px;padding:6px 14px;">关闭</button>
   </div>
-  <div style="padding:24px 20px;">
+  <div style="padding:24px 20px;overflow-y:auto;overscroll-behavior:contain;flex:1;">
     <div style="margin-bottom:24px;">
       <label style="font-size:15px;color:#555;display:block;margin-bottom:10px;">字号：<strong id="fontSizeVal">32</strong>px</label>
       <input type="range" id="fontSizeRange" min="18" max="80" value="32" oninput="updateFontSize(this.value)" style="width:100%;cursor:pointer;">
@@ -609,6 +629,14 @@
       <input type="range" id="speechPauseRange" min="0" max="5" step="0.1" value="0.5" oninput="updateSpeechPause(this.value)" style="width:100%;cursor:pointer;">
     </div>
     <div style="border-top:1px solid #eee;margin:24px 0;"></div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:15px;color:#555;display:block;margin-bottom:12px;">⭐ 收藏设置</label>
+      <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:#666;cursor:pointer;">
+        <input type="checkbox" id="autoCollectCheckbox" onchange="saveSettings()" checked style="width:18px;height:18px;cursor:pointer;">
+        查询单字时自动加入收藏
+      </label>
+    </div>
+    <div style="border-top:1px solid #eee;margin:24px 0;"></div>
     <div style="margin-bottom:16px;">
       <label style="font-size:15px;color:#555;display:block;margin-bottom:12px;">📦 数据备份与恢复</label>
       <p style="font-size:12px;color:#999;margin-bottom:12px;">导出或导入全部数据，包括已读文章、收藏夹和设置参数</p>
@@ -641,15 +669,20 @@ let rawText = '';
 let speechVoices = [];
 let lastReadStartIndex = -1;  // index in rawText where the last clicked char's paragraph starts
 
-const DB_NAME = 'PDJReadingDB';
+const DB_VERSION = 2;
 const DB_STORE = 'articles';
+let currentUser = 'user1'; // 'user1' or 'user2'
+
+function getDBName() {
+  return 'PDJReadingDB_' + currentUser;
+}
 
 // ============================================================
 //  INDEXEDDB HELPERS
 // ============================================================
 function openDB() {
   return new Promise((resolve, reject) => {
-    const req = indexedDB.open(DB_NAME, 2);
+    const req = indexedDB.open(getDBName(), DB_VERSION);
     req.onupgradeneeded = e => {
       const db = e.target.result;
       const oldVersion = e.oldVersion;
@@ -764,6 +797,7 @@ async function openArticle(name) {
     renderText(rawText);
     document.getElementById('uploadArea').style.display = 'none';
     document.getElementById('articleList').style.display = 'none';
+    document.getElementById('userSwitcher').style.display = 'none';
     document.getElementById('reader').classList.add('show');
     document.getElementById('headerHomeBtn').style.display = '';
   };
@@ -830,12 +864,40 @@ function handleFile(file) {
 function goHome() {
   if (isReadAloud) stopReadAloud();
   document.getElementById('uploadArea').style.display = '';
+  document.getElementById('userSwitcher').style.display = '';
   document.getElementById('reader').classList.remove('show');
   document.getElementById('headerHomeBtn').style.display = 'none';
   document.getElementById('fileInput').value = '';
   rawText = '';
   lastReadStartIndex = -1;
   renderArticleList();
+}
+
+async function switchUser(user) {
+  if (user === currentUser) return;
+  if (isReadAloud) stopReadAloud();
+
+  currentUser = user;
+
+  // Update UI
+  document.getElementById('user1Btn').classList.toggle('active', user === 'user1');
+  document.getElementById('user2Btn').classList.toggle('active', user === 'user2');
+  document.getElementById('currentUserLabel').textContent = '当前：' + (user === 'user1' ? '用户一' : '用户二');
+
+  // Go back to home and reload data for the new user
+  document.getElementById('uploadArea').style.display = '';
+  document.getElementById('userSwitcher').style.display = '';
+  document.getElementById('reader').classList.remove('show');
+  document.getElementById('headerHomeBtn').style.display = 'none';
+  document.getElementById('fileInput').value = '';
+  rawText = '';
+  lastReadStartIndex = -1;
+
+  // Reload all user data
+  await loadCollections();
+  renderCollections();
+  await loadSettings();
+  await renderArticleList();
 }
 
 function openSettings() {
@@ -863,7 +925,7 @@ function renderText(text) {
 
     // Empty line = line break
     if (para.trim().length === 0) {
-      html += '<br>';
+      html += '<span class="para-gap"></span>';
       rawIdx += para.length + 1; // +1 for the \n
       continue;
     }
@@ -899,7 +961,7 @@ function renderText(text) {
 
     // Add line break after paragraph (unless last)
     if (p < paragraphs.length - 1) {
-      html += '<br>';
+      html += '<span class="para-gap"></span>';
       rawIdx++; // for the \n
     }
   }
@@ -978,6 +1040,11 @@ function openCharModal(el) {
 
   // Fetch data from dictionary API
   fetchCharInfo(ch);
+
+  // Auto-read after 1s
+  setTimeout(() => {
+    if (currentChar === ch) speakSingleChar(ch);
+  }, 1000);
 }
 
 function closeModal() {
@@ -1147,8 +1214,6 @@ function toggleReadAloud() {
   if (paragraphs.length === 0) { alert('没有可朗读的内容'); return; }
 
   isReadAloud = true;
-  document.getElementById('readAloudBtn').textContent = '⏹ 停止';
-  document.getElementById('readAloudBtn').style.background = 'rgba(255,255,255,.5)';
 
   const lang = document.getElementById('speechLangSelect').value;
   const rate = parseFloat(document.getElementById('speechRateRange').value);
@@ -1276,8 +1341,6 @@ function stopReadAloud() {
   if (readAloudTimer) { clearTimeout(readAloudTimer); readAloudTimer = null; }
   if (readAloudHighlightTimer) { clearInterval(readAloudHighlightTimer); readAloudHighlightTimer = null; }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
-  document.getElementById('readAloudBtn').textContent = '🔊 朗读';
-  document.getElementById('readAloudBtn').style.background = '';
   clearSpeakingHighlight();
   clearActiveParaSpeaker();
 }
@@ -1377,8 +1440,9 @@ async function fetchCharInfo(char) {
   // AI Tips
   generateAiTips(char, pinyin || '未知', defs);
 
-  // Auto-collect
-  if (pinyin) {
+  // Auto-collect (respect user setting)
+  const autoCollect = document.getElementById('autoCollectCheckbox');
+  if (pinyin && autoCollect && autoCollect.checked) {
     autoCollectChar(char, pinyin);
   }
 }
@@ -1552,7 +1616,8 @@ async function saveSettings() {
       speechVoice: document.getElementById('speechVoiceSelect').value,
       speechRate: document.getElementById('speechRateRange').value,
       speechMode: document.getElementById('speechModeSelect').value,
-      speechPause: document.getElementById('speechPauseRange').value
+      speechPause: document.getElementById('speechPauseRange').value,
+      autoCollect: document.getElementById('autoCollectCheckbox').checked
     };
     await dbPut('settings', settings);
   } catch(e) { console.error('Save settings failed:', e); }
@@ -1587,6 +1652,9 @@ async function loadSettings() {
       if (data.speechPause) {
         document.getElementById('speechPauseRange').value = data.speechPause;
         document.getElementById('speechPauseVal').textContent = data.speechPause;
+      }
+      if (data.autoCollect !== undefined) {
+        document.getElementById('autoCollectCheckbox').checked = data.autoCollect;
       }
     }
   } catch(e) { console.error('Load settings failed:', e); }
