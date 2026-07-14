@@ -64,8 +64,8 @@
   /* ===== FILE UPLOAD AREA ===== */
   .upload-area {
     max-width: 600px;
-    margin: 40px auto;
-    padding: 60px 40px;
+    margin: 30px auto 16px;
+    padding: 30px 40px;
     text-align: center;
     background: var(--card-bg);
     border: 3px dashed var(--border);
@@ -78,10 +78,45 @@
     background: #EDF4FB;
     transform: scale(1.01);
   }
-  .upload-area .icon { font-size: 64px; margin-bottom: 16px; }
+  .upload-area .icon { font-size: 48px; margin-bottom: 10px; }
   .upload-area h2 { font-size: 20px; color: #555; margin-bottom: 8px; }
   .upload-area p { font-size: 14px; color: #999; }
   .upload-area input[type="file"] { display: none; }
+  .paste-area {
+    max-width: 600px;
+    margin: 8px auto;
+    background: var(--card-bg);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 10px;
+    text-align: center;
+  }
+  .paste-area h3 { font-size: 15px; color: #555; margin-bottom: 10px; }
+  .paste-area textarea {
+    width: 100%;
+    height: 120px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    font-size: 14px;
+    resize: vertical;
+    box-sizing: border-box;
+    font-family: inherit;
+    line-height: 1.6;
+  }
+  .paste-area textarea:focus { outline: none; border-color: var(--primary); }
+  .paste-area .paste-btn {
+    margin-top: 10px;
+    padding: 8px 24px;
+    font-size: 14px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .paste-area .paste-btn:hover { background: var(--primary-dark); }
 
   /* ===== READER ===== */
   .reader {
@@ -599,12 +634,15 @@
     .btn { padding: 8px 12px; font-size: 13px; min-height: 40px; }
 
     .upload-area {
-      margin: 16px auto;
+      margin: 8px auto;
       padding: 40px 20px;
       border-radius: 14px;
     }
-    .upload-area .icon { font-size: 48px; }
+    .upload-area .icon { font-size: 36px; }
     .upload-area h2 { font-size: 17px; }
+    .paste-area { margin: 12px auto; padding: 14px; }
+    .paste-area textarea { height: 90px; font-size: 13px; }
+    .paste-area .paste-btn { padding: 7px 18px; font-size: 13px; }
 
     .reader { padding: 12px; }
     .reader-content {
@@ -667,6 +705,13 @@
   <h2>选择一个 TXT 文件开始阅读</h2>
   <p>支持拖拽文件到此处，或点击选择文件</p>
   <input type="file" id="fileInput" accept=".txt" onchange="handleFile(this.files[0])">
+</div>
+
+<!-- ===== PASTE AREA ===== -->
+<div class="paste-area" id="pasteArea">
+  <h3>📋 或直接粘贴文本开始阅读</h3>
+  <textarea id="pasteTextarea" placeholder="在此粘贴文章内容..."></textarea>
+  <button class="paste-btn" onclick="handlePasteText()">开始阅读</button>
 </div>
 
 <!-- ===== ARTICLE LIST ===== -->
@@ -1027,24 +1072,43 @@ function handleFile(file) {
   reader.onload = async e => {
     rawText = e.target.result;
     renderText(rawText);
-    document.getElementById('uploadArea').style.display = 'none';
-    document.getElementById('articleList').style.display = 'none';
-    document.getElementById('reader').classList.add('show');
-    document.getElementById('headerHomeBtn').style.display = '';
-    // Save to IndexedDB
+    showReader();
     const name = file.name.replace(/\.txt$/i, '');
     await dbSaveArticle(name, rawText);
   };
   reader.readAsText(file, 'UTF-8');
 }
 
+function handlePasteText() {
+  const textarea = document.getElementById('pasteTextarea');
+  const text = textarea.value.trim();
+  if (!text) return;
+  rawText = text;
+  renderText(rawText);
+  showReader();
+  // Generate a name from first 20 chars
+  const firstLine = text.split('\n')[0].trim();
+  const name = '粘贴文本_' + (firstLine.length > 20 ? firstLine.substring(0, 20) : firstLine);
+  dbSaveArticle(name, rawText);
+}
+
+function showReader() {
+  document.getElementById('uploadArea').style.display = 'none';
+  document.getElementById('pasteArea').style.display = 'none';
+  document.getElementById('articleList').style.display = 'none';
+  document.getElementById('reader').classList.add('show');
+  document.getElementById('headerHomeBtn').style.display = '';
+}
+
 function goHome() {
   if (isReadAloud) stopReadAloud();
   document.getElementById('uploadArea').style.display = '';
+  document.getElementById('pasteArea').style.display = '';
   document.getElementById('userSwitcher').style.display = '';
   document.getElementById('reader').classList.remove('show');
   document.getElementById('headerHomeBtn').style.display = 'none';
   document.getElementById('fileInput').value = '';
+  document.getElementById('pasteTextarea').value = '';
   rawText = '';
   lastReadStartIndex = -1;
   renderArticleList();
