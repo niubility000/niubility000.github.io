@@ -188,6 +188,164 @@
     box-shadow: 0 2px 8px rgba(74,144,217,.3);
   }
 
+  /* Paragraph word count and checkbox */
+  .para-word-count {
+    font-size: 0.6em;
+    vertical-align: super;
+    color: #999;
+    margin-left: 4px;
+    user-select: none;
+  }
+  .para-checkbox {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-left: 6px;
+    vertical-align: middle;
+    cursor: pointer;
+    accent-color: var(--primary);
+  }
+  .para-checkbox:checked {
+    cursor: default;
+  }
+  .para-check-date {
+    font-size: 0.6em;
+    vertical-align: super;
+    color: #66BB6A;
+    margin-left: 4px;
+    user-select: none;
+  }
+  .para-read-stats {
+    font-size: 13px;
+    color: #888;
+    margin-top: 6px;
+  }
+  .para-read-stats strong {
+    color: var(--primary-dark);
+  }
+
+  /* Clickable total read words */
+  .total-read-clickable {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    transition: color .2s;
+  }
+  .total-read-clickable:hover {
+    color: var(--primary) !important;
+  }
+
+  /* History stats modal */
+  .history-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,.45);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    animation: fadeIn .2s;
+  }
+  .history-modal-overlay.show { display: flex; }
+
+  .history-modal {
+    background: var(--card-bg);
+    border-radius: 20px;
+    width: 420px;
+    max-width: 90vw;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 16px 48px rgba(0,0,0,.2);
+    animation: slideUp .3s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+  .history-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    border-radius: 20px 20px 0 0;
+    z-index: 1;
+  }
+  .history-modal-header h2 {
+    font-size: 18px;
+    color: #333;
+  }
+  .history-modal-close {
+    font-size: 22px;
+    background: none;
+    border: none;
+    color: #999;
+    cursor: pointer;
+    padding: 2px 6px;
+    line-height: 1;
+    transition: color .2s;
+  }
+  .history-modal-close:hover { color: #333; }
+
+  .history-modal-body {
+    padding: 16px 24px 24px;
+  }
+
+  .history-summary {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #E3F2FD, #E8F5E9);
+    border-radius: 12px;
+  }
+  .history-summary-item {
+    flex: 1;
+    text-align: center;
+  }
+  .history-summary-item .num {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--primary-dark);
+  }
+  .history-summary-item .label {
+    font-size: 12px;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  .history-day-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+  }
+  .history-day-item:last-child { border-bottom: none; }
+
+  .history-day-date {
+    font-size: 14px;
+    color: #555;
+  }
+  .history-day-date .weekday {
+    font-size: 12px;
+    color: #999;
+    margin-left: 8px;
+  }
+
+  .history-day-words {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary-dark);
+  }
+
+  .history-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #999;
+    font-size: 14px;
+  }
+
   /* Word selection highlight */
   .word-selection {
     background: rgba(255, 193, 7, 0.35) !important;
@@ -363,6 +521,172 @@
     padding: 12px;
     color: #999;
     font-size: 14px;
+  }
+
+  /* ===== DESKTOP THREE-COLUMN LAYOUT ===== */
+  @media (min-width: 769px) {
+    .reader {
+      display: none;
+      flex-direction: row;
+      gap: 0;
+      padding: 0;
+      margin-top: 60px;
+      max-width: none;
+      width: 100%;
+      height: calc(100vh - 60px);
+      align-items: stretch;
+      overflow: hidden;
+    }
+    .reader.show {
+      display: flex;
+    }
+
+    /* Left panel: character query */
+    .reader-left-panel {
+      width: 20%;
+      min-width: 240px;
+      max-width: 360px;
+      background: var(--card-bg);
+      border-radius: 16px 0 0 16px;
+      box-shadow: 2px 0 12px rgba(0,0,0,.06);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reader-left-panel .modal-header {
+      position: sticky;
+      top: 0;
+      background: var(--card-bg);
+      z-index: 1;
+      border-radius: 16px 0 0 0;
+      padding: 16px 16px 10px;
+    }
+    .reader-left-panel .modal-header .char-display {
+      font-size: 40px;
+    }
+    .reader-left-panel .modal-header .star-btn {
+      font-size: 24px;
+    }
+    .reader-left-panel .modal-body {
+      padding: 12px 16px 24px;
+      flex: 1;
+    }
+    .reader-left-panel .modal-section {
+      margin-bottom: 12px;
+    }
+    .reader-left-panel .modal-section p {
+      font-size: 14px;
+    }
+    .reader-left-panel .modal-section .pinyin {
+      font-size: 22px;
+      letter-spacing: 2px;
+    }
+    .reader-left-panel .modal-section textarea {
+      min-height: 60px;
+      font-size: 13px;
+    }
+    .reader-left-panel .modal-section .ai-tips {
+      font-size: 13px;
+    }
+    .reader-left-panel .stroke-controls .btn {
+      font-size: 12px;
+      padding: 4px 10px;
+    }
+
+    /* Center: reader content */
+    .reader-center {
+      width: 60%;
+      flex: 1;
+      max-width: 900px;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow: hidden;
+    }
+    .reader-center .reader-content {
+      flex: 1;
+      overflow-y: auto;
+      border-radius: 0;
+      box-shadow: none;
+      padding: 32px 36px;
+    }
+
+    /* Right panel: settings / collections */
+    .reader-right-panel {
+      width: 20%;
+      min-width: 240px;
+      max-width: 360px;
+      background: var(--card-bg);
+      border-radius: 0 16px 16px 0;
+      box-shadow: -2px 0 12px rgba(0,0,0,.06);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      overflow-y: auto;
+    }
+    .reader-right-panel .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      background: var(--card-bg);
+      z-index: 1;
+      border-radius: 0 16px 0 0;
+    }
+    .reader-right-panel .panel-header h2 {
+      font-size: 16px;
+      margin: 0;
+    }
+    .reader-right-panel .panel-close {
+      font-size: 20px;
+      background: none;
+      border: none;
+      color: #999;
+      cursor: pointer;
+      padding: 2px 6px;
+      transition: color .2s;
+    }
+    .reader-right-panel .panel-close:hover { color: #333; }
+    .reader-right-panel .panel-body {
+      padding: 12px 16px 24px;
+      flex: 1;
+    }
+
+    /* Panel empty state */
+    .panel-empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      text-align: center;
+      color: #BBB;
+      font-size: 14px;
+      flex: 1;
+    }
+    .panel-empty-state .icon {
+      font-size: 36px;
+      margin-bottom: 12px;
+      opacity: 0.5;
+    }
+    .panel-empty-state p {
+      line-height: 1.8;
+    }
+
+    /* Hide old overlay/modal styles on desktop when in reader */
+    .reader.show ~ .modal-overlay,
+    .reader.show ~ .settings-overlay,
+    .reader.show ~ .collections-overlay {
+      display: none !important;
+    }
+    /* Hide the old modal on desktop (we use left panel instead) */
+    .modal {
+      display: none !important;
+    }
   }
 
   /* ===== COLLECTIONS PANEL ===== */
@@ -702,7 +1026,7 @@
     <button class="user-btn active" id="user1Btn" onclick="switchUser('user1')" style="padding:8px 20px;border:none;border-radius:10px;font-size:15px;cursor:pointer;background:transparent;color:#666;transition:all .2s;">👶 用户一</button>
     <button class="user-btn" id="user2Btn" onclick="switchUser('user2')" style="padding:8px 20px;border:none;border-radius:10px;font-size:15px;cursor:pointer;background:transparent;color:#666;transition:all .2s;">👶 用户二</button>
   </div>
-  <div id="currentUserLabel" style="margin-top:8px;font-size:13px;color:#999;">当前：用户一</div>
+  <div id="currentUserLabel" style="margin-top:8px;font-size:13px;color:#999;">当前：用户一 &nbsp;|&nbsp; 今日已读 <strong id="todayReadWords" style="color:#4A90D9;">0</strong> 字 &nbsp;|&nbsp; 共读 <strong id="totalReadWords" class="total-read-clickable" style="color:#66BB6A;" onclick="openHistoryModal()" title="点击查看历史阅读统计">0</strong> 字</div>
 </div>
 
 <!-- ===== UPLOAD AREA ===== -->
@@ -728,7 +1052,72 @@
 
 <!-- ===== READER ===== -->
 <div class="reader" id="reader">
-  <div class="reader-content" id="readerContent"></div>
+  <!-- Left panel: character query (desktop only) -->
+  <div class="reader-left-panel" id="readerLeftPanel">
+    <div class="modal-header" id="leftPanelHeader" style="display:none;">
+      <span class="char-display" id="leftPanelChar">字</span>
+      <div class="header-actions">
+        <button class="star-btn" id="leftPanelStar" onclick="toggleCollect()" title="收藏此字">☆</button>
+        <button class="modal-close" onclick="closeModal()">✕</button>
+      </div>
+    </div>
+    <div class="panel-empty-state" id="leftPanelEmpty">
+      <div class="icon">🔍</div>
+      <p>点击文章中的汉字<br>查看拼音、笔画和释义</p>
+    </div>
+    <div class="modal-body" id="leftPanelBody" style="display:none;">
+      <div class="modal-section">
+        <h3>汉语拼音</h3>
+        <p class="pinyin" id="leftPanelPinyin" onclick="speakChar()" title="点击朗读" style="cursor:pointer;user-select:none;">加载中...</p>
+      </div>
+      <div class="modal-section">
+        <h3>笔画顺序</h3>
+        <div style="text-align:center;">
+          <img id="leftPanelStrokeImg" style="width:140px;height:140px;border:2px solid var(--border);border-radius:12px;background:#FAFAFA;display:block;margin:0 auto 8px;object-fit:contain;" alt="笔画动画加载中...">
+          <div id="leftPanelStrokeLoading" style="color:#999;font-size:13px;margin-bottom:8px;">加载中...</div>
+          <div class="stroke-controls">
+            <button class="btn btn-primary" onclick="replayStrokeAnimation()">▶ 重新播放</button>
+          </div>
+        </div>
+      </div>
+      <div class="modal-section">
+        <h3>基本解释</h3>
+        <p id="leftPanelDefinition">加载中...</p>
+      </div>
+      <div class="modal-section">
+        <h3>组词</h3>
+        <p id="leftPanelWords">加载中...</p>
+      </div>
+      <div class="modal-section">
+        <h3>AI 助记法</h3>
+        <div class="ai-tips" id="leftPanelAiTips">加载中...</div>
+      </div>
+      <div class="modal-section">
+        <h3>我的笔记</h3>
+        <textarea id="leftPanelNotes" placeholder="在这里写下你对这个字的理解和笔记..." oninput="saveCurrentNote()"></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- Center: reader content -->
+  <div class="reader-center" id="readerCenter">
+    <div class="reader-content" id="readerContent"></div>
+  </div>
+
+  <!-- Right panel: settings / collections (desktop only) -->
+  <div class="reader-right-panel" id="readerRightPanel">
+    <div class="panel-header" id="rightPanelHeader" style="display:none;">
+      <h2 id="rightPanelTitle">⚙ 设置</h2>
+      <button class="panel-close" onclick="closeRightPanel()">✕</button>
+    </div>
+    <div class="panel-empty-state" id="rightPanelEmpty">
+      <div class="icon">📋</div>
+      <p>点击顶部 ⭐ 查看收藏<br>或 ⚙ 打开设置</p>
+    </div>
+    <div class="panel-body" id="rightPanelBody" style="display:none;">
+      <!-- Content injected by JS -->
+    </div>
+  </div>
 </div>
 
 <!-- ===== CHARACTER MODAL ===== -->
@@ -861,6 +1250,19 @@
   </div>
 </div>
 
+<!-- ===== HISTORY STATS MODAL ===== -->
+<div class="history-modal-overlay" id="historyModalOverlay" onclick="if(event.target===this)closeHistoryModal()">
+  <div class="history-modal">
+    <div class="history-modal-header">
+      <h2>📊 阅读历史统计</h2>
+      <button class="history-modal-close" onclick="closeHistoryModal()">✕</button>
+    </div>
+    <div class="history-modal-body" id="historyModalBody">
+      <!-- Content will be rendered by JS -->
+    </div>
+  </div>
+</div>
+
 <!-- ===== COLLECTIONS PANEL ===== -->
 <div class="collections-overlay" id="collectionsOverlay" onclick="closeCollections()"></div>
 <div class="collections-panel" id="collectionsPanel">
@@ -888,9 +1290,11 @@ let speechVoices = [];
 let lastReadStartIndex = -1;  // index in rawText where the last clicked char's paragraph starts
 let justSelectedWord = false; // flag to prevent click from clearing selection immediately
 
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const DB_STORE = 'articles';
 let currentUser = 'user1'; // 'user1' or 'user2'
+let currentArticleName = '';
+let paraReadRecords = {}; // { "articleName::paraIndex": { wordCount, date: "YYYY-MM-DD" } }
 
 function getDBName() {
   return 'PDJReadingDB_' + currentUser;
@@ -916,6 +1320,11 @@ function openDB() {
         }
         if (!db.objectStoreNames.contains('settings')) {
           db.createObjectStore('settings', { keyPath: 'id' });
+        }
+      }
+      if (oldVersion < 3) {
+        if (!db.objectStoreNames.contains('para_read')) {
+          db.createObjectStore('para_read', { keyPath: 'id' });
         }
       }
     };
@@ -970,6 +1379,163 @@ async function dbSaveArticle(name, content) {
 
 async function dbDeleteArticle(name) {
   return dbDelete(DB_STORE, name);
+}
+
+// ============================================================
+//  PARAGRAPH READ RECORDS
+// ============================================================
+function getParaRecordId(articleName, paraIndex) {
+  return articleName + '::' + paraIndex;
+}
+
+function getTodayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
+async function loadParaReadRecords() {
+  try {
+    const all = await dbGetAll('para_read');
+    paraReadRecords = {};
+    for (const rec of all) {
+      paraReadRecords[rec.id] = { wordCount: rec.wordCount, date: rec.date };
+    }
+  } catch(e) { console.error('Load para read records failed:', e); }
+}
+
+async function saveParaReadRecord(articleName, paraIndex, wordCount) {
+  const id = getParaRecordId(articleName, paraIndex);
+  const date = getTodayStr();
+  const record = { id, wordCount, date };
+  try {
+    await dbPut('para_read', record);
+    paraReadRecords[id] = { wordCount, date };
+  } catch(e) { console.error('Save para read record failed:', e); }
+}
+
+function getParaReadRecord(articleName, paraIndex) {
+  const id = getParaRecordId(articleName, paraIndex);
+  return paraReadRecords[id] || null;
+}
+
+function countWordsWithoutPunctuation(text) {
+  // Remove punctuation and whitespace, count remaining characters
+  // CJK chars count as 1 each, English words count as 1 each
+  let count = 0;
+  // Count CJK characters
+  const cjkMatch = text.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g);
+  if (cjkMatch) count += cjkMatch.length;
+  // Count English words (sequences of letters)
+  const enWords = text.match(/[a-zA-Z]+/g);
+  if (enWords) count += enWords.length;
+  return count;
+}
+
+function getTodayReadWords() {
+  const today = getTodayStr();
+  let total = 0;
+  for (const id in paraReadRecords) {
+    if (paraReadRecords[id].date === today) {
+      total += paraReadRecords[id].wordCount;
+    }
+  }
+  return total;
+}
+
+function getTotalReadWords() {
+  let total = 0;
+  for (const id in paraReadRecords) {
+    total += paraReadRecords[id].wordCount;
+  }
+  return total;
+}
+
+function updateReadStatsDisplay() {
+  const todayWords = getTodayReadWords();
+  const totalWords = getTotalReadWords();
+  const todayEl = document.getElementById('todayReadWords');
+  const totalEl = document.getElementById('totalReadWords');
+  if (todayEl) todayEl.textContent = todayWords;
+  if (totalEl) totalEl.textContent = totalWords;
+}
+
+function getDailyReadStats() {
+  const daily = {};
+  for (const id in paraReadRecords) {
+    const record = paraReadRecords[id];
+    if (!daily[record.date]) {
+      daily[record.date] = 0;
+    }
+    daily[record.date] += record.wordCount;
+  }
+  // Sort by date descending
+  const sorted = Object.entries(daily).sort((a, b) => b[0].localeCompare(a[0]));
+  return sorted;
+}
+
+function getWeekdayStr(dateStr) {
+  const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+  const d = new Date(dateStr + 'T00:00:00');
+  return weekdays[d.getDay()];
+}
+
+function getReadDaysCount() {
+  const days = new Set();
+  for (const id in paraReadRecords) {
+    days.add(paraReadRecords[id].date);
+  }
+  return days.size;
+}
+
+function openHistoryModal() {
+  const overlay = document.getElementById('historyModalOverlay');
+  const body = document.getElementById('historyModalBody');
+  const dailyStats = getDailyReadStats();
+  const totalWords = getTotalReadWords();
+  const daysCount = getReadDaysCount();
+
+  let html = '';
+
+  // Summary section
+  html += `<div class="history-summary">
+    <div class="history-summary-item">
+      <div class="num">${totalWords}</div>
+      <div class="label">累计阅读（字）</div>
+    </div>
+    <div class="history-summary-item">
+      <div class="num">${daysCount}</div>
+      <div class="label">阅读天数</div>
+    </div>
+    <div class="history-summary-item">
+      <div class="num">${dailyStats.length > 0 ? Math.round(totalWords / daysCount) : 0}</div>
+      <div class="label">日均阅读（字）</div>
+    </div>
+  </div>`;
+
+  // Daily list
+  if (dailyStats.length === 0) {
+    html += '<div class="history-empty">暂无阅读记录<br>开始阅读后这里会显示统计数据</div>';
+  } else {
+    html += '<div style="font-size:14px;color:#888;margin-bottom:8px;">每日阅读详情</div>';
+    for (const [date, words] of dailyStats) {
+      const isToday = date === getTodayStr();
+      const weekday = getWeekdayStr(date);
+      html += `<div class="history-day-item">
+        <div class="history-day-date">${date}<span class="weekday">${weekday}${isToday ? ' · 今天' : ''}</span></div>
+        <div class="history-day-words">${words} 字</div>
+      </div>`;
+    }
+  }
+
+  body.innerHTML = html;
+  overlay.classList.add('show');
+}
+
+function closeHistoryModal() {
+  document.getElementById('historyModalOverlay').classList.remove('show');
 }
 
 async function dbGetAllArticles() {
@@ -1037,6 +1603,8 @@ async function deleteArticle(name) {
   await loadCollections();
   renderCollections();
   await loadSettings();
+  await loadParaReadRecords();
+  updateReadStatsDisplay();
   await renderArticleList();
 
   // Load speech voices
@@ -1135,6 +1703,9 @@ function showReader() {
 function goHome() {
   if (isReadAloud) stopReadAloud();
   if (isEditMode) exitEditMode();
+  // Close all panels
+  closeLeftPanel();
+  closeRightPanel();
   document.getElementById('uploadArea').style.display = '';
   document.getElementById('pasteArea').style.display = '';
   document.getElementById('userSwitcher').style.display = '';
@@ -1145,6 +1716,7 @@ function goHome() {
   document.getElementById('pasteTextarea').value = '';
   rawText = '';
   lastReadStartIndex = -1;
+  updateReadStatsDisplay();
   renderArticleList();
 }
 
@@ -1162,6 +1734,9 @@ function toggleEditMode() {
 function enterEditMode() {
   isEditMode = true;
   if (isReadAloud) stopReadAloud();
+  // Hide panels on desktop
+  closeLeftPanel();
+  closeRightPanel();
   const container = document.getElementById('readerContent');
   // Record scroll position before editing
   container._scrollTopBeforeEdit = window.scrollY;
@@ -1240,17 +1815,154 @@ async function switchUser(user) {
   await loadCollections();
   renderCollections();
   await loadSettings();
+  await loadParaReadRecords();
+  updateReadStatsDisplay();
   await renderArticleList();
 }
 
 function openSettings() {
-  document.getElementById('settingsOverlay').classList.add('show');
-  document.getElementById('settingsPanel').classList.add('show');
+  if (isDesktop() && document.getElementById('reader').classList.contains('show')) {
+    openRightPanel('settings');
+  } else {
+    document.getElementById('settingsOverlay').classList.add('show');
+    document.getElementById('settingsPanel').classList.add('show');
+  }
 }
 
 function closeSettings() {
   document.getElementById('settingsOverlay').classList.remove('show');
   document.getElementById('settingsPanel').classList.remove('show');
+  closeRightPanel();
+}
+
+// ============================================================
+//  DESKTOP PANEL HELPERS
+// ============================================================
+function isDesktop() {
+  return window.innerWidth >= 769;
+}
+
+function closeLeftPanel() {
+  document.getElementById('leftPanelHeader').style.display = 'none';
+  document.getElementById('leftPanelBody').style.display = 'none';
+  document.getElementById('leftPanelEmpty').style.display = '';
+}
+
+function closeRightPanel() {
+  document.getElementById('rightPanelHeader').style.display = 'none';
+  document.getElementById('rightPanelBody').style.display = 'none';
+  document.getElementById('rightPanelEmpty').style.display = '';
+}
+
+function openRightPanel(type) {
+  // type: 'settings' or 'collections'
+  const title = document.getElementById('rightPanelTitle');
+  const body = document.getElementById('rightPanelBody');
+
+  if (type === 'settings') {
+    title.innerHTML = '⚙ 阅读设置';
+    body.innerHTML = buildSettingsContent();
+  } else if (type === 'collections') {
+    title.innerHTML = '⭐ 收藏夹';
+    body.innerHTML = buildCollectionsContent();
+  }
+
+  document.getElementById('rightPanelHeader').style.display = '';
+  document.getElementById('rightPanelBody').style.display = '';
+  document.getElementById('rightPanelEmpty').style.display = 'none';
+}
+
+function buildSettingsContent() {
+  // Get current values
+  const fontSize = document.getElementById('fontSizeRange').value;
+  const fontFamily = document.getElementById('fontFamilySelect').value;
+  const speechLang = document.getElementById('speechLangSelect').value;
+  const speechRate = document.getElementById('speechRateRange').value;
+  const speechMode = document.getElementById('speechModeSelect').value;
+  const speechPause = document.getElementById('speechPauseRange').value;
+  const autoCollect = document.getElementById('autoCollectCheckbox').checked;
+
+  // Build options HTML
+  const fontOpts = ['Microsoft YaHei, PingFang SC, sans-serif|微软雅黑', '楷体, KaiTi, STKaiti|楷体', '宋体, SimSun, STSong|宋体', '黑体, SimHei, STHeiti|黑体', '仿宋, FangSong, STFangsong|仿宋'];
+  const fontOptHtml = fontOpts.map(o => {
+    const [val, label] = o.split('|');
+    return `<option value="${val}" ${fontFamily === val ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+
+  const langOpts = ['zh-CN|中文', 'en-US|英文', 'ja-JP|日语', 'ko-KR|韩语', 'fr-FR|法语', 'de-DE|德语', 'es-ES|西班牙语', 'ru-RU|俄语'];
+  const langOptHtml = langOpts.map(o => {
+    const [val, label] = o.split('|');
+    return `<option value="${val}" ${speechLang === val ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+
+  const modeOpts = ['continuous|连续朗读', 'loop|循环朗读', 'single|单段朗读'];
+  const modeOptHtml = modeOpts.map(o => {
+    const [val, label] = o.split('|');
+    return `<option value="${val}" ${speechMode === val ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+
+  return `
+    <div style="margin-bottom:20px;">
+      <label style="font-size:14px;color:#555;display:block;margin-bottom:8px;">字号：<strong>${fontSize}</strong>px</label>
+      <input type="range" min="18" max="80" value="${fontSize}" oninput="updateFontSize(this.value);buildSettingsContentRefresh();" style="width:100%;cursor:pointer;">
+    </div>
+    <div style="margin-bottom:20px;">
+      <label style="font-size:14px;color:#555;display:block;margin-bottom:8px;">字体</label>
+      <select onchange="updateFontFamily(this.value);buildSettingsContentRefresh();" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;">${fontOptHtml}</select>
+    </div>
+    <div style="border-top:1px solid #eee;margin:16px 0;"></div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:14px;color:#555;display:block;margin-bottom:8px;">🔊 朗读语言</label>
+      <select onchange="onSpeechLangChange();saveSettings();buildSettingsContentRefresh();" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;">${langOptHtml}</select>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:14px;color:#666;">朗读速度：<strong>${speechRate}</strong>x</label>
+      <input type="range" min="0.5" max="2" step="0.1" value="${speechRate}" oninput="updateSpeechRate(this.value);buildSettingsContentRefresh();" style="width:100%;cursor:pointer;margin-top:4px;">
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:14px;color:#666;display:block;margin-bottom:4px;">朗读模式</label>
+      <select onchange="saveSettings();buildSettingsContentRefresh();" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;">${modeOptHtml}</select>
+    </div>
+    <div style="margin-bottom:16px;">
+      <label style="font-size:14px;color:#666;">段间停顿：<strong>${speechPause}</strong>秒</label>
+      <input type="range" min="0" max="5" step="0.1" value="${speechPause}" oninput="updateSpeechPause(this.value);buildSettingsContentRefresh();" style="width:100%;cursor:pointer;margin-top:4px;">
+    </div>
+    <div style="border-top:1px solid #eee;margin:16px 0;"></div>
+    <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:#666;cursor:pointer;">
+      <input type="checkbox" ${autoCollect ? 'checked' : ''} onchange="document.getElementById('autoCollectCheckbox').checked=this.checked;saveSettings();" style="width:16px;height:16px;cursor:pointer;">
+      查询单字时自动加入收藏
+    </label>
+  `;
+}
+
+// Refresh settings panel content after changing values
+function buildSettingsContentRefresh() {
+  if (isDesktop() && document.getElementById('readerRightPanel').classList.contains('show')) {
+    const body = document.getElementById('rightPanelBody');
+    const title = document.getElementById('rightPanelTitle');
+    if (title.textContent.includes('设置')) {
+      body.innerHTML = buildSettingsContent();
+    }
+  }
+}
+
+function buildCollectionsContent() {
+  const keys = Object.keys(collections).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+  if (keys.length === 0) {
+    return '<div class="empty-hint">暂无收藏<br>点击文章中的字即可收藏</div>';
+  }
+  let html = '';
+  for (const ch of keys) {
+    const c = collections[ch];
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;">
+      <span style="font-size:24px;font-weight:700;color:var(--primary-dark);min-width:30px;">${escapeHtml(ch)}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;color:#555;">${escapeHtml(c.pinyin || '')}</div>
+        <div style="font-size:12px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(c.note || '')}</div>
+      </div>
+    </div>`;
+  }
+  return html;
 }
 
 // ============================================================
@@ -1262,6 +1974,7 @@ function renderText(text) {
   const paragraphs = text.split(/\n/);
   let html = '';
   let rawIdx = 0; // track position in rawText
+  let paraIndex = 0; // actual paragraph index (skipping empty lines)
 
   for (let p = 0; p < paragraphs.length; p++) {
     const para = paragraphs[p];
@@ -1272,6 +1985,9 @@ function renderText(text) {
       rawIdx += para.length + 1; // +1 for the \n
       continue;
     }
+
+    const currentParaIdx = paraIndex;
+    paraIndex++;
 
     // Add paragraph speaker icon
     const paraStartRawIdx = rawIdx;
@@ -1302,6 +2018,19 @@ function renderText(text) {
       }
     }
 
+    // Add word count (superscript, small font)
+    const wordCount = countWordsWithoutPunctuation(para);
+    html += `<span class="para-word-count">${wordCount}字</span>`;
+
+    // Add checkbox and date
+    const record = getParaReadRecord(currentArticleName, currentParaIdx);
+    const isChecked = record ? 'checked disabled' : '';
+    html += `<input type="checkbox" class="para-checkbox" data-para-index="${currentParaIdx}" data-word-count="${wordCount}" ${isChecked} onchange="onParaCheckboxChange(this)">`;
+
+    if (record) {
+      html += `<span class="para-check-date">${record.date}</span>`;
+    }
+
     // Add line break after paragraph (unless last)
     if (p < paragraphs.length - 1) {
       html += '<span class="para-gap"></span>';
@@ -1312,6 +2041,31 @@ function renderText(text) {
 
   // Highlight collected multi-char words in the text
   highlightCollectedWords();
+}
+
+async function onParaCheckboxChange(checkbox) {
+  if (!checkbox.checked) {
+    // Prevent unchecking - re-check it
+    checkbox.checked = true;
+    return;
+  }
+  const paraIndex = parseInt(checkbox.dataset.paraIndex);
+  const wordCount = parseInt(checkbox.dataset.wordCount);
+  
+  // Save record
+  await saveParaReadRecord(currentArticleName, paraIndex, wordCount);
+  
+  // Disable checkbox (cannot uncheck)
+  checkbox.disabled = true;
+  
+  // Add date display after checkbox
+  const dateSpan = document.createElement('span');
+  dateSpan.className = 'para-check-date';
+  dateSpan.textContent = getTodayStr();
+  checkbox.parentNode.insertBefore(dateSpan, checkbox.nextSibling);
+
+  // Update stats display
+  updateReadStatsDisplay();
 }
 
 function highlightCollectedWords() {
@@ -1396,25 +2150,40 @@ function openCharModal(el) {
     }
   }
 
-  document.getElementById('modalChar').textContent = ch;
-  document.getElementById('modalNotes').value = collections[ch] ? (collections[ch].note || '') : '';
+  resetCharModalPrefix();
+  const useDesktop = charModalPrefix === 'leftPanel';
 
-  // Star state
-  const starBtn = document.getElementById('modalStar');
-  starBtn.textContent = collections[ch] ? '★' : '☆';
-  starBtn.className = 'star-btn' + (collections[ch] ? ' active' : '');
-
-  // Show loading
-  document.getElementById('modalPinyin').textContent = '加载中...';
-  document.getElementById('modalDefinition').textContent = '加载中...';
-  document.getElementById('modalWords').textContent = '加载中...';
-  document.getElementById('modalAiTips').textContent = '加载中...';
+  // Desktop: update left panel
+  if (useDesktop) {
+    document.getElementById('leftPanelChar').textContent = ch;
+    document.getElementById('leftPanelNotes').value = collections[ch] ? (collections[ch].note || '') : '';
+    const starBtn = document.getElementById('leftPanelStar');
+    starBtn.textContent = collections[ch] ? '★' : '☆';
+    starBtn.className = 'star-btn' + (collections[ch] ? ' active' : '');
+    document.getElementById('leftPanelPinyin').textContent = '加载中...';
+    document.getElementById('leftPanelDefinition').textContent = '加载中...';
+    document.getElementById('leftPanelWords').textContent = '加载中...';
+    document.getElementById('leftPanelAiTips').textContent = '加载中...';
+    document.getElementById('leftPanelHeader').style.display = '';
+    document.getElementById('leftPanelBody').style.display = '';
+    document.getElementById('leftPanelEmpty').style.display = 'none';
+  } else {
+    // Mobile: use old modal
+    document.getElementById('modalChar').textContent = ch;
+    document.getElementById('modalNotes').value = collections[ch] ? (collections[ch].note || '') : '';
+    const starBtn = document.getElementById('modalStar');
+    starBtn.textContent = collections[ch] ? '★' : '☆';
+    starBtn.className = 'star-btn' + (collections[ch] ? ' active' : '');
+    document.getElementById('modalPinyin').textContent = '加载中...';
+    document.getElementById('modalDefinition').textContent = '加载中...';
+    document.getElementById('modalWords').textContent = '加载中...';
+    document.getElementById('modalAiTips').textContent = '加载中...';
+    document.getElementById('modalOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
 
   // Load stroke animation
   loadStrokeAnimation(ch);
-
-  document.getElementById('modalOverlay').classList.add('show');
-  document.body.style.overflow = 'hidden';
 
   // Fetch data from dictionary API
   fetchCharInfo(ch);
@@ -1483,26 +2252,37 @@ function openWordModal(word) {
   if (!word) return;
   currentChar = word; // reuse currentChar for simplicity
 
-  document.getElementById('modalChar').textContent = word;
-  document.getElementById('modalNotes').value = '';
+  resetCharModalPrefix();
+  const useDesktop = charModalPrefix === 'leftPanel';
+  const pfx = useDesktop ? 'leftPanel' : 'modal';
+
+  document.getElementById(pfx + 'Char').textContent = word;
+  document.getElementById(pfx + 'Notes').value = '';
 
   // Star state
-  const starBtn = document.getElementById('modalStar');
+  const starBtn = document.getElementById(pfx + 'Star');
   starBtn.style.visibility = '';
   starBtn.textContent = collections[word] ? '★' : '☆';
   starBtn.className = 'star-btn' + (collections[word] ? ' active' : '');
 
   // Show loading
-  document.getElementById('modalPinyin').textContent = '加载中...';
-  document.getElementById('modalDefinition').textContent = '加载中...';
-  document.getElementById('modalWords').textContent = '加载中...';
-  document.getElementById('modalAiTips').textContent = '加载中...';
+  document.getElementById(pfx + 'Pinyin').textContent = '加载中...';
+  document.getElementById(pfx + 'Definition').textContent = '加载中...';
+  document.getElementById(pfx + 'Words').textContent = '加载中...';
+  document.getElementById(pfx + 'AiTips').textContent = '加载中...';
 
   // Hide stroke animation section for multi-char words
-  document.getElementById('strokeImg').parentElement.parentElement.style.display = 'none';
+  const strokeParent = useDesktop ? 'leftPanelStrokeImg' : 'strokeImg';
+  document.getElementById(strokeParent).parentElement.parentElement.style.display = 'none';
 
-  document.getElementById('modalOverlay').classList.add('show');
-  document.body.style.overflow = 'hidden';
+  if (useDesktop) {
+    document.getElementById('leftPanelHeader').style.display = '';
+    document.getElementById('leftPanelBody').style.display = '';
+    document.getElementById('leftPanelEmpty').style.display = 'none';
+  } else {
+    document.getElementById('modalOverlay').classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
 
   // Fetch word info
   fetchWordInfo(word);
@@ -1514,6 +2294,8 @@ function openWordModal(word) {
 }
 
 async function fetchWordInfo(word) {
+  resetCharModalPrefix();
+  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
   let pinyin = '';
 
   // Priority 1: local pinyin-pro
@@ -1583,13 +2365,13 @@ async function fetchWordInfo(word) {
     } catch (e) {}
   }
 
-  document.getElementById('modalPinyin').textContent = pinyin || '未知';
-  document.getElementById('modalDefinition').textContent = defText || '暂无释义';
-  document.getElementById('modalWords').textContent = '（组词功能待补充）';
+  document.getElementById(pfx + 'Pinyin').textContent = pinyin || '未知';
+  document.getElementById(pfx + 'Definition').textContent = defText || '暂无释义';
+  document.getElementById(pfx + 'Words').textContent = '（组词功能待补充）';
 
   // AI Tips: generate mnemonic for the whole word
   const tips = generateMnemonic(word);
-  document.getElementById('modalAiTips').textContent = tips;
+  document.getElementById(pfx + 'AiTips').textContent = tips;
 
   // Auto-collect (respect user setting)
   const autoCollect = document.getElementById('autoCollectCheckbox');
@@ -1599,16 +2381,24 @@ async function fetchWordInfo(word) {
 }
 
 function closeModal() {
-  document.getElementById('modalOverlay').classList.remove('show');
-  document.body.style.overflow = '';
+  resetCharModalPrefix();
+  const useDesktop = charModalPrefix === 'leftPanel';
+  if (useDesktop) {
+    closeLeftPanel();
+  } else {
+    document.getElementById('modalOverlay').classList.remove('show');
+    document.body.style.overflow = '';
+  }
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   // Save note if any
   saveCurrentNote();
   currentChar = '';
   // Reset star button visibility
   document.getElementById('modalStar').style.visibility = '';
+  document.getElementById('leftPanelStar').style.visibility = '';
   // Show stroke animation section back
   document.getElementById('strokeImg').parentElement.parentElement.style.display = '';
+  document.getElementById('leftPanelStrokeImg').parentElement.parentElement.style.display = '';
   // Refresh collections panel to show updated notes
   renderCollections();
 }
@@ -1715,7 +2505,15 @@ let isReadAloud = false;
 let isEditMode = false;
 let readAloudTimer = null;
 let lastSpeakingEl = null;
-let currentArticleName = '';
+let charModalPrefix = 'modal'; // 'modal' for mobile modal, 'leftPanel' for desktop left panel
+
+function getCharEl(suffix) {
+  return document.getElementById(charModalPrefix + suffix.charAt(0).toUpperCase() + suffix.slice(1));
+}
+
+function resetCharModalPrefix() {
+  charModalPrefix = isDesktop() && document.getElementById('reader').classList.contains('show') ? 'leftPanel' : 'modal';
+}
 
 function clearSpeakingHighlight() {
   document.querySelectorAll('#readerContent .char.speaking').forEach(el => {
@@ -1946,7 +2744,8 @@ function stopReadAloud() {
 
 function saveCurrentNote() {
   if (!currentChar) return;
-  const note = document.getElementById('modalNotes').value;
+  resetCharModalPrefix();
+  const note = document.getElementById(charModalPrefix === 'leftPanel' ? 'leftPanelNotes' : 'modalNotes').value;
   if (collections[currentChar]) {
     collections[currentChar].note = note;
   }
@@ -1974,6 +2773,8 @@ function autoCollectChar(char, pinyin) {
 //  DICTIONARY API
 // ============================================================
 async function fetchCharInfo(char) {
+  resetCharModalPrefix();
+  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
   let pinyin = '';
 
   // Priority 1: local pinyin-pro library
@@ -2006,14 +2807,14 @@ async function fetchCharInfo(char) {
           if (d.example) defText += `\n例：${d.example}`;
           if (i < defs.length - 1) defText += '\n';
         });
-        document.getElementById('modalDefinition').textContent = defText.trim();
+        document.getElementById(pfx + 'Definition').textContent = defText.trim();
       } else {
-        document.getElementById('modalDefinition').textContent = '暂无释义';
+        document.getElementById(pfx + 'Definition').textContent = '暂无释义';
       }
     }
   } catch (err) {
     console.error('Dictionary fetch error:', err);
-    document.getElementById('modalDefinition').textContent = '网络异常，请检查网络连接';
+    document.getElementById(pfx + 'Definition').textContent = '网络异常，请检查网络连接';
   }
 
   // Fallback: online pinyin-only API
@@ -2032,10 +2833,10 @@ async function fetchCharInfo(char) {
   }
 
   // Display pinyin
-  document.getElementById('modalPinyin').textContent = pinyin || '未知';
+  document.getElementById(pfx + 'Pinyin').textContent = pinyin || '未知';
 
   // Words
-  document.getElementById('modalWords').textContent = '（组词功能待补充）';
+  document.getElementById(pfx + 'Words').textContent = '（组词功能待补充）';
 
   // AI Tips
   generateAiTips(char, pinyin || '未知', defs);
@@ -2050,7 +2851,8 @@ async function fetchCharInfo(char) {
 function generateAiTips(char, pinyin, defs) {
   // Simple AI-style mnemonic generation based on character structure
   const tips = generateMnemonic(char);
-  document.getElementById('modalAiTips').textContent = tips;
+  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
+  document.getElementById(pfx + 'AiTips').textContent = tips;
 }
 
 function generateMnemonic(char) {
@@ -2088,8 +2890,12 @@ function generateMnemonic(char) {
 //  STROKE ANIMATION (from strokeorder.cc)
 // ============================================================
 function loadStrokeAnimation(ch) {
-  const img = document.getElementById('strokeImg');
-  const loading = document.getElementById('strokeLoading');
+  resetCharModalPrefix();
+  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
+  const imgId = pfx === 'leftPanel' ? 'leftPanelStrokeImg' : 'strokeImg';
+  const loadingId = pfx === 'leftPanel' ? 'leftPanelStrokeLoading' : 'strokeLoading';
+  const img = document.getElementById(imgId);
+  const loading = document.getElementById(loadingId);
   const url = `https://www.strokeorder.cc/assets/bishun/animation/bishun-${encodeURIComponent(ch)}.gif`;
 
   loading.style.display = '';
@@ -2121,19 +2927,22 @@ function toggleCollect() {
   const ch = currentChar;
   if (!ch) return;
 
-  const starBtn = document.getElementById('modalStar');
+  resetCharModalPrefix();
+  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
+  const starBtn = document.getElementById(pfx + 'Star');
+  const notesEl = document.getElementById(pfx + 'Notes');
+  const pinyinEl = document.getElementById(pfx + 'Pinyin');
 
   if (collections[ch]) {
     // Remove
-    const note = document.getElementById('modalNotes').value;
     delete collections[ch];
     starBtn.textContent = '☆';
     starBtn.classList.remove('active');
   } else {
     // Add
     collections[ch] = {
-      pinyin: document.getElementById('modalPinyin').textContent,
-      note: document.getElementById('modalNotes').value,
+      pinyin: pinyinEl ? pinyinEl.textContent : '',
+      note: notesEl ? notesEl.value : '',
       mastery: 5
     };
     starBtn.textContent = '★';
@@ -2153,14 +2962,19 @@ function deleteCollection(ch) {
 }
 
 function openCollections() {
-  document.getElementById('collectionsOverlay').classList.add('show');
-  document.getElementById('collectionsPanel').classList.add('show');
-  renderCollections();
+  if (isDesktop() && document.getElementById('reader').classList.contains('show')) {
+    openRightPanel('collections');
+  } else {
+    document.getElementById('collectionsOverlay').classList.add('show');
+    document.getElementById('collectionsPanel').classList.add('show');
+    renderCollections();
+  }
 }
 
 function closeCollections() {
   document.getElementById('collectionsOverlay').classList.remove('show');
   document.getElementById('collectionsPanel').classList.remove('show');
+  closeRightPanel();
 }
 
 function toggleCollectionDetail(itemEl) {
