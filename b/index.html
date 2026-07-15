@@ -2,7 +2,7 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
 <title>PDJ课外阅读</title>
 <style>
   :root {
@@ -134,6 +134,7 @@
     line-height: 2;
     white-space: pre-wrap;
     word-break: break-all;
+    text-align: justify;
     cursor: default;
   }
   .reader-content .para-gap {
@@ -1076,6 +1077,19 @@ async function deleteArticle(name) {
       stopReadAloud();
     }
   });
+  // Prevent pinch-zoom and double-tap zoom on mobile
+  document.addEventListener('touchmove', function(e) {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+  let lastTouchEnd = 0;
+  document.addEventListener('touchend', function(e) {
+    const now = Date.now();
+    if (now - lastTouchEnd <= 300) e.preventDefault();
+    lastTouchEnd = now;
+  }, false);
+  document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
+  document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
+  document.addEventListener('gestureend', function(e) { e.preventDefault(); });
 })();
 
 // ============================================================
