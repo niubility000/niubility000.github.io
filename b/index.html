@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
-<title>PDJ课外阅读</title>
+<title>PDJ阅读天天练</title>
 <style>
   :root {
     --primary: #4A90D9;
@@ -254,6 +254,7 @@
     max-width: 90vw;
     max-height: 80vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     box-shadow: 0 16px 48px rgba(0,0,0,.2);
     animation: slideUp .3s ease;
   }
@@ -346,6 +347,52 @@
     font-size: 14px;
   }
 
+  /* Reading guide */
+  .reading-guide {
+    margin-top: 20px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 10px;
+    border: 1px solid #eef0f2;
+  }
+  .reading-guide-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 12px;
+  }
+  .reading-guide-section {
+    margin-bottom: 12px;
+  }
+  .reading-guide-section:last-child { margin-bottom: 0; }
+  .reading-guide-grade {
+    font-size: 13px;
+    font-weight: 600;
+    color: #666;
+    margin-bottom: 4px;
+  }
+  .reading-guide-row {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 12px;
+    color: #888;
+    padding: 2px 0 2px 16px;
+    line-height: 1.8;
+  }
+  .reading-guide-row .guide-year {
+    flex-shrink: 0;
+    width: 48px;
+    font-weight: 500;
+    color: #777;
+  }
+  .reading-guide-note {
+    font-size: 12px;
+    color: #999;
+    padding: 4px 0 0 16px;
+    font-style: italic;
+  }
+
   /* Word selection highlight */
   .word-selection {
     background: rgba(255, 193, 7, 0.35) !important;
@@ -408,6 +455,7 @@
     max-width: 95vw;
     max-height: 90vh;
     overflow-y: auto;
+    overscroll-behavior: contain;
     box-shadow: 0 16px 48px rgba(0,0,0,.2);
     animation: slideLeft .3s ease;
     position: fixed;
@@ -521,172 +569,6 @@
     padding: 12px;
     color: #999;
     font-size: 14px;
-  }
-
-  /* ===== DESKTOP THREE-COLUMN LAYOUT ===== */
-  @media (min-width: 769px) {
-    .reader {
-      display: none;
-      flex-direction: row;
-      gap: 0;
-      padding: 0;
-      margin-top: 60px;
-      max-width: none;
-      width: 100%;
-      height: calc(100vh - 60px);
-      align-items: stretch;
-      overflow: hidden;
-    }
-    .reader.show {
-      display: flex;
-    }
-
-    /* Left panel: character query */
-    .reader-left-panel {
-      width: 20%;
-      min-width: 240px;
-      max-width: 360px;
-      background: var(--card-bg);
-      border-radius: 16px 0 0 16px;
-      box-shadow: 2px 0 12px rgba(0,0,0,.06);
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow-y: auto;
-    }
-    .reader-left-panel .modal-header {
-      position: sticky;
-      top: 0;
-      background: var(--card-bg);
-      z-index: 1;
-      border-radius: 16px 0 0 0;
-      padding: 16px 16px 10px;
-    }
-    .reader-left-panel .modal-header .char-display {
-      font-size: 40px;
-    }
-    .reader-left-panel .modal-header .star-btn {
-      font-size: 24px;
-    }
-    .reader-left-panel .modal-body {
-      padding: 12px 16px 24px;
-      flex: 1;
-    }
-    .reader-left-panel .modal-section {
-      margin-bottom: 12px;
-    }
-    .reader-left-panel .modal-section p {
-      font-size: 14px;
-    }
-    .reader-left-panel .modal-section .pinyin {
-      font-size: 22px;
-      letter-spacing: 2px;
-    }
-    .reader-left-panel .modal-section textarea {
-      min-height: 60px;
-      font-size: 13px;
-    }
-    .reader-left-panel .modal-section .ai-tips {
-      font-size: 13px;
-    }
-    .reader-left-panel .stroke-controls .btn {
-      font-size: 12px;
-      padding: 4px 10px;
-    }
-
-    /* Center: reader content */
-    .reader-center {
-      width: 60%;
-      flex: 1;
-      max-width: 900px;
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow: hidden;
-    }
-    .reader-center .reader-content {
-      flex: 1;
-      overflow-y: auto;
-      border-radius: 0;
-      box-shadow: none;
-      padding: 32px 36px;
-    }
-
-    /* Right panel: settings / collections */
-    .reader-right-panel {
-      width: 20%;
-      min-width: 240px;
-      max-width: 360px;
-      background: var(--card-bg);
-      border-radius: 0 16px 16px 0;
-      box-shadow: -2px 0 12px rgba(0,0,0,.06);
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      overflow-y: auto;
-    }
-    .reader-right-panel .panel-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 16px 12px;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: var(--card-bg);
-      z-index: 1;
-      border-radius: 0 16px 0 0;
-    }
-    .reader-right-panel .panel-header h2 {
-      font-size: 16px;
-      margin: 0;
-    }
-    .reader-right-panel .panel-close {
-      font-size: 20px;
-      background: none;
-      border: none;
-      color: #999;
-      cursor: pointer;
-      padding: 2px 6px;
-      transition: color .2s;
-    }
-    .reader-right-panel .panel-close:hover { color: #333; }
-    .reader-right-panel .panel-body {
-      padding: 12px 16px 24px;
-      flex: 1;
-    }
-
-    /* Panel empty state */
-    .panel-empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-      text-align: center;
-      color: #BBB;
-      font-size: 14px;
-      flex: 1;
-    }
-    .panel-empty-state .icon {
-      font-size: 36px;
-      margin-bottom: 12px;
-      opacity: 0.5;
-    }
-    .panel-empty-state p {
-      line-height: 1.8;
-    }
-
-    /* Hide old overlay/modal styles on desktop when in reader */
-    .reader.show ~ .modal-overlay,
-    .reader.show ~ .settings-overlay,
-    .reader.show ~ .collections-overlay {
-      display: none !important;
-    }
-    /* Hide the old modal on desktop (we use left panel instead) */
-    .modal {
-      display: none !important;
-    }
   }
 
   /* ===== COLLECTIONS PANEL ===== */
@@ -951,6 +833,105 @@
   }
   .article-item .art-del:hover { color: #E53935; background: #FFEBEE; }
 
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 80px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(0,0,0,.75);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .3s, transform .3s;
+    z-index: 10000;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ===== DESKTOP LAYOUT (3-column) ===== */
+  @media (min-width: 769px) {
+    .reader {
+      max-width: 60%;
+      width: 60%;
+    }
+
+    /* Char modal (query) - left 20% */
+    .modal-overlay {
+      left: 0;
+      right: auto;
+      top: 84px;
+      bottom: 0;
+      width: 20%;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+    .modal-overlay.show {
+      display: flex;
+    }
+    .modal {
+      position: relative;
+      top: 0;
+      left: 0;
+      width: 100%;
+      max-width: 100%;
+      height: 100%;
+      max-height: 100%;
+      border-radius: 0;
+      animation: slideLeft .3s ease;
+    }
+
+    /* Settings panel - right 20% */
+    .settings-overlay {
+      left: auto;
+      right: 0;
+      top: 84px;
+      bottom: 0;
+      width: 20%;
+    }
+    .settings-panel {
+      top: 84px;
+      right: -20vw;
+      width: 20%;
+      max-width: 20%;
+      height: calc(100vh - 84px);
+    }
+    .settings-panel.show {
+      right: 0;
+    }
+
+    /* Collections panel - right 20% */
+    .collections-overlay {
+      left: auto;
+      right: 0;
+      top: 84px;
+      bottom: 0;
+      width: 20%;
+    }
+    .collections-panel {
+      top: 84px;
+      right: -20vw;
+      width: 20%;
+      max-width: 20%;
+      height: calc(100vh - 84px);
+    }
+    .collections-panel.show {
+      right: 0;
+    }
+
+    /* History modal - center overlay on the 60% area */
+    .history-modal-overlay {
+      left: 20%;
+      right: 20%;
+      top: 84px;
+      bottom: 0;
+      width: 60%;
+    }
+  }
+
   /* ===== MOBILE ADAPTATION ===== */
   @media (max-width: 768px) {
     .header {
@@ -1010,7 +991,7 @@
 <!-- ===== HEADER ===== -->
 <div class="header">
   <div style="display:flex;align-items:center;gap:12px;">
-    <h1>📚 PDJ课外阅读</h1>
+    <h1>📚 PDJ阅读天天练</h1>
     <button class="btn btn-secondary" id="headerHomeBtn" onclick="goHome()" style="font-size:16px;padding:6px 10px;display:none;" title="返回首页">🏠</button>
   </div>
   <div class="header-actions">
@@ -1052,72 +1033,7 @@
 
 <!-- ===== READER ===== -->
 <div class="reader" id="reader">
-  <!-- Left panel: character query (desktop only) -->
-  <div class="reader-left-panel" id="readerLeftPanel">
-    <div class="modal-header" id="leftPanelHeader" style="display:none;">
-      <span class="char-display" id="leftPanelChar">字</span>
-      <div class="header-actions">
-        <button class="star-btn" id="leftPanelStar" onclick="toggleCollect()" title="收藏此字">☆</button>
-        <button class="modal-close" onclick="closeModal()">✕</button>
-      </div>
-    </div>
-    <div class="panel-empty-state" id="leftPanelEmpty">
-      <div class="icon">🔍</div>
-      <p>点击文章中的汉字<br>查看拼音、笔画和释义</p>
-    </div>
-    <div class="modal-body" id="leftPanelBody" style="display:none;">
-      <div class="modal-section">
-        <h3>汉语拼音</h3>
-        <p class="pinyin" id="leftPanelPinyin" onclick="speakChar()" title="点击朗读" style="cursor:pointer;user-select:none;">加载中...</p>
-      </div>
-      <div class="modal-section">
-        <h3>笔画顺序</h3>
-        <div style="text-align:center;">
-          <img id="leftPanelStrokeImg" style="width:140px;height:140px;border:2px solid var(--border);border-radius:12px;background:#FAFAFA;display:block;margin:0 auto 8px;object-fit:contain;" alt="笔画动画加载中...">
-          <div id="leftPanelStrokeLoading" style="color:#999;font-size:13px;margin-bottom:8px;">加载中...</div>
-          <div class="stroke-controls">
-            <button class="btn btn-primary" onclick="replayStrokeAnimation()">▶ 重新播放</button>
-          </div>
-        </div>
-      </div>
-      <div class="modal-section">
-        <h3>基本解释</h3>
-        <p id="leftPanelDefinition">加载中...</p>
-      </div>
-      <div class="modal-section">
-        <h3>组词</h3>
-        <p id="leftPanelWords">加载中...</p>
-      </div>
-      <div class="modal-section">
-        <h3>AI 助记法</h3>
-        <div class="ai-tips" id="leftPanelAiTips">加载中...</div>
-      </div>
-      <div class="modal-section">
-        <h3>我的笔记</h3>
-        <textarea id="leftPanelNotes" placeholder="在这里写下你对这个字的理解和笔记..." oninput="saveCurrentNote()"></textarea>
-      </div>
-    </div>
-  </div>
-
-  <!-- Center: reader content -->
-  <div class="reader-center" id="readerCenter">
-    <div class="reader-content" id="readerContent"></div>
-  </div>
-
-  <!-- Right panel: settings / collections (desktop only) -->
-  <div class="reader-right-panel" id="readerRightPanel">
-    <div class="panel-header" id="rightPanelHeader" style="display:none;">
-      <h2 id="rightPanelTitle">⚙ 设置</h2>
-      <button class="panel-close" onclick="closeRightPanel()">✕</button>
-    </div>
-    <div class="panel-empty-state" id="rightPanelEmpty">
-      <div class="icon">📋</div>
-      <p>点击顶部 ⭐ 查看收藏<br>或 ⚙ 打开设置</p>
-    </div>
-    <div class="panel-body" id="rightPanelBody" style="display:none;">
-      <!-- Content injected by JS -->
-    </div>
-  </div>
+  <div class="reader-content" id="readerContent"></div>
 </div>
 
 <!-- ===== CHARACTER MODAL ===== -->
@@ -1206,11 +1122,11 @@
     </div>
     <div style="margin-bottom:20px;">
       <label style="font-size:14px;color:#666;display:block;margin-bottom:8px;">发音人</label>
-      <div style="display:flex;gap:8px;align-items:center;">
-        <select id="speechVoiceSelect" onchange="saveSettings()" style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;font-family:inherit;">
+      <div style="display:flex;gap:8px;align-items:center;min-width:0;">
+        <select id="speechVoiceSelect" onchange="saveSettings()" style="flex:1;min-width:0;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;font-family:inherit;">
           <option value="">系统默认</option>
         </select>
-        <button onclick="testSpeechVoice()" style="padding:6px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:16px;" title="测试发音">🔊</button>
+        <button onclick="testSpeechVoice()" style="flex-shrink:0;padding:6px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer;font-size:16px;" title="测试发音">🔊</button>
       </div>
     </div>
     <div style="margin-bottom:24px;">
@@ -1290,7 +1206,7 @@ let speechVoices = [];
 let lastReadStartIndex = -1;  // index in rawText where the last clicked char's paragraph starts
 let justSelectedWord = false; // flag to prevent click from clearing selection immediately
 
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 const DB_STORE = 'articles';
 let currentUser = 'user1'; // 'user1' or 'user2'
 let currentArticleName = '';
@@ -1325,6 +1241,11 @@ function openDB() {
       if (oldVersion < 3) {
         if (!db.objectStoreNames.contains('para_read')) {
           db.createObjectStore('para_read', { keyPath: 'id' });
+        }
+      }
+      if (oldVersion < 4) {
+        if (!db.objectStoreNames.contains('scroll_pos')) {
+          db.createObjectStore('scroll_pos', { keyPath: 'id' });
         }
       }
     };
@@ -1476,6 +1397,31 @@ function getDailyReadStats() {
   return sorted;
 }
 
+// ============================================================
+//  SCROLL POSITION PERSISTENCE
+// ============================================================
+let scrollSaveTimer = null;
+
+function saveScrollPos() {
+  if (!currentArticleName) return;
+  dbPut('scroll_pos', { id: currentArticleName, scrollY: window.scrollY });
+}
+
+function restoreScrollPos(articleName) {
+  return dbGet('scroll_pos', articleName).then(record => {
+    if (record && record.scrollY > 0) {
+      window.scrollTo(0, record.scrollY);
+    }
+  }).catch(() => {});
+}
+
+function startScrollTracking() {
+  window.addEventListener('scroll', () => {
+    if (scrollSaveTimer) clearTimeout(scrollSaveTimer);
+    scrollSaveTimer = setTimeout(saveScrollPos, 300);
+  });
+}
+
 function getWeekdayStr(dateStr) {
   const weekdays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
   const d = new Date(dateStr + 'T00:00:00');
@@ -1530,6 +1476,33 @@ function openHistoryModal() {
     }
   }
 
+  // Reference reading guide
+  html += `<div class="reading-guide">
+    <div class="reading-guide-title">九年义务教育推荐最低课外阅读量</div>
+    <div class="reading-guide-section">
+      <div class="reading-guide-grade">低年级（1-2 年级，合计 5 万字）</div>
+      <div class="reading-guide-row"><span class="guide-year">一年级</span><span>约 2 万字，日均 150 字，每日 15 分钟</span></div>
+      <div class="reading-guide-row"><span class="guide-year">二年级</span><span>约 3 万字，日均 250 字，每日 20 分钟</span></div>
+    </div>
+    <div class="reading-guide-section">
+      <div class="reading-guide-grade">中年级（3-4 年级，合计 40 万字）</div>
+      <div class="reading-guide-row"><span class="guide-year">三年级</span><span>约 19 万字，日均 1300 字，每日 25–30 分钟</span></div>
+      <div class="reading-guide-row"><span class="guide-year">四年级</span><span>约 21 万字，日均 1500 字，每日 30 分钟</span></div>
+    </div>
+    <div class="reading-guide-section">
+      <div class="reading-guide-grade">高年级（5-6 年级，合计 100 万字）</div>
+      <div class="reading-guide-row"><span class="guide-year">五年级</span><span>45 万字，日均 2000 字</span></div>
+      <div class="reading-guide-row"><span class="guide-year">六年级</span><span>55 万字，日均 2200 字</span></div>
+    </div>
+    <div class="reading-guide-section">
+      <div class="reading-guide-grade">初中三年（合计 260 万字）</div>
+      <div class="reading-guide-row"><span class="guide-year">七年级</span><span>80 万字</span></div>
+      <div class="reading-guide-row"><span class="guide-year">八年级</span><span>90 万字</span></div>
+      <div class="reading-guide-row"><span class="guide-year">九年级</span><span>90 万字</span></div>
+      <div class="reading-guide-note">日均阅读 2500–3500 字，兼顾名著精读与泛读。</div>
+    </div>
+  </div>`;
+
   body.innerHTML = html;
   overlay.classList.add('show');
 }
@@ -1560,7 +1533,7 @@ async function renderArticleList() {
   articles.forEach(a => {
     const date = a.time ? new Date(a.time).toLocaleString('zh-CN') : '';
     const size = a.content ? a.content.length : 0;
-    html += `<div class="article-item" onclick="openArticle('${escapeHtml(a.name)}')">
+    html += `<div class="article-item" onclick="openArticle('${escapeHtml(a.name)}')" oncontextmenu="event.preventDefault();copyArticleToClipboard('${escapeHtml(a.name)}')">
       <span class="art-icon">📄</span>
       <div class="art-info">
         <div class="art-name">${escapeHtml(a.name)}</div>
@@ -1588,12 +1561,58 @@ async function openArticle(name) {
     document.getElementById('reader').classList.add('show');
     document.getElementById('headerHomeBtn').style.display = '';
     document.getElementById('headerEditBtn').style.display = '';
+    restoreScrollPos(name);
   };
 }
 
 async function deleteArticle(name) {
   await dbDeleteArticle(name);
+  dbDelete('scroll_pos', name).catch(() => {});
   renderArticleList();
+}
+
+async function copyArticleToClipboard(name) {
+  const db = await openDB();
+  const tx = db.transaction(DB_STORE, 'readonly');
+  const req = tx.objectStore(DB_STORE).get(name);
+  req.onsuccess = () => {
+    if (!req.result) return;
+    const text = req.result.content;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => showToast('文章已复制到剪贴板')).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  };
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('文章已复制到剪贴板');
+  } catch (err) {
+    showToast('复制失败');
+  }
+  document.body.removeChild(ta);
+}
+
+function showToast(msg) {
+  let toast = document.getElementById('globalToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'globalToast';
+    toast.className = 'toast';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
 }
 
 // ============================================================
@@ -1658,6 +1677,8 @@ async function deleteArticle(name) {
   document.addEventListener('gesturestart', function(e) { e.preventDefault(); });
   document.addEventListener('gesturechange', function(e) { e.preventDefault(); });
   document.addEventListener('gestureend', function(e) { e.preventDefault(); });
+
+  startScrollTracking();
 })();
 
 // ============================================================
@@ -1703,9 +1724,7 @@ function showReader() {
 function goHome() {
   if (isReadAloud) stopReadAloud();
   if (isEditMode) exitEditMode();
-  // Close all panels
-  closeLeftPanel();
-  closeRightPanel();
+  saveScrollPos();
   document.getElementById('uploadArea').style.display = '';
   document.getElementById('pasteArea').style.display = '';
   document.getElementById('userSwitcher').style.display = '';
@@ -1715,7 +1734,9 @@ function goHome() {
   document.getElementById('fileInput').value = '';
   document.getElementById('pasteTextarea').value = '';
   rawText = '';
+  currentArticleName = '';
   lastReadStartIndex = -1;
+  window.scrollTo(0, 0);
   updateReadStatsDisplay();
   renderArticleList();
 }
@@ -1734,9 +1755,6 @@ function toggleEditMode() {
 function enterEditMode() {
   isEditMode = true;
   if (isReadAloud) stopReadAloud();
-  // Hide panels on desktop
-  closeLeftPanel();
-  closeRightPanel();
   const container = document.getElementById('readerContent');
   // Record scroll position before editing
   container._scrollTopBeforeEdit = window.scrollY;
@@ -1821,148 +1839,13 @@ async function switchUser(user) {
 }
 
 function openSettings() {
-  if (isDesktop() && document.getElementById('reader').classList.contains('show')) {
-    openRightPanel('settings');
-  } else {
-    document.getElementById('settingsOverlay').classList.add('show');
-    document.getElementById('settingsPanel').classList.add('show');
-  }
+  document.getElementById('settingsOverlay').classList.add('show');
+  document.getElementById('settingsPanel').classList.add('show');
 }
 
 function closeSettings() {
   document.getElementById('settingsOverlay').classList.remove('show');
   document.getElementById('settingsPanel').classList.remove('show');
-  closeRightPanel();
-}
-
-// ============================================================
-//  DESKTOP PANEL HELPERS
-// ============================================================
-function isDesktop() {
-  return window.innerWidth >= 769;
-}
-
-function closeLeftPanel() {
-  document.getElementById('leftPanelHeader').style.display = 'none';
-  document.getElementById('leftPanelBody').style.display = 'none';
-  document.getElementById('leftPanelEmpty').style.display = '';
-}
-
-function closeRightPanel() {
-  document.getElementById('rightPanelHeader').style.display = 'none';
-  document.getElementById('rightPanelBody').style.display = 'none';
-  document.getElementById('rightPanelEmpty').style.display = '';
-}
-
-function openRightPanel(type) {
-  // type: 'settings' or 'collections'
-  const title = document.getElementById('rightPanelTitle');
-  const body = document.getElementById('rightPanelBody');
-
-  if (type === 'settings') {
-    title.innerHTML = '⚙ 阅读设置';
-    body.innerHTML = buildSettingsContent();
-  } else if (type === 'collections') {
-    title.innerHTML = '⭐ 收藏夹';
-    body.innerHTML = buildCollectionsContent();
-  }
-
-  document.getElementById('rightPanelHeader').style.display = '';
-  document.getElementById('rightPanelBody').style.display = '';
-  document.getElementById('rightPanelEmpty').style.display = 'none';
-}
-
-function buildSettingsContent() {
-  // Get current values
-  const fontSize = document.getElementById('fontSizeRange').value;
-  const fontFamily = document.getElementById('fontFamilySelect').value;
-  const speechLang = document.getElementById('speechLangSelect').value;
-  const speechRate = document.getElementById('speechRateRange').value;
-  const speechMode = document.getElementById('speechModeSelect').value;
-  const speechPause = document.getElementById('speechPauseRange').value;
-  const autoCollect = document.getElementById('autoCollectCheckbox').checked;
-
-  // Build options HTML
-  const fontOpts = ['Microsoft YaHei, PingFang SC, sans-serif|微软雅黑', '楷体, KaiTi, STKaiti|楷体', '宋体, SimSun, STSong|宋体', '黑体, SimHei, STHeiti|黑体', '仿宋, FangSong, STFangsong|仿宋'];
-  const fontOptHtml = fontOpts.map(o => {
-    const [val, label] = o.split('|');
-    return `<option value="${val}" ${fontFamily === val ? 'selected' : ''}>${label}</option>`;
-  }).join('');
-
-  const langOpts = ['zh-CN|中文', 'en-US|英文', 'ja-JP|日语', 'ko-KR|韩语', 'fr-FR|法语', 'de-DE|德语', 'es-ES|西班牙语', 'ru-RU|俄语'];
-  const langOptHtml = langOpts.map(o => {
-    const [val, label] = o.split('|');
-    return `<option value="${val}" ${speechLang === val ? 'selected' : ''}>${label}</option>`;
-  }).join('');
-
-  const modeOpts = ['continuous|连续朗读', 'loop|循环朗读', 'single|单段朗读'];
-  const modeOptHtml = modeOpts.map(o => {
-    const [val, label] = o.split('|');
-    return `<option value="${val}" ${speechMode === val ? 'selected' : ''}>${label}</option>`;
-  }).join('');
-
-  return `
-    <div style="margin-bottom:20px;">
-      <label style="font-size:14px;color:#555;display:block;margin-bottom:8px;">字号：<strong>${fontSize}</strong>px</label>
-      <input type="range" min="18" max="80" value="${fontSize}" oninput="updateFontSize(this.value);buildSettingsContentRefresh();" style="width:100%;cursor:pointer;">
-    </div>
-    <div style="margin-bottom:20px;">
-      <label style="font-size:14px;color:#555;display:block;margin-bottom:8px;">字体</label>
-      <select onchange="updateFontFamily(this.value);buildSettingsContentRefresh();" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;">${fontOptHtml}</select>
-    </div>
-    <div style="border-top:1px solid #eee;margin:16px 0;"></div>
-    <div style="margin-bottom:16px;">
-      <label style="font-size:14px;color:#555;display:block;margin-bottom:8px;">🔊 朗读语言</label>
-      <select onchange="onSpeechLangChange();saveSettings();buildSettingsContentRefresh();" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;">${langOptHtml}</select>
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="font-size:14px;color:#666;">朗读速度：<strong>${speechRate}</strong>x</label>
-      <input type="range" min="0.5" max="2" step="0.1" value="${speechRate}" oninput="updateSpeechRate(this.value);buildSettingsContentRefresh();" style="width:100%;cursor:pointer;margin-top:4px;">
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="font-size:14px;color:#666;display:block;margin-bottom:4px;">朗读模式</label>
-      <select onchange="saveSettings();buildSettingsContentRefresh();" style="width:100%;padding:6px 10px;border:1px solid #ddd;border-radius:8px;font-size:14px;font-family:inherit;">${modeOptHtml}</select>
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="font-size:14px;color:#666;">段间停顿：<strong>${speechPause}</strong>秒</label>
-      <input type="range" min="0" max="5" step="0.1" value="${speechPause}" oninput="updateSpeechPause(this.value);buildSettingsContentRefresh();" style="width:100%;cursor:pointer;margin-top:4px;">
-    </div>
-    <div style="border-top:1px solid #eee;margin:16px 0;"></div>
-    <label style="display:flex;align-items:center;gap:10px;font-size:13px;color:#666;cursor:pointer;">
-      <input type="checkbox" ${autoCollect ? 'checked' : ''} onchange="document.getElementById('autoCollectCheckbox').checked=this.checked;saveSettings();" style="width:16px;height:16px;cursor:pointer;">
-      查询单字时自动加入收藏
-    </label>
-  `;
-}
-
-// Refresh settings panel content after changing values
-function buildSettingsContentRefresh() {
-  if (isDesktop() && document.getElementById('readerRightPanel').classList.contains('show')) {
-    const body = document.getElementById('rightPanelBody');
-    const title = document.getElementById('rightPanelTitle');
-    if (title.textContent.includes('设置')) {
-      body.innerHTML = buildSettingsContent();
-    }
-  }
-}
-
-function buildCollectionsContent() {
-  const keys = Object.keys(collections).sort((a, b) => a.localeCompare(b, 'zh-CN'));
-  if (keys.length === 0) {
-    return '<div class="empty-hint">暂无收藏<br>点击文章中的字即可收藏</div>';
-  }
-  let html = '';
-  for (const ch of keys) {
-    const c = collections[ch];
-    html += `<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid #f0f0f0;">
-      <span style="font-size:24px;font-weight:700;color:var(--primary-dark);min-width:30px;">${escapeHtml(ch)}</span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;color:#555;">${escapeHtml(c.pinyin || '')}</div>
-        <div style="font-size:12px;color:#999;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(c.note || '')}</div>
-      </div>
-    </div>`;
-  }
-  return html;
 }
 
 // ============================================================
@@ -2022,14 +1905,11 @@ function renderText(text) {
     const wordCount = countWordsWithoutPunctuation(para);
     html += `<span class="para-word-count">${wordCount}字</span>`;
 
-    // Add checkbox and date
+    // Add checkbox with date as title
     const record = getParaReadRecord(currentArticleName, currentParaIdx);
     const isChecked = record ? 'checked disabled' : '';
-    html += `<input type="checkbox" class="para-checkbox" data-para-index="${currentParaIdx}" data-word-count="${wordCount}" ${isChecked} onchange="onParaCheckboxChange(this)">`;
-
-    if (record) {
-      html += `<span class="para-check-date">${record.date}</span>`;
-    }
+    const dateTitle = record ? ` title="${record.date} 已读"` : '';
+    html += `<input type="checkbox" class="para-checkbox" data-para-index="${currentParaIdx}" data-word-count="${wordCount}" ${isChecked}${dateTitle} onchange="onParaCheckboxChange(this)">`;
 
     // Add line break after paragraph (unless last)
     if (p < paragraphs.length - 1) {
@@ -2051,18 +1931,37 @@ async function onParaCheckboxChange(checkbox) {
   }
   const paraIndex = parseInt(checkbox.dataset.paraIndex);
   const wordCount = parseInt(checkbox.dataset.wordCount);
-  
-  // Save record
+
+  // Check if there are unread paragraphs before this one
+  const allCheckboxes = document.querySelectorAll('.para-checkbox');
+  const unreadBefore = [];
+  allCheckboxes.forEach(cb => {
+    const idx = parseInt(cb.dataset.paraIndex);
+    if (idx < paraIndex && !cb.checked) {
+      unreadBefore.push(cb);
+    }
+  });
+
+  if (unreadBefore.length > 0) {
+    const confirmed = confirm('是否将此段前所有未读段落都标记为已读？\n选择"取消"则只标记当前段。');
+    if (confirmed) {
+      for (const cb of unreadBefore) {
+        const idx = parseInt(cb.dataset.paraIndex);
+        const wc = parseInt(cb.dataset.wordCount);
+        cb.checked = true;
+        cb.disabled = true;
+        cb.title = getTodayStr() + ' 已读';
+        await saveParaReadRecord(currentArticleName, idx, wc);
+      }
+    }
+  }
+
+  // Save current paragraph record
   await saveParaReadRecord(currentArticleName, paraIndex, wordCount);
-  
-  // Disable checkbox (cannot uncheck)
+
+  // Disable checkbox (cannot uncheck) and set date title
   checkbox.disabled = true;
-  
-  // Add date display after checkbox
-  const dateSpan = document.createElement('span');
-  dateSpan.className = 'para-check-date';
-  dateSpan.textContent = getTodayStr();
-  checkbox.parentNode.insertBefore(dateSpan, checkbox.nextSibling);
+  checkbox.title = getTodayStr() + ' 已读';
 
   // Update stats display
   updateReadStatsDisplay();
@@ -2150,40 +2049,24 @@ function openCharModal(el) {
     }
   }
 
-  resetCharModalPrefix();
-  const useDesktop = charModalPrefix === 'leftPanel';
+  document.getElementById('modalChar').textContent = ch;
+  document.getElementById('modalNotes').value = collections[ch] ? (collections[ch].note || '') : '';
 
-  // Desktop: update left panel
-  if (useDesktop) {
-    document.getElementById('leftPanelChar').textContent = ch;
-    document.getElementById('leftPanelNotes').value = collections[ch] ? (collections[ch].note || '') : '';
-    const starBtn = document.getElementById('leftPanelStar');
-    starBtn.textContent = collections[ch] ? '★' : '☆';
-    starBtn.className = 'star-btn' + (collections[ch] ? ' active' : '');
-    document.getElementById('leftPanelPinyin').textContent = '加载中...';
-    document.getElementById('leftPanelDefinition').textContent = '加载中...';
-    document.getElementById('leftPanelWords').textContent = '加载中...';
-    document.getElementById('leftPanelAiTips').textContent = '加载中...';
-    document.getElementById('leftPanelHeader').style.display = '';
-    document.getElementById('leftPanelBody').style.display = '';
-    document.getElementById('leftPanelEmpty').style.display = 'none';
-  } else {
-    // Mobile: use old modal
-    document.getElementById('modalChar').textContent = ch;
-    document.getElementById('modalNotes').value = collections[ch] ? (collections[ch].note || '') : '';
-    const starBtn = document.getElementById('modalStar');
-    starBtn.textContent = collections[ch] ? '★' : '☆';
-    starBtn.className = 'star-btn' + (collections[ch] ? ' active' : '');
-    document.getElementById('modalPinyin').textContent = '加载中...';
-    document.getElementById('modalDefinition').textContent = '加载中...';
-    document.getElementById('modalWords').textContent = '加载中...';
-    document.getElementById('modalAiTips').textContent = '加载中...';
-    document.getElementById('modalOverlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
+  // Star state
+  const starBtn = document.getElementById('modalStar');
+  starBtn.textContent = collections[ch] ? '★' : '☆';
+  starBtn.className = 'star-btn' + (collections[ch] ? ' active' : '');
+
+  // Show loading
+  document.getElementById('modalPinyin').textContent = '加载中...';
+  document.getElementById('modalDefinition').textContent = '加载中...';
+  document.getElementById('modalWords').textContent = '加载中...';
+  document.getElementById('modalAiTips').textContent = '加载中...';
 
   // Load stroke animation
   loadStrokeAnimation(ch);
+
+  document.getElementById('modalOverlay').classList.add('show');
 
   // Fetch data from dictionary API
   fetchCharInfo(ch);
@@ -2252,37 +2135,25 @@ function openWordModal(word) {
   if (!word) return;
   currentChar = word; // reuse currentChar for simplicity
 
-  resetCharModalPrefix();
-  const useDesktop = charModalPrefix === 'leftPanel';
-  const pfx = useDesktop ? 'leftPanel' : 'modal';
-
-  document.getElementById(pfx + 'Char').textContent = word;
-  document.getElementById(pfx + 'Notes').value = '';
+  document.getElementById('modalChar').textContent = word;
+  document.getElementById('modalNotes').value = '';
 
   // Star state
-  const starBtn = document.getElementById(pfx + 'Star');
+  const starBtn = document.getElementById('modalStar');
   starBtn.style.visibility = '';
   starBtn.textContent = collections[word] ? '★' : '☆';
   starBtn.className = 'star-btn' + (collections[word] ? ' active' : '');
 
   // Show loading
-  document.getElementById(pfx + 'Pinyin').textContent = '加载中...';
-  document.getElementById(pfx + 'Definition').textContent = '加载中...';
-  document.getElementById(pfx + 'Words').textContent = '加载中...';
-  document.getElementById(pfx + 'AiTips').textContent = '加载中...';
+  document.getElementById('modalPinyin').textContent = '加载中...';
+  document.getElementById('modalDefinition').textContent = '加载中...';
+  document.getElementById('modalWords').textContent = '加载中...';
+  document.getElementById('modalAiTips').textContent = '加载中...';
 
   // Hide stroke animation section for multi-char words
-  const strokeParent = useDesktop ? 'leftPanelStrokeImg' : 'strokeImg';
-  document.getElementById(strokeParent).parentElement.parentElement.style.display = 'none';
+  document.getElementById('strokeImg').parentElement.parentElement.style.display = 'none';
 
-  if (useDesktop) {
-    document.getElementById('leftPanelHeader').style.display = '';
-    document.getElementById('leftPanelBody').style.display = '';
-    document.getElementById('leftPanelEmpty').style.display = 'none';
-  } else {
-    document.getElementById('modalOverlay').classList.add('show');
-    document.body.style.overflow = 'hidden';
-  }
+  document.getElementById('modalOverlay').classList.add('show');
 
   // Fetch word info
   fetchWordInfo(word);
@@ -2294,8 +2165,6 @@ function openWordModal(word) {
 }
 
 async function fetchWordInfo(word) {
-  resetCharModalPrefix();
-  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
   let pinyin = '';
 
   // Priority 1: local pinyin-pro
@@ -2365,13 +2234,13 @@ async function fetchWordInfo(word) {
     } catch (e) {}
   }
 
-  document.getElementById(pfx + 'Pinyin').textContent = pinyin || '未知';
-  document.getElementById(pfx + 'Definition').textContent = defText || '暂无释义';
-  document.getElementById(pfx + 'Words').textContent = '（组词功能待补充）';
+  document.getElementById('modalPinyin').textContent = pinyin || '未知';
+  document.getElementById('modalDefinition').textContent = defText || '暂无释义';
+  document.getElementById('modalWords').textContent = '（组词功能待补充）';
 
   // AI Tips: generate mnemonic for the whole word
   const tips = generateMnemonic(word);
-  document.getElementById(pfx + 'AiTips').textContent = tips;
+  document.getElementById('modalAiTips').textContent = tips;
 
   // Auto-collect (respect user setting)
   const autoCollect = document.getElementById('autoCollectCheckbox');
@@ -2381,24 +2250,15 @@ async function fetchWordInfo(word) {
 }
 
 function closeModal() {
-  resetCharModalPrefix();
-  const useDesktop = charModalPrefix === 'leftPanel';
-  if (useDesktop) {
-    closeLeftPanel();
-  } else {
-    document.getElementById('modalOverlay').classList.remove('show');
-    document.body.style.overflow = '';
-  }
+  document.getElementById('modalOverlay').classList.remove('show');
   if (window.speechSynthesis) window.speechSynthesis.cancel();
   // Save note if any
   saveCurrentNote();
   currentChar = '';
   // Reset star button visibility
   document.getElementById('modalStar').style.visibility = '';
-  document.getElementById('leftPanelStar').style.visibility = '';
   // Show stroke animation section back
   document.getElementById('strokeImg').parentElement.parentElement.style.display = '';
-  document.getElementById('leftPanelStrokeImg').parentElement.parentElement.style.display = '';
   // Refresh collections panel to show updated notes
   renderCollections();
 }
@@ -2505,15 +2365,6 @@ let isReadAloud = false;
 let isEditMode = false;
 let readAloudTimer = null;
 let lastSpeakingEl = null;
-let charModalPrefix = 'modal'; // 'modal' for mobile modal, 'leftPanel' for desktop left panel
-
-function getCharEl(suffix) {
-  return document.getElementById(charModalPrefix + suffix.charAt(0).toUpperCase() + suffix.slice(1));
-}
-
-function resetCharModalPrefix() {
-  charModalPrefix = isDesktop() && document.getElementById('reader').classList.contains('show') ? 'leftPanel' : 'modal';
-}
 
 function clearSpeakingHighlight() {
   document.querySelectorAll('#readerContent .char.speaking').forEach(el => {
@@ -2744,8 +2595,7 @@ function stopReadAloud() {
 
 function saveCurrentNote() {
   if (!currentChar) return;
-  resetCharModalPrefix();
-  const note = document.getElementById(charModalPrefix === 'leftPanel' ? 'leftPanelNotes' : 'modalNotes').value;
+  const note = document.getElementById('modalNotes').value;
   if (collections[currentChar]) {
     collections[currentChar].note = note;
   }
@@ -2773,8 +2623,6 @@ function autoCollectChar(char, pinyin) {
 //  DICTIONARY API
 // ============================================================
 async function fetchCharInfo(char) {
-  resetCharModalPrefix();
-  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
   let pinyin = '';
 
   // Priority 1: local pinyin-pro library
@@ -2807,14 +2655,14 @@ async function fetchCharInfo(char) {
           if (d.example) defText += `\n例：${d.example}`;
           if (i < defs.length - 1) defText += '\n';
         });
-        document.getElementById(pfx + 'Definition').textContent = defText.trim();
+        document.getElementById('modalDefinition').textContent = defText.trim();
       } else {
-        document.getElementById(pfx + 'Definition').textContent = '暂无释义';
+        document.getElementById('modalDefinition').textContent = '暂无释义';
       }
     }
   } catch (err) {
     console.error('Dictionary fetch error:', err);
-    document.getElementById(pfx + 'Definition').textContent = '网络异常，请检查网络连接';
+    document.getElementById('modalDefinition').textContent = '网络异常，请检查网络连接';
   }
 
   // Fallback: online pinyin-only API
@@ -2833,10 +2681,10 @@ async function fetchCharInfo(char) {
   }
 
   // Display pinyin
-  document.getElementById(pfx + 'Pinyin').textContent = pinyin || '未知';
+  document.getElementById('modalPinyin').textContent = pinyin || '未知';
 
   // Words
-  document.getElementById(pfx + 'Words').textContent = '（组词功能待补充）';
+  document.getElementById('modalWords').textContent = '（组词功能待补充）';
 
   // AI Tips
   generateAiTips(char, pinyin || '未知', defs);
@@ -2851,8 +2699,7 @@ async function fetchCharInfo(char) {
 function generateAiTips(char, pinyin, defs) {
   // Simple AI-style mnemonic generation based on character structure
   const tips = generateMnemonic(char);
-  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
-  document.getElementById(pfx + 'AiTips').textContent = tips;
+  document.getElementById('modalAiTips').textContent = tips;
 }
 
 function generateMnemonic(char) {
@@ -2890,12 +2737,8 @@ function generateMnemonic(char) {
 //  STROKE ANIMATION (from strokeorder.cc)
 // ============================================================
 function loadStrokeAnimation(ch) {
-  resetCharModalPrefix();
-  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
-  const imgId = pfx === 'leftPanel' ? 'leftPanelStrokeImg' : 'strokeImg';
-  const loadingId = pfx === 'leftPanel' ? 'leftPanelStrokeLoading' : 'strokeLoading';
-  const img = document.getElementById(imgId);
-  const loading = document.getElementById(loadingId);
+  const img = document.getElementById('strokeImg');
+  const loading = document.getElementById('strokeLoading');
   const url = `https://www.strokeorder.cc/assets/bishun/animation/bishun-${encodeURIComponent(ch)}.gif`;
 
   loading.style.display = '';
@@ -2927,22 +2770,19 @@ function toggleCollect() {
   const ch = currentChar;
   if (!ch) return;
 
-  resetCharModalPrefix();
-  const pfx = charModalPrefix === 'leftPanel' ? 'leftPanel' : 'modal';
-  const starBtn = document.getElementById(pfx + 'Star');
-  const notesEl = document.getElementById(pfx + 'Notes');
-  const pinyinEl = document.getElementById(pfx + 'Pinyin');
+  const starBtn = document.getElementById('modalStar');
 
   if (collections[ch]) {
     // Remove
+    const note = document.getElementById('modalNotes').value;
     delete collections[ch];
     starBtn.textContent = '☆';
     starBtn.classList.remove('active');
   } else {
     // Add
     collections[ch] = {
-      pinyin: pinyinEl ? pinyinEl.textContent : '',
-      note: notesEl ? notesEl.value : '',
+      pinyin: document.getElementById('modalPinyin').textContent,
+      note: document.getElementById('modalNotes').value,
       mastery: 5
     };
     starBtn.textContent = '★';
@@ -2962,19 +2802,14 @@ function deleteCollection(ch) {
 }
 
 function openCollections() {
-  if (isDesktop() && document.getElementById('reader').classList.contains('show')) {
-    openRightPanel('collections');
-  } else {
-    document.getElementById('collectionsOverlay').classList.add('show');
-    document.getElementById('collectionsPanel').classList.add('show');
-    renderCollections();
-  }
+  document.getElementById('collectionsOverlay').classList.add('show');
+  document.getElementById('collectionsPanel').classList.add('show');
+  renderCollections();
 }
 
 function closeCollections() {
   document.getElementById('collectionsOverlay').classList.remove('show');
   document.getElementById('collectionsPanel').classList.remove('show');
-  closeRightPanel();
 }
 
 function toggleCollectionDetail(itemEl) {
@@ -3169,10 +3004,36 @@ async function loadSettings() {
 // ============================================================
 async function persistCollections() {
   try {
-    // 遍历 collections 对象，逐条存入 IndexedDB
+    const db = await openDB();
+    const tx = db.transaction('collections', 'readwrite');
+    const store = tx.objectStore('collections');
+
+    // 获取当前数据库中所有已存的 key
+    const existingKeys = new Set();
+    await new Promise((resolve, reject) => {
+      const req = store.getAllKeys();
+      req.onsuccess = () => {
+        req.result.forEach(k => existingKeys.add(k));
+        resolve();
+      };
+      req.onerror = e => reject(e.target.error);
+    });
+
+    // 遍历当前 collections，upsert
     for (const [char, val] of Object.entries(collections)) {
-      await dbPut('collections', { char, ...val });
+      store.put({ char, ...val });
+      existingKeys.delete(char); // 标记为仍需要
     }
+
+    // 删除已不在 collections 中的条目
+    for (const key of existingKeys) {
+      store.delete(key);
+    }
+
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = resolve;
+      tx.onerror = e => reject(e.target.error);
+    });
   } catch(e) { console.error('Save collections failed:', e); }
 }
 
@@ -3181,7 +3042,7 @@ async function loadCollections() {
     const items = await dbGetAll('collections');
     collections = {};
     items.forEach(item => {
-      collections[item.char] = { pinyin: item.pinyin || '', note: item.note || '' };
+      collections[item.char] = { pinyin: item.pinyin || '', note: item.note || '', mastery: item.mastery || 5 };
     });
   } catch(e) {
     console.error('Load collections failed:', e);
@@ -3199,7 +3060,7 @@ async function exportAllData() {
     const settings = await dbGet('settings', 'app_settings');
     
     const backup = {
-      _type: 'PDJ课外阅读备份',
+      _type: 'PDJ阅读天天练备份',
       _version: 2,
       _date: new Date().toISOString(),
       articles: articles,
@@ -3226,8 +3087,8 @@ async function importAllData(file) {
   reader.onload = async e => {
     try {
       const data = JSON.parse(e.target.result);
-      if (!data || data._type !== 'PDJ课外阅读备份') {
-        alert('文件格式不正确，请选择正确的 PDJ 课外阅读备份文件。');
+      if (!data || data._type !== 'PDJ阅读天天练备份') {
+        alert('文件格式不正确，请选择正确的 PDJ 阅读天天练备份文件。');
         return;
       }
       
