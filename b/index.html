@@ -3,6 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<script>
+  !function(){if(document.getElementById("baidu-tongji-script"))return;window._hmt=window._hmt||[];var t=document.createElement("script");t.id="baidu-tongji-script",t.src="https://hm.baidu.com/hm.js?8cd25f4a6ff603e61707fa049681a149";var e=document.getElementsByTagName("script")[0];e.parentNode.insertBefore(t,e)}();
+</script>
 <title>PDJ阅读天天练</title>
 <style>
   :root {
@@ -470,6 +473,11 @@
     align-items: center;
     padding: 20px 24px 12px;
     border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--card-bg);
+    z-index: 1;
+    border-radius: 20px 20px 0 0;
   }
   .modal-header .char-display {
     font-size: 48px;
@@ -550,7 +558,7 @@
 
   .modal-section textarea {
     width: 100%;
-    min-height: 80px;
+    min-height: 120px;
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 10px 12px;
@@ -661,6 +669,35 @@
     height: 10px;
     border-radius: 50%;
   }
+  .col-filter-search {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    margin-top: 2px;
+    border-top: 1px solid var(--border);
+  }
+  .col-filter-search input {
+    flex: 1;
+    min-width: 0;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 13px;
+    outline: none;
+  }
+  .col-filter-search input:focus { border-color: var(--primary); }
+  .col-filter-search button {
+    flex-shrink: 0;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 13px;
+    cursor: pointer;
+    background: var(--primary);
+    color: #fff;
+  }
+  .col-filter-search button:hover { opacity: 0.85; }
   .collections-body {
     flex: 1;
     overflow-y: auto;
@@ -1062,20 +1099,12 @@
         </div>
       </div>
       <div class="modal-section">
+        <h3>我的笔记 <a href="https://www.doubao.com" target="_blank" style="font-size:13px;color:#4a90d9;text-decoration:none;margin-left:8px;font-weight:normal;">问AI</a></h3>
+        <textarea id="modalNotes" placeholder="助记法、要点、多音字区分方法等..." oninput="saveCurrentNote()"></textarea>
+      </div>
+      <div class="modal-section">
         <h3>基本解释</h3>
         <p id="modalDefinition">加载中...</p>
-      </div>
-      <div class="modal-section">
-        <h3>组词</h3>
-        <p id="modalWords">加载中...</p>
-      </div>
-      <div class="modal-section">
-        <h3>AI 助记法</h3>
-        <div class="ai-tips" id="modalAiTips">加载中...</div>
-      </div>
-      <div class="modal-section">
-        <h3>我的笔记</h3>
-        <textarea id="modalNotes" placeholder="在这里写下你对这个字的理解和笔记..." oninput="saveCurrentNote()"></textarea>
       </div>
     </div>
   </div>
@@ -1163,6 +1192,10 @@
       <button class="btn btn-primary" onclick="document.getElementById('importAllInput').click()" style="flex:1;background:#4A90D9;color:#fff;">📥 导入全部数据</button>
       <input type="file" id="importAllInput" accept=".json" style="display:none" onchange="importAllData(this.files[0])">
     </div>
+    <div style="margin-top:24px;">
+      <label style="font-size:15px;color:#555;display:block;margin-bottom:8px;">🔄 软件更新地址</label>
+      <a href="https://note.youdao.com/s/MI81scdr" target="_blank" style="font-size:14px;color:#4A90D9;text-decoration:none;">https://note.youdao.com/s/MI81scdr</a>
+    </div>
   </div>
 </div>
 
@@ -1199,14 +1232,16 @@
 //  STATE
 // ============================================================
 let collections = {};        // { "字": { pinyin, note } }
+let removedNotes = {};       // { "字": note } — 已删除收藏的笔记缓存
 let colMasteryFilter = 0;     // 0 = 全部, 1-9 = 筛选对应掌握度
+let colSearchText = '';       // 搜索文字，匹配字/词、拼音、笔记
 let currentChar = '';
 let rawText = '';
 let speechVoices = [];
 let lastReadStartIndex = -1;  // index in rawText where the last clicked char's paragraph starts
 let justSelectedWord = false; // flag to prevent click from clearing selection immediately
 
-const DB_VERSION = 4;
+const DB_VERSION = 5;
 const DB_STORE = 'articles';
 let currentUser = 'user1'; // 'user1' or 'user2'
 let currentArticleName = '';
@@ -1246,6 +1281,11 @@ function openDB() {
       if (oldVersion < 4) {
         if (!db.objectStoreNames.contains('scroll_pos')) {
           db.createObjectStore('scroll_pos', { keyPath: 'id' });
+        }
+      }
+      if (oldVersion < 5) {
+        if (!db.objectStoreNames.contains('removed_notes')) {
+          db.createObjectStore('removed_notes', { keyPath: 'char' });
         }
       }
     };
@@ -1620,6 +1660,7 @@ function showToast(msg) {
 // ============================================================
 (async function init() {
   await loadCollections();
+  await loadRemovedNotes();
   renderCollections();
   await loadSettings();
   await loadParaReadRecords();
@@ -1752,21 +1793,126 @@ function toggleEditMode() {
   }
 }
 
+// Helper: find the raw text index of the first visible char in reading mode
+function getFirstVisibleRawIdx() {
+  const chars = document.querySelectorAll('#readerContent .char');
+  for (const char of chars) {
+    const rect = char.getBoundingClientRect();
+    if (rect.bottom >= 80) {
+      return parseInt(char.dataset.rawIdx) || 0;
+    }
+  }
+  return 0;
+}
+
+// Helper: scroll to a raw text index inside the editable (plain text) container
+function scrollToRawIdxInEditable(rawIdx) {
+  const container = document.getElementById('readerContent');
+  // Walk text nodes, accumulating character offset to find the one containing rawIdx
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+  let cumulative = 0;
+  let node;
+  while (node = walker.nextNode()) {
+    const text = node.textContent;
+    const startIdx = cumulative;
+    const endIdx = cumulative + text.length;
+    if (rawIdx >= startIdx && rawIdx <= endIdx) {
+      const range = document.createRange();
+      const offset = Math.min(rawIdx - startIdx, text.length);
+      range.setStart(node, offset);
+      range.collapse(true);
+      const rect = range.getBoundingClientRect();
+      if (rect.top !== 0 || rect.left !== 0) {
+        window.scrollTo(0, rect.top + window.scrollY - 80);
+        return;
+      }
+    }
+    cumulative = endIdx;
+  }
+}
+
+// Helper: find the raw text index at the top of the viewport in editable mode
+function getRawIdxAtViewportTopEditable() {
+  const container = document.getElementById('readerContent');
+  const containerRect = container.getBoundingClientRect();
+  const tryY = Math.max(10, containerRect.top + 35);
+  let targetNode = null, targetOffset = 0;
+
+  if (document.caretRangeFromPoint) {
+    const range = document.caretRangeFromPoint(50, tryY);
+    if (range && range.startContainer.nodeType === 3) {
+      targetNode = range.startContainer;
+      targetOffset = range.startOffset;
+    }
+  }
+
+  if (!targetNode) {
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    targetNode = walker.nextNode();
+    targetOffset = 0;
+  }
+  if (!targetNode) return 0;
+
+  // Walk text nodes, accumulating offset to find the raw index of targetNode
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+  let cumulative = 0;
+  let node;
+  while (node = walker.nextNode()) {
+    const text = node.textContent;
+    if (node === targetNode) {
+      return cumulative + Math.min(targetOffset, text.length);
+    }
+    cumulative += text.length;
+  }
+  return 0;
+}
+
+// Helper: scroll to a raw text index in reading mode (find nearest char span)
+function scrollToRawIdxInReading(rawIdx) {
+  const chars = document.querySelectorAll('#readerContent .char');
+  let bestChar = null;
+  let bestIdx = Infinity;
+  for (const char of chars) {
+    const idx = parseInt(char.dataset.rawIdx) || 0;
+    if (idx >= rawIdx && idx < bestIdx) {
+      bestIdx = idx;
+      bestChar = char;
+    }
+  }
+  if (!bestChar && chars.length > 0) {
+    // Find the closest char before rawIdx
+    let closestIdx = -1;
+    for (const char of chars) {
+      const idx = parseInt(char.dataset.rawIdx) || 0;
+      if (idx <= rawIdx && idx > closestIdx) {
+        closestIdx = idx;
+        bestChar = char;
+      }
+    }
+  }
+  if (bestChar) {
+    const rect = bestChar.getBoundingClientRect();
+    window.scrollTo(0, rect.top + window.scrollY - 80);
+  }
+}
+
 function enterEditMode() {
   isEditMode = true;
   if (isReadAloud) stopReadAloud();
   const container = document.getElementById('readerContent');
-  // Record scroll position before editing
+  // Record the pixel scroll position before editing (for exact restore on exit)
   container._scrollTopBeforeEdit = window.scrollY;
-  container._containerScrollBeforeEdit = container.scrollTop;
-  // Store current raw text for comparison
-  container.setAttribute('contenteditable', 'true');
+  // Also record the first visible character's raw index (for editing alignment)
+  const firstVisibleIdx = getFirstVisibleRawIdx();
   // Switch to plain text editing: fill with rawText
+  container.setAttribute('contenteditable', 'true');
   container.innerText = rawText;
-  // Restore container scroll
-  container.scrollTop = container._containerScrollBeforeEdit;
   container.style.outline = '2px solid #4A90D9';
   container.style.borderRadius = '16px';
+  // Scroll to the same text position after DOM settles
+  requestAnimationFrame(() => {
+    scrollToRawIdxInEditable(firstVisibleIdx);
+  });
   // Update button text
   document.getElementById('headerEditBtn').textContent = '💾';
   document.getElementById('headerEditBtn').title = '保存';
@@ -1776,9 +1922,8 @@ function enterEditMode() {
 
 function exitEditMode() {
   const container = document.getElementById('readerContent');
-  // Get saved scroll position
+  // Get the pixel scroll position saved when entering edit mode
   const savedWindowScroll = container._scrollTopBeforeEdit || 0;
-  const savedContainerScroll = container._containerScrollBeforeEdit || 0;
   // Get edited text
   const newText = container.innerText;
   container.removeAttribute('contenteditable');
@@ -1804,9 +1949,10 @@ function exitEditMode() {
     // No change, just re-render to restore char spans
     renderText(rawText);
   }
-  // Restore scroll position to exactly where it was before editing
-  container.scrollTop = savedContainerScroll;
-  window.scrollTo(0, savedWindowScroll);
+  // Restore exact pixel scroll position (layout is identical if text unchanged)
+  requestAnimationFrame(() => {
+    window.scrollTo(0, savedWindowScroll);
+  });
 }
 
 async function switchUser(user) {
@@ -1831,6 +1977,7 @@ async function switchUser(user) {
 
   // Reload all user data
   await loadCollections();
+  await loadRemovedNotes();
   renderCollections();
   await loadSettings();
   await loadParaReadRecords();
@@ -2050,18 +2197,29 @@ function openCharModal(el) {
   }
 
   document.getElementById('modalChar').textContent = ch;
-  document.getElementById('modalNotes').value = collections[ch] ? (collections[ch].note || '') : '';
+  // Restore note: prefer active collection, fall back to saved removed note
+  const restoredNote = collections[ch] ? (collections[ch].note || '') : (removedNotes[ch] || '');
+  document.getElementById('modalNotes').value = restoredNote;
 
   // Star state
   const starBtn = document.getElementById('modalStar');
   starBtn.textContent = collections[ch] ? '★' : '☆';
   starBtn.className = 'star-btn' + (collections[ch] ? ' active' : '');
 
+  // Auto-collect immediately if enabled (pinyin will be filled in later by fetchCharInfo)
+  const autoCollect = document.getElementById('autoCollectCheckbox');
+  if (autoCollect && autoCollect.checked && !collections[ch]) {
+    collections[ch] = { pinyin: '', note: removedNotes[ch] || '', mastery: 5, order: Date.now() };
+    persistCollections();
+    renderCollections();
+    starBtn.textContent = '★';
+    starBtn.className = 'star-btn active';
+    if (rawText) renderText(rawText);
+  }
+
   // Show loading
   document.getElementById('modalPinyin').textContent = '加载中...';
   document.getElementById('modalDefinition').textContent = '加载中...';
-  document.getElementById('modalWords').textContent = '加载中...';
-  document.getElementById('modalAiTips').textContent = '加载中...';
 
   // Load stroke animation
   loadStrokeAnimation(ch);
@@ -2136,7 +2294,9 @@ function openWordModal(word) {
   currentChar = word; // reuse currentChar for simplicity
 
   document.getElementById('modalChar').textContent = word;
-  document.getElementById('modalNotes').value = '';
+  // Restore note: prefer active collection, fall back to saved removed note
+  const restoredNote = collections[word] ? (collections[word].note || '') : (removedNotes[word] || '');
+  document.getElementById('modalNotes').value = restoredNote;
 
   // Star state
   const starBtn = document.getElementById('modalStar');
@@ -2144,11 +2304,20 @@ function openWordModal(word) {
   starBtn.textContent = collections[word] ? '★' : '☆';
   starBtn.className = 'star-btn' + (collections[word] ? ' active' : '');
 
+  // Auto-collect immediately if enabled (pinyin will be filled in later by fetchWordInfo)
+  const autoCollect = document.getElementById('autoCollectCheckbox');
+  if (autoCollect && autoCollect.checked && !collections[word]) {
+    collections[word] = { pinyin: '', note: removedNotes[word] || '', mastery: 5, order: Date.now() };
+    persistCollections();
+    renderCollections();
+    starBtn.textContent = '★';
+    starBtn.className = 'star-btn active';
+    if (rawText) renderText(rawText);
+  }
+
   // Show loading
   document.getElementById('modalPinyin').textContent = '加载中...';
   document.getElementById('modalDefinition').textContent = '加载中...';
-  document.getElementById('modalWords').textContent = '加载中...';
-  document.getElementById('modalAiTips').textContent = '加载中...';
 
   // Hide stroke animation section for multi-char words
   document.getElementById('strokeImg').parentElement.parentElement.style.display = 'none';
@@ -2234,13 +2403,11 @@ async function fetchWordInfo(word) {
     } catch (e) {}
   }
 
-  document.getElementById('modalPinyin').textContent = pinyin || '未知';
-  document.getElementById('modalDefinition').textContent = defText || '暂无释义';
-  document.getElementById('modalWords').textContent = '（组词功能待补充）';
-
-  // AI Tips: generate mnemonic for the whole word
-  const tips = generateMnemonic(word);
-  document.getElementById('modalAiTips').textContent = tips;
+  // Display pinyin
+  if (currentChar === word) {
+    document.getElementById('modalPinyin').textContent = pinyin || '未知';
+    document.getElementById('modalDefinition').textContent = defText || '暂无释义';
+  }
 
   // Auto-collect (respect user setting)
   const autoCollect = document.getElementById('autoCollectCheckbox');
@@ -2607,16 +2774,32 @@ function saveCurrentNote() {
 // ============================================================
 function autoCollectChar(char, pinyin) {
   const wasNew = !collections[char];
-  const oldNote = collections[char] ? collections[char].note : '';
+  // Use existing note, or fall back to saved removed note
+  const oldNote = collections[char] ? collections[char].note : (removedNotes[char] || '');
   const oldMastery = collections[char] ? collections[char].mastery : 5;
-  collections[char] = { pinyin: pinyin, note: oldNote, mastery: oldMastery };
+  const oldOrder = collections[char] ? collections[char].order : Date.now();
+  // Delete first then re-add to move to end of object (renderCollections shows newest first)
+  if (collections[char]) delete collections[char];
+  collections[char] = { pinyin: pinyin, note: oldNote, mastery: oldMastery, order: Date.now() };
+  // Clear saved note since it's been restored
+  if (removedNotes[char]) {
+    delete removedNotes[char];
+    removeRemovedNote(char);
+  }
+  // If still viewing this char, fill the textarea with restored note
+  if (currentChar === char && oldNote) {
+    const notesArea = document.getElementById('modalNotes');
+    if (notesArea && !notesArea.value) notesArea.value = oldNote;
+  }
   persistCollections();
   renderCollections();
   if (wasNew && rawText) renderText(rawText);
-  // Light up the star
-  const starBtn = document.getElementById('modalStar');
-  starBtn.textContent = '★';
-  starBtn.classList.add('active');
+  // Light up the star only if still viewing this char
+  if (currentChar === char) {
+    const starBtn = document.getElementById('modalStar');
+    starBtn.textContent = '★';
+    starBtn.classList.add('active');
+  }
 }
 
 // ============================================================
@@ -2655,14 +2838,20 @@ async function fetchCharInfo(char) {
           if (d.example) defText += `\n例：${d.example}`;
           if (i < defs.length - 1) defText += '\n';
         });
-        document.getElementById('modalDefinition').textContent = defText.trim();
+        if (currentChar === char) {
+          document.getElementById('modalDefinition').textContent = defText.trim();
+        }
       } else {
-        document.getElementById('modalDefinition').textContent = '暂无释义';
+        if (currentChar === char) {
+          document.getElementById('modalDefinition').textContent = '暂无释义';
+        }
       }
     }
   } catch (err) {
     console.error('Dictionary fetch error:', err);
-    document.getElementById('modalDefinition').textContent = '网络异常，请检查网络连接';
+    if (currentChar === char) {
+      document.getElementById('modalDefinition').textContent = '网络异常，请检查网络连接';
+    }
   }
 
   // Fallback: online pinyin-only API
@@ -2681,13 +2870,9 @@ async function fetchCharInfo(char) {
   }
 
   // Display pinyin
-  document.getElementById('modalPinyin').textContent = pinyin || '未知';
-
-  // Words
-  document.getElementById('modalWords').textContent = '（组词功能待补充）';
-
-  // AI Tips
-  generateAiTips(char, pinyin || '未知', defs);
+  if (currentChar === char) {
+    document.getElementById('modalPinyin').textContent = pinyin || '未知';
+  }
 
   // Auto-collect (respect user setting)
   const autoCollect = document.getElementById('autoCollectCheckbox');
@@ -2773,18 +2958,33 @@ function toggleCollect() {
   const starBtn = document.getElementById('modalStar');
 
   if (collections[ch]) {
-    // Remove
+    // Remove — save note to removedNotes for future re-add
     const note = document.getElementById('modalNotes').value;
+    if (note) {
+      removedNotes[ch] = note;
+      persistRemovedNote(ch, note);
+    }
     delete collections[ch];
     starBtn.textContent = '☆';
     starBtn.classList.remove('active');
   } else {
-    // Add
+    // Add — use saved note if available, move to end of object
+    const savedNote = removedNotes[ch] || '';
     collections[ch] = {
       pinyin: document.getElementById('modalPinyin').textContent,
-      note: document.getElementById('modalNotes').value,
-      mastery: 5
+      note: document.getElementById('modalNotes').value || savedNote,
+      mastery: 5,
+      order: Date.now()
     };
+    // If there was a saved note and the textarea was empty, fill it in
+    if (savedNote && !document.getElementById('modalNotes').value) {
+      document.getElementById('modalNotes').value = savedNote;
+    }
+    // Clear the saved note since it's been restored
+    if (removedNotes[ch]) {
+      delete removedNotes[ch];
+      removeRemovedNote(ch);
+    }
     starBtn.textContent = '★';
     starBtn.classList.add('active');
   }
@@ -2795,6 +2995,11 @@ function toggleCollect() {
 }
 
 function deleteCollection(ch) {
+  // Save note to removedNotes for future re-add
+  if (collections[ch] && collections[ch].note) {
+    removedNotes[ch] = collections[ch].note;
+    persistRemovedNote(ch, collections[ch].note);
+  }
   delete collections[ch];
   persistCollections();
   renderCollections();
@@ -2844,8 +3049,23 @@ function renderCollections() {
     keys = allKeys.filter(ch => (collections[ch].mastery || 5) === colMasteryFilter);
   }
 
+  // Apply search filter
+  if (colSearchText) {
+    const q = colSearchText.toLowerCase();
+    keys = keys.filter(ch => {
+      const item = collections[ch];
+      return ch.toLowerCase().includes(q) ||
+             (item.pinyin || '').toLowerCase().includes(q) ||
+             (item.note || '').toLowerCase().includes(q);
+    });
+  }
+
   if (keys.length === 0) {
-    body.innerHTML = `<div class="empty-hint">没有掌握度为 ${colMasteryFilter} 的字/词<br>点击下拉箭头切换筛选条件</div>`;
+    if (colSearchText) {
+      body.innerHTML = `<div class="empty-hint">没有匹配"${escapeHtml(colSearchText)}"的字/词<br>点击下拉箭头修改搜索</div>`;
+    } else {
+      body.innerHTML = `<div class="empty-hint">没有掌握度为 ${colMasteryFilter} 的字/词<br>点击下拉箭头切换筛选条件</div>`;
+    }
     return;
   }
 
@@ -2923,11 +3143,26 @@ function buildFilterDropdown() {
     const dot = i > 0 ? `<span class="mastery-dot" style="background:${masteryColors[i]}"></span>` : '';
     html += `<div class="col-filter-option${active}" onclick="setColFilter(${i})">${dot}${masteryLabels[i]}</div>`;
   }
+  // Search box at the bottom
+  html += `<div class="col-filter-search" onclick="event.stopPropagation()">
+    <input type="text" id="colSearchInput" placeholder="搜索字/拼音/笔记" value="${escapeHtml(colSearchText)}" onkeydown="if(event.key==='Enter'){setColSearch();}">
+    <button onclick="setColSearch()">确定</button>
+  </div>`;
   dd.innerHTML = html;
 }
 
 function setColFilter(level) {
   colMasteryFilter = level;
+  // Clear search when switching mastery filter
+  colSearchText = '';
+  document.getElementById('colFilterDropdown').classList.remove('show');
+  document.getElementById('filterArrow').classList.remove('open');
+  renderCollections();
+}
+
+function setColSearch() {
+  const input = document.getElementById('colSearchInput');
+  colSearchText = input ? input.value.trim() : '';
   document.getElementById('colFilterDropdown').classList.remove('show');
   document.getElementById('filterArrow').classList.remove('open');
   renderCollections();
@@ -3024,7 +3259,6 @@ async function persistCollections() {
       store.put({ char, ...val });
       existingKeys.delete(char); // 标记为仍需要
     }
-
     // 删除已不在 collections 中的条目
     for (const key of existingKeys) {
       store.delete(key);
@@ -3041,13 +3275,47 @@ async function loadCollections() {
   try {
     const items = await dbGetAll('collections');
     collections = {};
+    // Sort by order (add timestamp) so Object.keys preserves insertion order
+    items.sort((a, b) => (a.order || 0) - (b.order || 0));
     items.forEach(item => {
-      collections[item.char] = { pinyin: item.pinyin || '', note: item.note || '', mastery: item.mastery || 5 };
+      collections[item.char] = { pinyin: item.pinyin || '', note: item.note || '', mastery: item.mastery || 5, order: item.order || 0 };
     });
   } catch(e) {
     console.error('Load collections failed:', e);
     collections = {};
   }
+}
+
+// ============================================================
+//  REMOVED NOTES (已删除收藏的笔记缓存)
+// ============================================================
+async function loadRemovedNotes() {
+  try {
+    const items = await dbGetAll('removed_notes');
+    removedNotes = {};
+    items.forEach(item => {
+      removedNotes[item.char] = item.note || '';
+    });
+  } catch(e) {
+    console.error('Load removed notes failed:', e);
+    removedNotes = {};
+  }
+}
+
+async function persistRemovedNote(char, note) {
+  try {
+    await dbPut('removed_notes', { char, note });
+  } catch(e) { console.error('Save removed note failed:', e); }
+}
+
+async function removeRemovedNote(char) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction('removed_notes', 'readwrite');
+    tx.objectStore('removed_notes').delete(char);
+    tx.oncomplete = () => {};
+    tx.onerror = e => console.error('Delete removed note failed:', e.target.error);
+  } catch(e) { console.error('Delete removed note failed:', e); }
 }
 
 // ============================================================
