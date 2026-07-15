@@ -1085,7 +1085,7 @@
     </div>
     <div class="modal-body">
       <div class="modal-section">
-        <h3>汉语拼音</h3>
+        <h3 id="modalPinyinLabel">汉语拼音</h3>
         <p class="pinyin" id="modalPinyin" onclick="speakChar()" title="点击朗读" style="cursor:pointer;user-select:none;">加载中...</p>
       </div>
       <div class="modal-section">
@@ -1176,6 +1176,15 @@
     </div>
     <div style="border-top:1px solid #eee;margin:24px 0;"></div>
     <div style="margin-bottom:20px;">
+      <label style="font-size:15px;color:#555;display:block;margin-bottom:10px;">🔍 查询引擎设置</label>
+      <select id="queryEngineSelect" onchange="onQueryEngineChange();saveSettings();" style="width:100%;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:15px;font-family:inherit;">
+        <option value="zh">中文（查询汉字拼音和释义）</option>
+        <option value="en">英文（查询英语单词音标和翻译）</option>
+      </select>
+      <div style="color:red;font-size:12px;margin-top:4px;">请正确设置，否则阅读时无法点击查询。</div>
+    </div>
+    <div style="border-top:1px solid #eee;margin:24px 0;"></div>
+    <div style="margin-bottom:20px;">
       <label style="font-size:15px;color:#555;display:block;margin-bottom:12px;">⭐ 收藏设置</label>
       <label style="display:flex;align-items:center;gap:10px;font-size:14px;color:#666;cursor:pointer;">
         <input type="checkbox" id="autoCollectCheckbox" onchange="saveSettings()" style="width:18px;height:18px;cursor:pointer;">
@@ -1236,12 +1245,15 @@ let removedNotes = {};       // { "字": note } — 已删除收藏的笔记缓�
 let colMasteryFilter = 0;     // 0 = 全部, 1-9 = 筛选对应掌握度
 let colSearchText = '';       // 搜索文字，匹配字/词、拼音、笔记
 let currentChar = '';
+let queryEngine = 'zh'; // 'zh' = 中文查询, 'en' = 英文查询
+let ecdictData = null;    // ECDICT 本地词典数据（大对象，惰性加载）
+let ecdictLoaded = false; // 是否已加载
 let rawText = '';
 let speechVoices = [];
 let lastReadStartIndex = -1;  // index in rawText where the last clicked char's paragraph starts
 let justSelectedWord = false; // flag to prevent click from clearing selection immediately
 
-const DB_VERSION = 5;
+const DB_VERSION = 6;
 const DB_STORE = 'articles';
 let currentUser = 'user1'; // 'user1' or 'user2'
 let currentArticleName = '';
@@ -1286,6 +1298,14 @@ function openDB() {
       if (oldVersion < 5) {
         if (!db.objectStoreNames.contains('removed_notes')) {
           db.createObjectStore('removed_notes', { keyPath: 'char' });
+        }
+      }
+      if (oldVersion < 6) {
+        if (!db.objectStoreNames.contains('ecdict_cache')) {
+          db.createObjectStore('ecdict_cache', { keyPath: 'id' });
+        }
+        if (!db.objectStoreNames.contains('article_lang')) {
+          db.createObjectStore('article_lang', { keyPath: 'name' });
         }
       }
     };
@@ -1589,10 +1609,11 @@ async function openArticle(name) {
   const db = await openDB();
   const tx = db.transaction(DB_STORE, 'readonly');
   const req = tx.objectStore(DB_STORE).get(name);
-  req.onsuccess = () => {
+  req.onsuccess = async () => {
     if (!req.result) return;
     rawText = req.result.content;
     currentArticleName = name;
+    await detectAndSetLanguage(rawText);
     renderText(rawText);
     document.getElementById('uploadArea').style.display = 'none';
     document.getElementById('pasteArea').style.display = 'none';
@@ -1730,10 +1751,11 @@ function handleFile(file) {
   const reader = new FileReader();
   reader.onload = async e => {
     rawText = e.target.result;
-    renderText(rawText);
-    showReader();
     const name = file.name.replace(/\.txt$/i, '');
     currentArticleName = name;
+    await detectAndSetLanguage(rawText);
+    renderText(rawText);
+    showReader();
     await dbSaveArticle(name, rawText);
   };
   reader.readAsText(file, 'UTF-8');
@@ -1744,12 +1766,13 @@ function handlePasteText() {
   const text = textarea.value.trim();
   if (!text) return;
   rawText = text;
-  renderText(rawText);
-  showReader();
   // Generate a name from first 20 chars
   const firstLine = text.split('\n')[0].trim();
   const name = '粘贴文本_' + (firstLine.length > 20 ? firstLine.substring(0, 20) : firstLine);
   currentArticleName = name;
+  detectAndSetLanguage(rawText);
+  renderText(rawText);
+  showReader();
   dbSaveArticle(name, rawText);
 }
 
@@ -1996,8 +2019,99 @@ function closeSettings() {
 }
 
 // ============================================================
+//  ARTICLE LANGUAGE SETTINGS (per-article persistence)
+// ============================================================
+async function saveArticleLangSettings() {
+  if (!currentArticleName) return;
+  try {
+    const db = await openDB();
+    const tx = db.transaction('article_lang', 'readwrite');
+    tx.objectStore('article_lang').put({
+      name: currentArticleName,
+      queryEngine: document.getElementById('queryEngineSelect').value,
+      speechLang: document.getElementById('speechLangSelect').value,
+      speechVoice: document.getElementById('speechVoiceSelect').value,
+      speechRate: document.getElementById('speechRateRange').value,
+      speechMode: document.getElementById('speechModeSelect').value,
+      speechPause: document.getElementById('speechPauseRange').value
+    });
+  } catch(e) { /* silent */ }
+}
+
+async function loadArticleLangSettings(name) {
+  try {
+    const db = await openDB();
+    const tx = db.transaction('article_lang', 'readonly');
+    const req = tx.objectStore('article_lang').get(name);
+    return new Promise(resolve => {
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
+    });
+  } catch(e) { return null; }
+}
+
+function applyArticleLangSettings(settings) {
+  if (!settings) return;
+  if (settings.queryEngine) {
+    queryEngine = settings.queryEngine;
+    document.getElementById('queryEngineSelect').value = settings.queryEngine;
+  }
+  if (settings.speechLang) {
+    document.getElementById('speechLangSelect').value = settings.speechLang;
+  }
+  if (settings.speechVoice) {
+    document.getElementById('speechVoiceSelect').value = settings.speechVoice;
+    window._pendingSpeechVoice = settings.speechVoice;
+  }
+  if (settings.speechRate) {
+    document.getElementById('speechRateRange').value = settings.speechRate;
+    document.getElementById('speechRateVal').textContent = settings.speechRate;
+  }
+  if (settings.speechMode) {
+    document.getElementById('speechModeSelect').value = settings.speechMode;
+  }
+  if (settings.speechPause) {
+    document.getElementById('speechPauseRange').value = settings.speechPause;
+    document.getElementById('speechPauseVal').textContent = settings.speechPause;
+  }
+  populateVoices();
+}
+
+// ============================================================
 //  TEXT RENDER
 // ============================================================
+// Auto-detect language (Chinese vs English) and switch query engine + TTS language
+async function detectAndSetLanguage(text) {
+  // First, try to restore per-article language settings
+  if (currentArticleName) {
+    const saved = await loadArticleLangSettings(currentArticleName);
+    if (saved) {
+      applyArticleLangSettings(saved);
+      return;
+    }
+  }
+  // No saved settings: auto-detect
+  let cnCount = 0, enCount = 0;
+  for (const ch of text) {
+    if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(ch)) cnCount++;
+    else if (/[a-zA-Z]/.test(ch)) enCount++;
+  }
+  if (cnCount + enCount === 0) return; // no detectable chars
+  const isEnglish = enCount > cnCount;
+  const newEngine = isEnglish ? 'en' : 'zh';
+  queryEngine = newEngine;
+  document.getElementById('queryEngineSelect').value = newEngine;
+  // Auto-switch TTS language
+  if (isEnglish) {
+    document.getElementById('speechLangSelect').value = 'en-US';
+  } else {
+    document.getElementById('speechLangSelect').value = 'zh-CN';
+  }
+  populateVoices();
+  // Save as this article's language settings
+  await saveArticleLangSettings();
+}
+
 function renderText(text) {
   const container = document.getElementById('readerContent');
   // Split into paragraphs for speaker icons
@@ -2024,14 +2138,37 @@ function renderText(text) {
     html += `<span class="para-speaker" data-para-start="${paraStartRawIdx}" onclick="readFromPara(${paraStartRawIdx})" title="从此段开始朗读">🔈</span>`;
 
     // Render characters in this paragraph
+    let engBuf = '';
+    let engStartIdx = 0;
+    function flushEngBuf() {
+      if (engBuf) {
+        const ew = engBuf.trim();
+        if (ew.length > 0) {
+          const isCollected = collections[ew];
+          html += `<span class="char${isCollected ? ' collected' : ''}" data-char="${ew}" data-raw-idx="${engStartIdx}" onclick="openCharModal(this)" style="cursor:pointer;">${escapeHtml(engBuf)}`;
+          if (isCollected) {
+            const pinyin = collections[ew].pinyin || '';
+            const note = collections[ew].note || '';
+            let tip = pinyin;
+            if (note) tip += ' | ' + note;
+            html += `<span class="char-tooltip">${escapeHtml(tip)}</span>`;
+          }
+          html += '</span>';
+        }
+        engBuf = '';
+      }
+    }
     for (let i = 0; i < para.length; i++) {
       const ch = para[i];
       rawIdx++;
       if (ch === ' ' || ch === '\t' || ch === '\r') {
+        flushEngBuf();
         html += ch;
       } else {
         const isCJK = /[\u4e00-\u9fff\u3400-\u4dbf]/.test(ch);
+        const isEng = /[a-zA-Z'-]/.test(ch);
         if (isCJK) {
+          flushEngBuf();
           const isCollected = collections[ch];
           html += `<span class="char${isCollected ? ' collected' : ''}" data-char="${ch}" data-raw-idx="${rawIdx - 1}" onclick="openCharModal(this)">${ch}`;
           if (isCollected) {
@@ -2042,11 +2179,16 @@ function renderText(text) {
             html += `<span class="char-tooltip">${escapeHtml(tip)}</span>`;
           }
           html += '</span>';
+        } else if (isEng && queryEngine === 'en') {
+          if (!engBuf) engStartIdx = rawIdx - 1;
+          engBuf += ch;
         } else {
+          flushEngBuf();
           html += escapeHtml(ch);
         }
       }
     }
+    flushEngBuf();
 
     // Add word count (superscript, small font)
     const wordCount = countWordsWithoutPunctuation(para);
@@ -2121,17 +2263,32 @@ function highlightCollectedWords() {
   const chars = document.querySelectorAll('#readerContent .char');
   if (chars.length === 0) return;
 
-  // Build a mapping of char index -> DOM element
   const charList = Array.from(chars);
   const text = charList.map(span => span.dataset.char).join('');
 
   for (const word of wordKeys) {
     let idx = 0;
     while ((idx = text.indexOf(word, idx)) !== -1) {
-      for (let i = 0; i < word.length; i++) {
-        charList[idx + i].classList.add('collected');
+      // For English word span (one span = whole word), match directly
+      if (charList[idx] && charList[idx].dataset.char === word) {
+        charList[idx].classList.add('collected');
+      } else {
+        // For Chinese multi-char word: highlight each individual char span,
+        // but only if the word fits within consecutive single-char spans
+        let valid = true;
+        for (let i = 0; i < word.length; i++) {
+          if (!charList[idx + i] || charList[idx + i].dataset.char.length > 1) {
+            valid = false;
+            break;
+          }
+        }
+        if (valid) {
+          for (let i = 0; i < word.length; i++) {
+            charList[idx + i].classList.add('collected');
+          }
+        }
       }
-      idx += 1; // find next occurrence
+      idx += 1;
     }
   }
 }
@@ -2201,6 +2358,9 @@ function openCharModal(el) {
   const restoredNote = collections[ch] ? (collections[ch].note || '') : (removedNotes[ch] || '');
   document.getElementById('modalNotes').value = restoredNote;
 
+  // Update labels based on query engine
+  document.getElementById('modalPinyinLabel').textContent = queryEngine === 'en' ? '音标 (Phonetic)' : '汉语拼音';
+
   // Star state
   const starBtn = document.getElementById('modalStar');
   starBtn.textContent = collections[ch] ? '★' : '☆';
@@ -2221,13 +2381,21 @@ function openCharModal(el) {
   document.getElementById('modalPinyin').textContent = '加载中...';
   document.getElementById('modalDefinition').textContent = '加载中...';
 
-  // Load stroke animation
-  loadStrokeAnimation(ch);
+  // Load stroke animation (only for Chinese mode)
+  if (queryEngine === 'zh') {
+    loadStrokeAnimation(ch);
+  } else {
+    document.getElementById('strokeImg').parentElement.parentElement.style.display = 'none';
+  }
 
   document.getElementById('modalOverlay').classList.add('show');
 
-  // Fetch data from dictionary API
-  fetchCharInfo(ch);
+  // Fetch data based on query engine
+  if (queryEngine === 'en') {
+    fetchEnglishWordInfo(ch);
+  } else {
+    fetchCharInfo(ch);
+  }
 
   // Auto-read after 1s
   setTimeout(() => {
@@ -2247,7 +2415,19 @@ function handleTextSelection(e) {
   if (!selection || selection.isCollapsed || selection.rangeCount === 0) return;
 
   const selectedText = selection.toString().trim();
-  // Filter only CJK chars
+
+  if (queryEngine === 'en') {
+    // English mode: detect English words
+    const engWords = selectedText.match(/[a-zA-Z'-]+/g);
+    if (!engWords || engWords.length === 0) return;
+    const word = engWords.join(' ').trim();
+    if (word.length < 2) return;
+    clearWordSelection();
+    openWordModal(word);
+    return;
+  }
+
+  // Chinese mode: Filter only CJK chars
   const cjkText = selectedText.replace(/[^\u4e00-\u9fff\u3400-\u4dbf]/g, '');
   if (cjkText.length < 2) return;
 
@@ -2324,8 +2504,12 @@ function openWordModal(word) {
 
   document.getElementById('modalOverlay').classList.add('show');
 
-  // Fetch word info
-  fetchWordInfo(word);
+  // Fetch word info based on query engine
+  if (queryEngine === 'en') {
+    fetchEnglishWordInfo(word);
+  } else {
+    fetchWordInfo(word);
+  }
 
   // Auto-read after 1s
   setTimeout(() => {
@@ -2434,8 +2618,13 @@ function speakSingleChar(ch) {
   if (!ch || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(ch);
-  const lang = document.getElementById('speechLangSelect').value;
-  utt.lang = lang;
+  // In English mode, force English language
+  if (queryEngine === 'en') {
+    utt.lang = 'en-US';
+  } else {
+    const lang = document.getElementById('speechLangSelect').value;
+    utt.lang = lang;
+  }
   utt.rate = parseFloat(document.getElementById('speechRateRange').value);
   utt.pitch = 1;
   const voiceName = document.getElementById('speechVoiceSelect').value;
@@ -2463,6 +2652,12 @@ function updateSpeechPause(val) {
 
 function onSpeechLangChange() {
   populateVoices();
+}
+
+function onQueryEngineChange() {
+  queryEngine = document.getElementById('queryEngineSelect').value;
+  if (rawText) renderText(rawText);
+  saveArticleLangSettings();
 }
 
 function populateVoices() {
@@ -2805,6 +3000,195 @@ function autoCollectChar(char, pinyin) {
 // ============================================================
 //  DICTIONARY API
 // ============================================================
+
+// --- ECDICT Local Dictionary ---
+async function loadEcdict() {
+  if (ecdictLoaded) return;
+  try {
+    const db = await openDB();
+    const tx = db.transaction('ecdict_cache', 'readonly');
+    const store = tx.objectStore('ecdict_cache');
+    const req = store.get('data');
+    return new Promise((resolve) => {
+      req.onsuccess = () => {
+        if (req.result && req.result.data) {
+          ecdictData = req.result.data;
+          ecdictLoaded = true;
+          console.log('ECDICT loaded from IndexedDB cache');
+          resolve(true);
+        } else {
+          resolve(false);
+        }
+      };
+      req.onerror = () => resolve(false);
+    });
+  } catch(e) {
+    console.error('Load ECDICT from cache failed:', e);
+    return false;
+  }
+}
+
+function fetchAndCacheEcdict() {
+  return new Promise((resolve) => {
+    // Use script tag to bypass file:// CORS restriction
+    const script = document.createElement('script');
+    script.src = './ecdict.js';
+    script.onload = () => {
+      if (typeof ECDICT_DATA !== 'undefined') {
+        ecdictData = ECDICT_DATA;
+        ecdictLoaded = true;
+        // Cache to IndexedDB in background
+        try {
+          openDB().then(db => {
+            const tx = db.transaction('ecdict_cache', 'readwrite');
+            tx.objectStore('ecdict_cache').put({ id: 'data', data: ecdictData });
+          });
+        } catch(e) {
+          console.error('Cache ECDICT failed:', e);
+        }
+        console.log('ECDICT loaded from script and cached');
+        resolve(true);
+      } else {
+        resolve(false);
+      }
+    };
+    script.onerror = () => {
+      console.error('Failed to load ecdict.js');
+      resolve(false);
+    };
+    document.head.appendChild(script);
+  });
+}
+
+// Query a word from ECDICT. Returns { phonetic, translation, exchange, tag, bnc, frq } or null
+function queryEcdict(word) {
+  if (!ecdictData || !word) return null;
+  let entry = ecdictData[word.toLowerCase()];
+  if (!entry) return null;
+  // Handle @ redirect (e.g. "ages" -> "@age" -> lookup "age")
+  if (entry.startsWith('@')) {
+    const lemma = entry.substring(1);
+    entry = ecdictData[lemma] || null;
+    if (!entry) return null;
+  }
+  const parts = entry.split('|');
+  return {
+    phonetic: parts[0] || '',
+    translation: parts[1] || '',
+    exchange: parts[2] || '',
+    tag: parts[3] || '',
+    bnc: parts[4] || '',
+    frq: parts[5] || ''
+  };
+}
+
+// Ensure ECDICT is loaded (tries cache first, then fetches file)
+async function ensureEcdictLoaded() {
+  if (ecdictLoaded) return true;
+  const cached = await loadEcdict();
+  if (cached) return true;
+  return await fetchAndCacheEcdict();
+}
+
+// --- English Dictionary (ECDICT local + Online API fallback) ---
+async function fetchEnglishWordInfo(word) {
+  let phonetic = '';
+  let translation = '';
+  let fromLocal = false;
+
+  // Priority 1: Query ECDICT local dictionary
+  await ensureEcdictLoaded();
+  const local = queryEcdict(word);
+  if (local) {
+    phonetic = local.phonetic || '';
+    translation = local.translation || '';
+    fromLocal = true;
+  }
+
+  // Priority 2: Online API fallback (if local not found)
+  if (!fromLocal) {
+    // Fetch Chinese translation from MyMemory API
+    try {
+      const trRes = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|zh-CN`);
+      if (trRes.ok) {
+        const trData = await trRes.json();
+        if (trData.responseStatus === 200 && trData.responseData) {
+          translation = trData.responseData.translatedText || '';
+        }
+      }
+    } catch (err) {
+      console.error('Translation fetch error:', err);
+    }
+
+    // Fetch phonetic from Free Dictionary API
+    try {
+      const res = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word.toLowerCase())}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data) && data.length > 0) {
+          const entry = data[0];
+          if (entry.phonetic) {
+            phonetic = entry.phonetic;
+          } else if (entry.phonetics && entry.phonetics.length > 0) {
+            const ph = entry.phonetics.find(p => p.text) || entry.phonetics[0];
+            phonetic = ph.text || '';
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Phonetic fetch error:', err);
+    }
+  }
+
+  // Display phonetic
+  if (currentChar === word) {
+    document.getElementById('modalPinyin').textContent = phonetic || '未知';
+  }
+
+  // Display definition + extra info if from ECDICT
+  if (currentChar === word) {
+    let defHtml = '';
+    if (translation) {
+      defHtml += escapeHtml(translation).replace(/\\n/g, '<br>');
+    }
+    if (fromLocal && local) {
+      // Show tag labels
+      if (local.tag) {
+        const tagLabels = local.tag.split(/\s+/).map(t => {
+          const names = { zk:'中考', gk:'高考', cet4:'四级', cet6:'六级', ky:'考研', toefl:'托福', gre:'GRE', ielts:'雅思' };
+          return names[t] || t;
+        });
+        defHtml += '<br><span style="color:#888;font-size:12px;">📚 ' + tagLabels.join(' | ') + '</span>';
+      }
+      // Show word frequency
+      if (local.bnc || local.frq) {
+        let freqParts = [];
+        if (local.bnc) freqParts.push('BNC:' + local.bnc);
+        if (local.frq) freqParts.push('FRQ:' + local.frq);
+        defHtml += '<br><span style="color:#888;font-size:12px;">📊 ' + freqParts.join(' | ') + '</span>';
+      }
+      // Show word forms
+      if (local.exchange) {
+        const formNames = { p:'过去式', d:'过去分词', i:'现在分词', '3':'三单', s:'复数', r:'比较级', t:'最高级', '0':'原形', '1':'变形' };
+        const forms = local.exchange.split('/').map(f => {
+          const parts = f.split(':');
+          const name = formNames[parts[0]] || parts[0];
+          return name + ':' + parts[1];
+        });
+        defHtml += '<br><span style="color:#888;font-size:12px;">🔄 ' + forms.join(' | ') + '</span>';
+      }
+    }
+    document.getElementById('modalDefinition').innerHTML = defHtml || '暂无释义';
+  }
+
+  // Auto-collect (respect user setting)
+  const autoCollect = document.getElementById('autoCollectCheckbox');
+  if (phonetic && autoCollect && autoCollect.checked) {
+    autoCollectChar(word, phonetic);
+  }
+}
+
+// --- Chinese Dictionary (existing logic) ---
 async function fetchCharInfo(char) {
   let pinyin = '';
 
@@ -3191,9 +3575,12 @@ async function saveSettings() {
       speechRate: document.getElementById('speechRateRange').value,
       speechMode: document.getElementById('speechModeSelect').value,
       speechPause: document.getElementById('speechPauseRange').value,
-      autoCollect: document.getElementById('autoCollectCheckbox').checked
+      autoCollect: document.getElementById('autoCollectCheckbox').checked,
+      queryEngine: document.getElementById('queryEngineSelect').value
     };
     await dbPut('settings', settings);
+    // Also save per-article language settings
+    if (currentArticleName) await saveArticleLangSettings();
   } catch(e) { console.error('Save settings failed:', e); }
 }
 
@@ -3229,6 +3616,10 @@ async function loadSettings() {
       }
       if (data.autoCollect !== undefined) {
         document.getElementById('autoCollectCheckbox').checked = data.autoCollect;
+      }
+      if (data.queryEngine) {
+        document.getElementById('queryEngineSelect').value = data.queryEngine;
+        queryEngine = data.queryEngine;
       }
     }
   } catch(e) { console.error('Load settings failed:', e); }
