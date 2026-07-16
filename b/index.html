@@ -418,13 +418,16 @@
     color: #333;
     padding: 6px 14px;
     border-radius: 8px;
-    font-size: 18px;
+    font-size: 15px;
     white-space: nowrap;
     z-index: 100;
     pointer-events: none;
     box-shadow: 0 2px 10px rgba(0,0,0,.18);
-    line-height: 1.5;
+    line-height: 1.4;
     border: 1px solid #e0e0e0;
+    max-width: 500px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .char-tooltip::after {
     content: '';
@@ -723,6 +726,12 @@
   }
   .collection-item .col-info { flex: 1; }
   .collection-item .col-pinyin { font-size: 16px; color: #666; }
+  .collection-item .col-translation {
+    font-size: 14px;
+    color: #555;
+    margin-top: 4px;
+    word-break: break-all;
+  }
   .collection-item .col-note {
     font-size: 13px;
     color: #999;
@@ -1033,8 +1042,8 @@
   </div>
   <div class="header-actions">
     <button class="btn btn-secondary" id="headerEditBtn" onclick="toggleEditMode()" style="font-size:16px;padding:6px 10px;display:none;" title="编辑">✏</button>
-    <button class="btn btn-secondary" onclick="openCollections()" style="font-size:16px;padding:6px 10px;position:relative;" title="收藏夹">⭐<span id="colCount" style="position:absolute;top:-4px;right:-6px;background:#FF7043;color:#fff;font-size:10px;padding:0 4px;border-radius:8px;line-height:1.3;min-width:16px;text-align:center;">0</span></button>
-    <button class="btn btn-secondary" onclick="openSettings()" style="font-size:16px;padding:6px 10px;" title="设置">⚙</button>
+    <button class="btn btn-secondary" onclick="toggleCollections()" style="font-size:16px;padding:6px 10px;position:relative;" title="收藏夹">⭐<span id="colCount" style="position:absolute;top:-4px;right:-6px;background:#FF7043;color:#fff;font-size:10px;padding:0 4px;border-radius:8px;line-height:1.3;min-width:16px;text-align:center;">0</span></button>
+    <button class="btn btn-secondary" onclick="toggleSettings()" style="font-size:16px;padding:6px 10px;" title="设置">⚙</button>
   </div>
 </div>
 
@@ -1789,6 +1798,9 @@ function goHome() {
   if (isReadAloud) stopReadAloud();
   if (isEditMode) exitEditMode();
   saveScrollPos();
+  closeModal();
+  closeCollections();
+  closeSettings();
   document.getElementById('uploadArea').style.display = '';
   document.getElementById('pasteArea').style.display = '';
   document.getElementById('userSwitcher').style.display = '';
@@ -2009,8 +2021,18 @@ async function switchUser(user) {
 }
 
 function openSettings() {
+  closeCollections();
   document.getElementById('settingsOverlay').classList.add('show');
   document.getElementById('settingsPanel').classList.add('show');
+}
+
+function toggleSettings() {
+  const isOpen = document.getElementById('settingsPanel').classList.contains('show');
+  if (isOpen) {
+    closeSettings();
+  } else {
+    openSettings();
+  }
 }
 
 function closeSettings() {
@@ -2148,9 +2170,12 @@ function renderText(text) {
           html += `<span class="char${isCollected ? ' collected' : ''}" data-char="${ew}" data-raw-idx="${engStartIdx}" onclick="openCharModal(this)" style="cursor:pointer;">${escapeHtml(engBuf)}`;
           if (isCollected) {
             const pinyin = collections[ew].pinyin || '';
+            const translation = collections[ew].translation || '';
             const note = collections[ew].note || '';
+            const firstMeaning = getFirstChineseWord(translation);
             let tip = pinyin;
-            if (note) tip += ' | ' + note;
+            if (firstMeaning) tip += (tip ? ' | ' : '') + firstMeaning;
+            if (note) tip += (tip ? ' | ' : '') + note;
             html += `<span class="char-tooltip">${escapeHtml(tip)}</span>`;
           }
           html += '</span>';
@@ -2308,6 +2333,16 @@ function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// Extract the first Chinese word/phrase from a definition string (e.g. "vt. 采用；收养" -> "采用")
+function getFirstChineseWord(text) {
+  if (!text) return '';
+  // Remove leading English POS tags like "vt.", "n.", "adj." etc.
+  text = text.replace(/^[a-zA-Z]+\.\s*/, '');
+  // Match the first continuous Chinese character sequence
+  const match = text.match(/[\u4e00-\u9fff]+/);
+  return match ? match[0] : '';
+}
+
 // ============================================================
 //  CHARACTER MODAL
 // ============================================================
@@ -2369,17 +2404,13 @@ function openCharModal(el) {
   // Auto-collect immediately if enabled (pinyin will be filled in later by fetchCharInfo)
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (autoCollect && autoCollect.checked && !collections[ch]) {
-    collections[ch] = { pinyin: '', note: removedNotes[ch] || '', mastery: 5, order: Date.now() };
+    collections[ch] = { pinyin: '', translation: '', note: removedNotes[ch] || '', mastery: 5, order: Date.now() };
     persistCollections();
     renderCollections();
     starBtn.textContent = '★';
     starBtn.className = 'star-btn active';
     if (rawText) renderText(rawText);
   }
-
-  // Show loading
-  document.getElementById('modalPinyin').textContent = '加载中...';
-  document.getElementById('modalDefinition').textContent = '加载中...';
 
   // Load stroke animation (only for Chinese mode)
   if (queryEngine === 'zh') {
@@ -2390,11 +2421,20 @@ function openCharModal(el) {
 
   document.getElementById('modalOverlay').classList.add('show');
 
-  // Fetch data based on query engine
-  if (queryEngine === 'en') {
+  // If already in collections (English mode), load pinyin directly, but always fetch definition for formatting
+  if (queryEngine === 'en' && collections[ch]) {
+    document.getElementById('modalPinyin').textContent = collections[ch].pinyin || '未知';
+    document.getElementById('modalDefinition').textContent = '加载中...';
     fetchEnglishWordInfo(ch);
   } else {
-    fetchCharInfo(ch);
+    // Show loading and fetch
+    document.getElementById('modalPinyin').textContent = '加载中...';
+    document.getElementById('modalDefinition').textContent = '加载中...';
+    if (queryEngine === 'en') {
+      fetchEnglishWordInfo(ch);
+    } else {
+      fetchCharInfo(ch);
+    }
   }
 
   // Auto-read after 1s
@@ -2487,7 +2527,7 @@ function openWordModal(word) {
   // Auto-collect immediately if enabled (pinyin will be filled in later by fetchWordInfo)
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (autoCollect && autoCollect.checked && !collections[word]) {
-    collections[word] = { pinyin: '', note: removedNotes[word] || '', mastery: 5, order: Date.now() };
+    collections[word] = { pinyin: '', translation: '', note: removedNotes[word] || '', mastery: 5, order: Date.now() };
     persistCollections();
     renderCollections();
     starBtn.textContent = '★';
@@ -2495,20 +2535,25 @@ function openWordModal(word) {
     if (rawText) renderText(rawText);
   }
 
-  // Show loading
-  document.getElementById('modalPinyin').textContent = '加载中...';
-  document.getElementById('modalDefinition').textContent = '加载中...';
-
   // Hide stroke animation section for multi-char words
   document.getElementById('strokeImg').parentElement.parentElement.style.display = 'none';
 
   document.getElementById('modalOverlay').classList.add('show');
 
-  // Fetch word info based on query engine
-  if (queryEngine === 'en') {
+  // If already in collections (English mode), load pinyin directly, but always fetch definition for formatting
+  if (queryEngine === 'en' && collections[word]) {
+    document.getElementById('modalPinyin').textContent = collections[word].pinyin || '未知';
+    document.getElementById('modalDefinition').textContent = '加载中...';
     fetchEnglishWordInfo(word);
   } else {
-    fetchWordInfo(word);
+    // Show loading and fetch
+    document.getElementById('modalPinyin').textContent = '加载中...';
+    document.getElementById('modalDefinition').textContent = '加载中...';
+    if (queryEngine === 'en') {
+      fetchEnglishWordInfo(word);
+    } else {
+      fetchWordInfo(word);
+    }
   }
 
   // Auto-read after 1s
@@ -2972,15 +3017,16 @@ function saveCurrentNote() {
 // ============================================================
 //  AUTO COLLECT
 // ============================================================
-function autoCollectChar(char, pinyin) {
+function autoCollectChar(char, pinyin, translation) {
   const wasNew = !collections[char];
   // Use existing note, or fall back to saved removed note
   const oldNote = collections[char] ? collections[char].note : (removedNotes[char] || '');
   const oldMastery = collections[char] ? collections[char].mastery : 5;
   const oldOrder = collections[char] ? collections[char].order : Date.now();
+  const oldTranslation = collections[char] ? (collections[char].translation || '') : '';
   // Delete first then re-add to move to end of object (renderCollections shows newest first)
   if (collections[char]) delete collections[char];
-  collections[char] = { pinyin: pinyin, note: oldNote, mastery: oldMastery, order: Date.now() };
+  collections[char] = { pinyin: pinyin, translation: translation || oldTranslation, note: oldNote, mastery: oldMastery, order: Date.now() };
   // Clear saved note since it's been restored
   if (removedNotes[char]) {
     delete removedNotes[char];
@@ -3189,10 +3235,13 @@ async function fetchEnglishWordInfo(word) {
 
   // Auto-collect (respect user setting)
   const autoCollect = document.getElementById('autoCollectCheckbox');
+  // Clean translation for single-line display
+  const cleanTranslation = translation.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim();
   if (phonetic && autoCollect && autoCollect.checked) {
-    autoCollectChar(word, phonetic);
-  } else if (collections[word] && phonetic) {
-    collections[word].pinyin = phonetic;
+    autoCollectChar(word, phonetic, cleanTranslation);
+  } else if (collections[word]) {
+    if (phonetic) collections[word].pinyin = phonetic;
+    if (cleanTranslation) collections[word].translation = cleanTranslation;
     persistCollections();
     updateCharTooltip(word);
   }
@@ -3366,9 +3415,12 @@ function updateCharTooltip(ch) {
       el.appendChild(tip);
     }
     const pinyin = coll.pinyin || '';
+    const translation = coll.translation || '';
     const note = coll.note || '';
+    const firstMeaning = getFirstChineseWord(translation);
     let text = pinyin;
-    if (note) text += ' | ' + note;
+    if (firstMeaning) text += (text ? ' | ' : '') + firstMeaning;
+    if (note) text += (text ? ' | ' : '') + note;
     tip.textContent = text;
   });
 }
@@ -3395,8 +3447,18 @@ function toggleCollect() {
   } else {
     // Add — use saved note if available, move to end of object
     const savedNote = removedNotes[ch] || '';
+    // Get definition text (strip HTML tags for English, or plain text for Chinese)
+    const defEl = document.getElementById('modalDefinition');
+    let definition = '';
+    if (defEl) {
+      // For English: innerHTML may have <br> tags; convert to plain text with spaces
+      definition = defEl.innerText || defEl.textContent || '';
+      // Remove newlines and extra spaces for single-line display
+      definition = definition.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim();
+    }
     collections[ch] = {
       pinyin: document.getElementById('modalPinyin').textContent,
+      translation: definition,
       note: document.getElementById('modalNotes').value || savedNote,
       mastery: 5,
       order: Date.now()
@@ -3436,9 +3498,19 @@ function deleteCollection(ch) {
 }
 
 function openCollections() {
+  closeSettings();
   document.getElementById('collectionsOverlay').classList.add('show');
   document.getElementById('collectionsPanel').classList.add('show');
   renderCollections();
+}
+
+function toggleCollections() {
+  const isOpen = document.getElementById('collectionsPanel').classList.contains('show');
+  if (isOpen) {
+    closeCollections();
+  } else {
+    openCollections();
+  }
 }
 
 function closeCollections() {
@@ -3485,6 +3557,7 @@ function renderCollections() {
       const item = collections[ch];
       return ch.toLowerCase().includes(q) ||
              (item.pinyin || '').toLowerCase().includes(q) ||
+             (item.translation || '').toLowerCase().includes(q) ||
              (item.note || '').toLowerCase().includes(q);
     });
   }
@@ -3511,6 +3584,7 @@ function renderCollections() {
       <div class="col-info">
         <div class="col-detail" style="display:none;">
           <div class="col-pinyin">${escapeHtml(item.pinyin || '')}</div>
+          ${item.translation ? `<div class="col-translation">${escapeHtml(item.translation)}</div>` : ''}
           ${item.note ? `<div class="col-note">${escapeHtml(item.note)}</div>` : ''}
         </div>
       </div>
@@ -3714,7 +3788,7 @@ async function loadCollections() {
     // Sort by order (add timestamp) so Object.keys preserves insertion order
     items.sort((a, b) => (a.order || 0) - (b.order || 0));
     items.forEach(item => {
-      collections[item.char] = { pinyin: item.pinyin || '', note: item.note || '', mastery: item.mastery || 5, order: item.order || 0 };
+      collections[item.char] = { pinyin: item.pinyin || '', translation: item.translation || '', note: item.note || '', mastery: item.mastery || 5, order: item.order || 0 };
     });
   } catch(e) {
     console.error('Load collections failed:', e);
@@ -3809,7 +3883,7 @@ async function importAllData(file) {
       // Import collections
       if (data.collections && Array.isArray(data.collections)) {
         for (const item of data.collections) {
-          collections[item.char] = { pinyin: item.pinyin || '', note: item.note || '' };
+          collections[item.char] = { pinyin: item.pinyin || '', translation: item.translation || '', note: item.note || '', mastery: item.mastery || 5, order: item.order || Date.now() };
           await dbPut('collections', item);
           collectionCount++;
         }
