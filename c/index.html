@@ -33,6 +33,7 @@
             margin-bottom: 40px;
             background: linear-gradient(135deg, #00ff88, #00ccff);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: 6px;
         }
@@ -103,22 +104,101 @@
         }
 
         /* ===== 游戏页 ===== */
+        /* 桌面版：A左 B中 C右，三栏 flex，高度 100vh */
         .game-page {
-            text-align: center;
             position: relative;
             animation: fadeIn 0.3s ease;
+            display: flex;
+            align-items: stretch;
+            height: 100vh;
+            padding: 8px 12px;
+            gap: 12px;
+            overflow: hidden;
         }
 
-        .game-page.hidden {
-            display: none;
+        .game-page.hidden { display: none; }
+
+        /* A: 左侧信息栏 */
+        .game-sidebar-left {
+            width: 260px;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 12px;
+            overflow: hidden;
+        }
+
+        .game-sidebar-left .game-header {
+            justify-content: flex-start;
+            gap: 8px;
+            margin-bottom: 0;
+        }
+
+        .game-sidebar-left .game-header h1 {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+        }
+
+        .game-sidebar-left .score-bar {
+            justify-content: flex-start;
+            margin-bottom: 0;
+            gap: 16px;
+            font-size: 1rem;
+        }
+
+        .game-sidebar-left .controls {
+            margin-top: 0;
+            justify-content: flex-start;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+        }
+
+        .game-sidebar-left .controls button {
+            width: 100%;
+            text-align: left;
+            padding: 8px 14px;
+            font-size: 0.9rem;
+        }
+
+        .game-sidebar-left .hint {
+            margin-top: 0;
+            font-size: 0.78rem;
+        }
+
+        /* B: 中间游戏区 */
+        .game-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 0;
+            min-height: 0;
+            overflow: hidden;
+            padding: 0;
+        }
+
+        /* 桌面版 wrapper：高度优先撑满，正方形 */
+        .game-center > div {
+            position: relative;
+            height: calc(100vh - 16px);
+            aspect-ratio: 1;
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        /* C: 右侧方向键 */
+        .game-sidebar-right {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
         }
 
         .game-header {
             display: flex;
-            justify-content: center;
             align-items: center;
             gap: 16px;
-            margin-bottom: 8px;
         }
 
         .back-btn {
@@ -142,6 +222,7 @@
             font-size: 2.2rem;
             background: linear-gradient(135deg, #00ff88, #00ccff);
             -webkit-background-clip: text;
+            background-clip: text;
             -webkit-text-fill-color: transparent;
             text-shadow: none;
             letter-spacing: 4px;
@@ -150,7 +231,6 @@
         .current-user {
             font-size: 0.95rem;
             color: #888;
-            margin-bottom: 10px;
         }
 
         .current-user strong {
@@ -159,9 +239,7 @@
 
         .score-bar {
             display: flex;
-            justify-content: center;
             gap: 40px;
-            margin-bottom: 12px;
             font-size: 1.1rem;
         }
 
@@ -177,20 +255,17 @@
         }
 
         canvas {
-            border: 2px solid #1a3a4a;
+            border: 2px solid #00ccff;
             border-radius: 8px;
             background: #0d1117;
             box-shadow: 0 0 40px rgba(0, 255, 136, 0.08), inset 0 0 60px rgba(0, 0, 0, 0.5);
             display: block;
-            margin: 0 auto;
-            max-width: min(480px, 95vw);
-            height: auto;
+            width: 100%;
+            height: 100%;
         }
 
         .controls {
-            margin-top: 16px;
             display: flex;
-            justify-content: center;
             gap: 12px;
             flex-wrap: wrap;
         }
@@ -225,7 +300,6 @@
         }
 
         .hint {
-            margin-top: 12px;
             font-size: 0.85rem;
             color: #555;
         }
@@ -239,36 +313,27 @@
             color: #aaa;
         }
 
-        /* Game area: canvas + direction buttons side by side on desktop */
-        .game-area {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 28px;
-        }
-
         /* Touch controls */
         .touch-controls {
             user-select: none;
-            flex-shrink: 0;
         }
 
         .touch-grid {
             display: grid;
-            grid-template-columns: repeat(3, 96px);
-            grid-template-rows: repeat(3, 96px);
-            gap: 8px;
+            grid-template-columns: repeat(3, 72px);
+            grid-template-rows: repeat(3, 72px);
+            gap: 6px;
             justify-content: center;
         }
 
         .touch-btn {
-            width: 96px;
-            height: 96px;
-            border-radius: 14px;
+            width: 72px;
+            height: 72px;
+            border-radius: 12px;
             background: #1a2a3a;
             border: 1px solid #2a4a5a;
             color: #00ff88;
-            font-size: 2rem;
+            font-size: 1.6rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -293,27 +358,79 @@
             visibility: hidden;
         }
 
+        /* ===== 手机版：A上 B中 C下，三栏垂直 ===== */
         @media (max-width: 700px) {
-            .game-area {
+            .game-page {
                 flex-direction: column;
-                gap: 16px;
-            }
-            .touch-grid {
-                grid-template-columns: repeat(3, 84px);
-                grid-template-rows: repeat(3, 84px);
+                padding: 8px;
                 gap: 8px;
             }
+            /* A: 顶部信息栏 */
+            .game-sidebar-left {
+                width: 100%;
+                flex-shrink: 0;
+                text-align: center;
+                align-items: center;
+            }
+            .game-sidebar-left .game-header {
+                justify-content: center;
+            }
+            .game-sidebar-left .game-header h1 {
+                font-size: 1.4rem;
+            }
+            .game-sidebar-left .score-bar {
+                justify-content: center;
+                gap: 24px;
+                font-size: 1rem;
+            }
+            .game-sidebar-left .current-user {
+                font-size: 0.85rem;
+            }
+            .game-sidebar-left .controls {
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+            }
+            .game-sidebar-left .controls button {
+                width: auto;
+                text-align: center;
+                padding: 6px 16px;
+                font-size: 0.85rem;
+            }
+            .game-sidebar-left .hint {
+                display: none;
+            }
+            /* B: 中间游戏区 — 占满剩余空间 */
+            .game-center {
+                flex: 1;
+                min-height: 0;
+                width: 100%;
+            }
+            /* 手机版 wrapper：宽度优先撑满，正方形 */
+            .game-center > div {
+                width: 100%;
+                aspect-ratio: 1;
+                max-height: 100%;
+            }
+            /* C: 底部方向键 */
+            .game-sidebar-right {
+                justify-content: center;
+                flex-shrink: 0;
+            }
+            .touch-grid {
+                grid-template-columns: repeat(3, 52px);
+                grid-template-rows: repeat(3, 52px);
+                gap: 4px;
+            }
             .touch-btn {
-                width: 84px;
-                height: 84px;
-                font-size: 1.9rem;
+                width: 52px;
+                height: 52px;
+                font-size: 1.2rem;
+                border-radius: 8px;
             }
             h1 { font-size: 1.5rem; }
-            .hint { display: none; }
             .user-cards { gap: 16px; }
             .user-card { width: 160px; padding: 24px 16px; }
-            .game-page { padding: 8px; }
-            .score-bar { gap: 24px; font-size: 1rem; }
         }
 
         /* Overlay */
@@ -333,7 +450,7 @@
         .overlay.hidden { display: none; }
 
         .overlay h2 {
-            font-size: 2rem;
+            font-size: clamp(1.2rem, 6vmin, 3rem);
             color: #00ff88;
             margin-bottom: 10px;
         }
@@ -341,7 +458,12 @@
         .overlay p {
             color: #aaa;
             margin-bottom: 20px;
-            font-size: 1.1rem;
+            font-size: clamp(0.85rem, 3vmin, 1.5rem);
+        }
+
+        .overlay button {
+            font-size: clamp(0.85rem, 3vmin, 1.2rem);
+            padding: clamp(6px, 2vmin, 14px) clamp(16px, 5vmin, 36px);
         }
     </style>
 </head>
@@ -367,17 +489,29 @@
 
     <!-- 游戏页 -->
     <div class="game-page hidden" id="gamePage">
-        <div class="game-header">
-            <button class="back-btn" onclick="backToHome()">← 返回首页</button>
-            <h1>🐍 贪吃蛇</h1>
+        <!-- 左侧信息栏 -->
+        <div class="game-sidebar-left">
+            <div class="game-header">
+                <button class="back-btn" onclick="backToHome()">← 返回首页</button>
+                <h1>🐍 贪吃蛇</h1>
+            </div>
+            <div class="current-user" id="currentUserDisplay">当前玩家：<strong>用户一</strong></div>
+            <div class="score-bar">
+                <div><span>得分</span><span class="value" id="score">0</span></div>
+                <div><span>最高分</span><span class="value" id="best">0</span></div>
+            </div>
+            <div class="controls">
+                <button id="btnSound" onclick="toggleSound()" class="active">🔊 音效开</button>
+                <button id="btnSpeed" onclick="cycleSpeed()">速度: 正常</button>
+            </div>
+            <p class="hint">
+                <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动<br>
+                <kbd>空格</kbd> 暂停 &nbsp; <kbd>Enter</kbd> 开始
+            </p>
         </div>
-        <div class="current-user" id="currentUserDisplay">当前玩家：<strong>用户一</strong></div>
-        <div class="score-bar">
-            <div><span>得分</span><span class="value" id="score">0</span></div>
-            <div><span>最高分</span><span class="value" id="best">0</span></div>
-        </div>
-        <div class="game-area">
-            <div style="position:relative; display:inline-block;">
+        <!-- 中间画布 - 最大化居中 -->
+        <div class="game-center">
+            <div>
                 <canvas id="gameCanvas" width="480" height="480"></canvas>
                 <div class="overlay" id="overlay">
                     <h2 id="overlayTitle">贪吃蛇</h2>
@@ -385,13 +519,16 @@
                     <button onclick="startGame()" class="active">开始游戏</button>
                 </div>
             </div>
+        </div>
+        <!-- 右侧方向按钮 -->
+        <div class="game-sidebar-right">
             <div class="touch-controls">
                 <div class="touch-grid">
                     <div class="touch-placeholder"></div>
                     <div class="touch-btn" ontouchstart="setDir(0,-1)" onclick="setDir(0,-1)">▲</div>
                     <div class="touch-placeholder"></div>
                     <div class="touch-btn" ontouchstart="setDir(-1,0)" onclick="setDir(-1,0)">◀</div>
-                    <div class="touch-btn" ontouchstart="togglePause()" onclick="togglePause()">⏸</div>
+                    <div class="touch-btn" id="btnPause" ontouchstart="togglePause()" onclick="togglePause()">⏸</div>
                     <div class="touch-btn" ontouchstart="setDir(1,0)" onclick="setDir(1,0)">▶</div>
                     <div class="touch-placeholder"></div>
                     <div class="touch-btn" ontouchstart="setDir(0,1)" onclick="setDir(0,1)">▼</div>
@@ -399,15 +536,6 @@
                 </div>
             </div>
         </div>
-        <div class="controls">
-            <button id="btnSound" onclick="toggleSound()" class="active">🔊 音效开</button>
-            <button id="btnSpeed" onclick="cycleSpeed()">速度: 正常</button>
-        </div>
-        <p class="hint">
-            <kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd> 或 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> 移动 &nbsp;|&nbsp;
-            <kbd>空格</kbd> 暂停 &nbsp;|&nbsp;
-            <kbd>Enter</kbd> 开始/重新开始
-        </p>
     </div>
 
     <script>
@@ -667,8 +795,8 @@
         ctx.clearRect(0, 0, canvas.width, canvas.height);
 
         // 网格
-        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
-        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = 'rgba(0,200,255,0.5)';
+        ctx.lineWidth = 1;
         for (let i = 0; i <= COLS; i++) {
             ctx.beginPath();
             ctx.moveTo(i * CELL, 0);
@@ -795,17 +923,20 @@
     }
 
     function togglePause() {
+        const btn = document.getElementById('btnPause');
         if (state === 'playing') {
             state = 'paused';
             clearInterval(gameLoop);
             gameLoop = null;
             sfxPause();
             showOverlay('暂停', '按空格键继续');
+            btn.textContent = '▶';
         } else if (state === 'paused') {
             state = 'playing';
             hideOverlay();
             sfxStart();
             gameLoop = setInterval(tick, SPEEDS[speedIdx].interval);
+            btn.textContent = '⏸';
         }
     }
 
