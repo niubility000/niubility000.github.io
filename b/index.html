@@ -2476,12 +2476,13 @@ function escapeHtml(s) {
 
 // Extract the first Chinese word/phrase from a definition string (e.g. "vt. 采用；收养" -> "采用")
 function getFirstChineseWord(text) {
-  if (!text) return '';
-  // Remove leading English POS tags like "vt.", "n.", "adj." etc.
-  text = text.replace(/^[a-zA-Z]+\.\s*/, '');
-  // Match the first continuous Chinese character sequence
-  const match = text.match(/[\u4e00-\u9fff]+/);
-  return match ? match[0] : '';
+  return '';
+  // if (!text) return '';
+  // // Remove leading English POS tags like "vt.", "n.", "adj." etc.
+  // text1 = text.replace(/^[a-zA-Z]+\.\s*/, '');  
+  // // Match the first continuous Chinese character sequence
+  // const match = text1.match(/[\u4e00-\u9fff]+/);
+  // return match ? text.split(match[0])[0] + match[0] : '';
 }
 
 // ============================================================
