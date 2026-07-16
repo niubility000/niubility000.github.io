@@ -1044,7 +1044,7 @@
     <button class="user-btn active" id="user1Btn" onclick="switchUser('user1')" style="padding:8px 20px;border:none;border-radius:10px;font-size:15px;cursor:pointer;background:transparent;color:#666;transition:all .2s;">👶 用户一</button>
     <button class="user-btn" id="user2Btn" onclick="switchUser('user2')" style="padding:8px 20px;border:none;border-radius:10px;font-size:15px;cursor:pointer;background:transparent;color:#666;transition:all .2s;">👶 用户二</button>
   </div>
-  <div id="currentUserLabel" style="margin-top:8px;font-size:13px;color:#999;">当前：用户一 &nbsp;|&nbsp; 今日已读 <strong id="todayReadWords" style="color:#4A90D9;">0</strong> 字 &nbsp;|&nbsp; 共读 <strong id="totalReadWords" class="total-read-clickable" style="color:#66BB6A;" onclick="openHistoryModal()" title="点击查看历史阅读统计">0</strong> 字</div>
+  <div id="currentUserLabel" style="margin-top:8px;font-size:13px;color:#999;"><span id="currentUserName">当前：用户一</span> &nbsp;|&nbsp; 今日已读 <strong id="todayReadWords" style="color:#4A90D9;">0</strong> 字 &nbsp;|&nbsp; 共读 <strong id="totalReadWords" class="total-read-clickable" style="color:#66BB6A;" onclick="openHistoryModal()" title="点击查看历史阅读统计">0</strong> 字</div>
 </div>
 
 <!-- ===== UPLOAD AREA ===== -->
@@ -1987,7 +1987,7 @@ async function switchUser(user) {
   // Update UI
   document.getElementById('user1Btn').classList.toggle('active', user === 'user1');
   document.getElementById('user2Btn').classList.toggle('active', user === 'user2');
-  document.getElementById('currentUserLabel').textContent = '当前：' + (user === 'user1' ? '用户一' : '用户二');
+  document.getElementById('currentUserName').textContent = '当前：' + (user === 'user1' ? '用户一' : '用户二');
 
   // Go back to home and reload data for the new user
   document.getElementById('uploadArea').style.display = '';
@@ -2597,6 +2597,10 @@ async function fetchWordInfo(word) {
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (pinyin && autoCollect && autoCollect.checked) {
     autoCollectChar(word, pinyin);
+  } else if (collections[word] && pinyin) {
+    collections[word].pinyin = pinyin;
+    persistCollections();
+    updateCharTooltip(word);
   }
 }
 
@@ -2962,6 +2966,7 @@ function saveCurrentNote() {
     collections[currentChar].note = note;
   }
   persistCollections();
+  updateCharTooltip(currentChar);
 }
 
 // ============================================================
@@ -2989,6 +2994,7 @@ function autoCollectChar(char, pinyin) {
   persistCollections();
   renderCollections();
   if (wasNew && rawText) renderText(rawText);
+  updateCharTooltip(char);
   // Light up the star only if still viewing this char
   if (currentChar === char) {
     const starBtn = document.getElementById('modalStar');
@@ -3185,6 +3191,10 @@ async function fetchEnglishWordInfo(word) {
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (phonetic && autoCollect && autoCollect.checked) {
     autoCollectChar(word, phonetic);
+  } else if (collections[word] && phonetic) {
+    collections[word].pinyin = phonetic;
+    persistCollections();
+    updateCharTooltip(word);
   }
 }
 
@@ -3262,6 +3272,10 @@ async function fetchCharInfo(char) {
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (pinyin && autoCollect && autoCollect.checked) {
     autoCollectChar(char, pinyin);
+  } else if (collections[char] && pinyin) {
+    collections[char].pinyin = pinyin;
+    persistCollections();
+    updateCharTooltip(char);
   }
 }
 
@@ -3332,6 +3346,33 @@ function replayStrokeAnimation() {
   loadStrokeAnimation(currentChar);
 }
 
+// Update tooltip content for a character/word in the reader without full re-render
+function updateCharTooltip(ch) {
+  const chars = document.querySelectorAll('.reader-content .char');
+  chars.forEach(el => {
+    if (el.dataset.char !== ch) return;
+    const coll = collections[ch];
+    if (!coll) {
+      el.classList.remove('collected');
+      const tip = el.querySelector('.char-tooltip');
+      if (tip) tip.remove();
+      return;
+    }
+    el.classList.add('collected');
+    let tip = el.querySelector('.char-tooltip');
+    if (!tip) {
+      tip = document.createElement('span');
+      tip.className = 'char-tooltip';
+      el.appendChild(tip);
+    }
+    const pinyin = coll.pinyin || '';
+    const note = coll.note || '';
+    let text = pinyin;
+    if (note) text += ' | ' + note;
+    tip.textContent = text;
+  });
+}
+
 // ============================================================
 //  COLLECTIONS
 // ============================================================
@@ -3375,7 +3416,11 @@ function toggleCollect() {
 
   persistCollections();
   renderCollections();
-  renderText(rawText); // re-render to update highlights
+  if (collections[ch]) {
+    updateCharTooltip(ch);
+  } else {
+    renderText(rawText); // re-render to remove highlights
+  }
 }
 
 function deleteCollection(ch) {
