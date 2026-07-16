@@ -199,6 +199,47 @@
     margin-left: 4px;
     user-select: none;
   }
+  /* Alternate Zh-En mode: click word-count to toggle Chinese translation */
+  .zh-en-tooltip {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: #333;
+    color: #fff;
+    font-size: 14px;
+    line-height: 1.6;
+    padding: 8px 14px;
+    border-radius: 8px;
+    white-space: pre-wrap;
+    max-width: 90vw;
+    min-width: 120px;
+    z-index: 900;
+    box-shadow: 0 4px 16px rgba(0,0,0,.25);
+    word-break: break-all;
+    font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC", sans-serif;
+  }
+  .zh-en-tooltip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 20px;
+    border: 6px solid transparent;
+    border-top-color: #333;
+  }
+  .para-word-count.zh-en-toggle {
+    cursor: pointer;
+    color: var(--primary);
+    text-decoration: underline dotted;
+  }
+  .zh-en-para.active .zh-en-tooltip {
+    display: block;
+  }
+  .zh-en-para {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+  }
   .para-checkbox {
     display: inline-block;
     width: 16px;
@@ -1067,7 +1108,7 @@
 <!-- ===== PASTE AREA ===== -->
 <div class="paste-area" id="pasteArea">
   <h3>📋 或直接粘贴文本开始阅读</h3>
-  <textarea id="pasteTextarea" placeholder="在此粘贴文章内容..."></textarea>
+  <textarea id="pasteTextarea" placeholder="在此粘贴文章内容。支持中文文章、英文文章、中英对照文本(格式为一行英文，一行中文...，可用豆包ai生成)"></textarea>
   <button class="paste-btn" onclick="handlePasteText()">开始阅读</button>
 </div>
 
@@ -1623,6 +1664,7 @@ async function openArticle(name) {
     rawText = req.result.content;
     currentArticleName = name;
     await detectAndSetLanguage(rawText);
+    currentAlternateMode = detectAlternateZhEn(rawText);
     renderText(rawText);
     document.getElementById('uploadArea').style.display = 'none';
     document.getElementById('pasteArea').style.display = 'none';
@@ -2103,6 +2145,54 @@ function applyArticleLangSettings(settings) {
 //  TEXT RENDER
 // ============================================================
 // Auto-detect language (Chinese vs English) and switch query engine + TTS language
+// Detect if article text follows an alternating Chinese-English line pattern
+function detectAlternateZhEn(text) {
+  const lines = text.split(/\n/).filter(l => l.trim().length > 0);
+  if (lines.length < 2) return null;
+
+  // Classify each line: if >= 80% of non-whitespace, non-punctuation chars are English letters → English line, else Chinese
+  function isEnLine(line) {
+    let enCount = 0, total = 0;
+    for (const ch of line) {
+      if (/\s/.test(ch)) continue;
+      if (/[a-zA-Z]/.test(ch)) { enCount++; total++; }
+      else if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(ch)) { total++; }
+      // punctuation is ignored for ratio
+    }
+    if (total === 0) return false;
+    return enCount / total >= 0.8;
+  }
+
+  const types = lines.map(l => isEnLine(l) ? 'en' : 'zh');
+
+  // Check if it strictly alternates (en,zh,en,zh,... or zh,en,zh,en,...)
+  let matchCount = 0;
+  for (let i = 1; i < types.length; i++) {
+    if (types[i] !== types[i - 1]) matchCount++;
+  }
+  // For alternating pattern, matchCount should be lines.length - 1
+  if (matchCount < lines.length - 2) return null; // allow at most 1 break in alternation
+
+  // Determine first line type
+  const firstType = types[0];
+  // Build mapping: for each English line, find its paired Chinese line
+  const enToZh = {};
+  const zhToEn = {};
+  for (let i = 0; i < lines.length; i++) {
+    if (types[i] === 'en') {
+      // paired Chinese is next line if next is zh, else previous line
+      let pairedZh = null;
+      if (i + 1 < lines.length && types[i + 1] === 'zh') pairedZh = lines[i + 1];
+      else if (i - 1 >= 0 && types[i - 1] === 'zh') pairedZh = lines[i - 1];
+      enToZh[i] = pairedZh;
+    }
+  }
+
+  return { types, enToZh, firstType };
+}
+
+let currentAlternateMode = null; // null or { types, enToZh, firstType } from detectAlternateZhEn
+
 async function detectAndSetLanguage(text) {
   // First, try to restore per-article language settings
   if (currentArticleName) {
@@ -2138,9 +2228,21 @@ function renderText(text) {
   const container = document.getElementById('readerContent');
   // Split into paragraphs for speaker icons
   const paragraphs = text.split(/\n/);
+
+  // In alternate Zh-En mode, build a mapping of non-empty line indices
+  let altMode = null;
+  let nonEmptyIndices = []; // maps non-empty line index -> paragraph array index
+  if (currentAlternateMode) {
+    altMode = currentAlternateMode;
+    for (let i = 0; i < paragraphs.length; i++) {
+      if (paragraphs[i].trim().length > 0) nonEmptyIndices.push(i);
+    }
+  }
+
   let html = '';
   let rawIdx = 0; // track position in rawText
   let paraIndex = 0; // actual paragraph index (skipping empty lines)
+  let nonEmptyIdx = 0; // index into non-emptyIndices (for alternate mode)
 
   for (let p = 0; p < paragraphs.length; p++) {
     const para = paragraphs[p];
@@ -2152,8 +2254,29 @@ function renderText(text) {
       continue;
     }
 
+    // In alternate mode, skip Chinese lines
+    if (altMode) {
+      const neIdx = nonEmptyIdx; // position in the non-empty filtered list
+      nonEmptyIdx++;
+      if (altMode.types[neIdx] === 'zh') {
+        // Advance rawIdx same as normal: para.length for chars + 1 for \n
+        rawIdx += para.length + 1;
+        continue;
+      }
+    }
+
     const currentParaIdx = paraIndex;
     paraIndex++;
+
+    // In alternate mode, wrap with zh-en-para for tooltip
+    if (altMode) {
+      const neIdx = nonEmptyIdx - 1; // the non-empty index for this English line
+      const zhText = altMode.enToZh[neIdx] || '';
+      // We'll close the wrapper after word count and checkbox
+      html += `<span class="zh-en-para">`;
+      // Store the zh text to append later; use a data attribute approach
+      // Actually, let's build the content first, then close with tooltip
+    }
 
     // Add paragraph speaker icon
     const paraStartRawIdx = rawIdx;
@@ -2217,13 +2340,25 @@ function renderText(text) {
 
     // Add word count (superscript, small font)
     const wordCount = countWordsWithoutPunctuation(para);
-    html += `<span class="para-word-count">${wordCount}字</span>`;
+    if (altMode) {
+      const neIdx = nonEmptyIdx - 1;
+      const zhText = altMode.enToZh[neIdx] || '';
+      html += `<span class="para-word-count zh-en-toggle" onclick="toggleZhEnTranslation(this)">${wordCount}字</span>`;
+      html += `<span class="zh-en-tooltip">${escapeHtml(zhText)}</span>`;
+    } else {
+      html += `<span class="para-word-count">${wordCount}字</span>`;
+    }
 
     // Add checkbox with date as title
     const record = getParaReadRecord(currentArticleName, currentParaIdx);
     const isChecked = record ? 'checked disabled' : '';
     const dateTitle = record ? ` title="${record.date} 已读"` : '';
     html += `<input type="checkbox" class="para-checkbox" data-para-index="${currentParaIdx}" data-word-count="${wordCount}" ${isChecked}${dateTitle} onchange="onParaCheckboxChange(this)">`;
+
+    // Close zh-en-para wrapper
+    if (altMode) {
+      html += `</span>`;
+    }
 
     // Add line break after paragraph (unless last)
     if (p < paragraphs.length - 1) {
@@ -2235,6 +2370,12 @@ function renderText(text) {
 
   // Highlight collected multi-char words in the text
   highlightCollectedWords();
+}
+
+function toggleZhEnTranslation(el) {
+  const paraWrap = el.closest('.zh-en-para');
+  if (!paraWrap) return;
+  paraWrap.classList.toggle('active');
 }
 
 async function onParaCheckboxChange(checkbox) {
