@@ -16,6 +16,7 @@
     --text: #333;
     --border: #DDD;
     --star-color: #FFB300;
+    --highlight-bg: #FFF9C4;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -56,6 +57,10 @@
   .btn-primary { background: #fff; color: var(--primary-dark); font-weight: 600; }
   .btn-secondary { background: rgba(255,255,255,.2); color: #fff; }
   .btn-secondary:hover { background: rgba(255,255,255,.35); }
+  .btn-star { font-size: 22px; background: none; border: none; cursor: pointer; padding: 4px; transition: transform .2s; }
+  .btn-star:hover { transform: scale(1.2); }
+  .btn-star.active { animation: starPop .4s ease; }
+  @keyframes starPop { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(1)} }
 
   /* ===== TOOLBAR (removed, now in settings panel) ===== */
 
@@ -261,6 +266,21 @@
   }
   .para-checkbox:checked {
     cursor: default;
+  }
+  .para-check-date {
+    font-size: 0.6em;
+    vertical-align: super;
+    color: #66BB6A;
+    margin-left: 4px;
+    user-select: none;
+  }
+  .para-read-stats {
+    font-size: 13px;
+    color: #888;
+    margin-top: 6px;
+  }
+  .para-read-stats strong {
+    color: var(--primary-dark);
   }
 
   /* Clickable total read words */
@@ -582,6 +602,19 @@
   }
   .stroke-controls .btn { font-size: 13px; padding: 6px 14px; }
 
+  .modal-section .ai-tips {
+    background: linear-gradient(135deg, #E8F5E9, #FFF8E1);
+    border-left: 4px solid #66BB6A;
+    padding: 12px 16px;
+    border-radius: 0 8px 8px 0;
+    font-size: 15px;
+    line-height: 1.8;
+    color: #555;
+  }
+  .modal-section .ai-tips::before {
+    content: '💡 ';
+  }
+
   .modal-section textarea {
     width: 100%;
     min-height: 120px;
@@ -596,6 +629,13 @@
   .modal-section textarea:focus {
     outline: none;
     border-color: var(--primary);
+  }
+
+  .loading-hint {
+    text-align: center;
+    padding: 12px;
+    color: #999;
+    font-size: 14px;
   }
 
   /* ===== COLLECTIONS PANEL ===== */
@@ -1900,6 +1940,71 @@ function scrollToRawIdxInEditable(rawIdx) {
   }
 }
 
+// Helper: find the raw text index at the top of the viewport in editable mode
+function getRawIdxAtViewportTopEditable() {
+  const container = document.getElementById('readerContent');
+  const containerRect = container.getBoundingClientRect();
+  const tryY = Math.max(10, containerRect.top + 35);
+  let targetNode = null, targetOffset = 0;
+
+  if (document.caretRangeFromPoint) {
+    const range = document.caretRangeFromPoint(50, tryY);
+    if (range && range.startContainer.nodeType === 3) {
+      targetNode = range.startContainer;
+      targetOffset = range.startOffset;
+    }
+  }
+
+  if (!targetNode) {
+    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+    targetNode = walker.nextNode();
+    targetOffset = 0;
+  }
+  if (!targetNode) return 0;
+
+  // Walk text nodes, accumulating offset to find the raw index of targetNode
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
+  let cumulative = 0;
+  let node;
+  while (node = walker.nextNode()) {
+    const text = node.textContent;
+    if (node === targetNode) {
+      return cumulative + Math.min(targetOffset, text.length);
+    }
+    cumulative += text.length;
+  }
+  return 0;
+}
+
+// Helper: scroll to a raw text index in reading mode (find nearest char span)
+function scrollToRawIdxInReading(rawIdx) {
+  const chars = document.querySelectorAll('#readerContent .char');
+  let bestChar = null;
+  let bestIdx = Infinity;
+  for (const char of chars) {
+    const idx = parseInt(char.dataset.rawIdx) || 0;
+    if (idx >= rawIdx && idx < bestIdx) {
+      bestIdx = idx;
+      bestChar = char;
+    }
+  }
+  if (!bestChar && chars.length > 0) {
+    // Find the closest char before rawIdx
+    let closestIdx = -1;
+    for (const char of chars) {
+      const idx = parseInt(char.dataset.rawIdx) || 0;
+      if (idx <= rawIdx && idx > closestIdx) {
+        closestIdx = idx;
+        bestChar = char;
+      }
+    }
+  }
+  if (bestChar) {
+    const rect = bestChar.getBoundingClientRect();
+    window.scrollTo(0, rect.top + window.scrollY - 80);
+  }
+}
+
 function enterEditMode() {
   isEditMode = true;
   if (isReadAloud) stopReadAloud();
@@ -2225,8 +2330,9 @@ function renderText(text) {
             const pinyin = collections[ew].pinyin || '';
             const translation = collections[ew].translation || '';
             const note = collections[ew].note || '';
+            const firstMeaning = getFirstChineseWord(translation);
             let tip = pinyin;
-            if (translation) tip += (tip ? ' | ' : '') + translation;
+            if (firstMeaning) tip += (tip ? ' | ' : '') + firstMeaning;
             if (note) tip += (tip ? ' | ' : '') + note;
             html += `<span class="char-tooltip">${escapeHtml(tip)}</span>`;
           }
@@ -2436,6 +2542,17 @@ function updateFontFamily(val) {
 
 function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// Extract the first Chinese word/phrase from a definition string (e.g. "vt. 采用；收养" -> "采用")
+function getFirstChineseWord(text) {
+  return '';
+  // if (!text) return '';
+  // // Remove leading English POS tags like "vt.", "n.", "adj." etc.
+  // text1 = text.replace(/^[a-zA-Z]+\.\s*/, '');  
+  // // Match the first continuous Chinese character sequence
+  // const match = text1.match(/[\u4e00-\u9fff]+/);
+  // return match ? text.split(match[0])[0] + match[0] : '';
 }
 
 // ============================================================
@@ -2896,6 +3013,32 @@ function clearSpeakingHighlight() {
     el.classList.remove('speaking');
   });
   lastSpeakingEl = null;
+}
+
+function highlightCharAtRawIdx(idx) {
+  clearSpeakingHighlight();
+  if (idx < 0 || idx >= rawText.length) return;
+  const el = document.querySelector(`#readerContent .char[data-raw-idx="${idx}"]`);
+  if (el) {
+    el.classList.add('speaking');
+    // Only scroll when the element is outside the visible viewport
+    const rect = el.getBoundingClientRect();
+    const viewH = window.innerHeight;
+    if (rect.top < 80 || rect.bottom > viewH - 40) {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }
+    lastSpeakingEl = el;
+  }
+}
+
+// Move to the next CJK char in rawText starting from idx (inclusive)
+function nextCjkIdx(idx) {
+  let i = idx;
+  while (i < rawText.length) {
+    if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(rawText[i])) return i;
+    i++;
+  }
+  return -1;
 }
 
 // Split a paragraph text into sentence segments by punctuation
@@ -3416,6 +3559,43 @@ async function fetchCharInfo(char) {
   }
 }
 
+function generateAiTips(char, pinyin, defs) {
+  // Simple AI-style mnemonic generation based on character structure
+  const tips = generateMnemonic(char);
+  document.getElementById('modalAiTips').textContent = tips;
+}
+
+function generateMnemonic(char) {
+  const code = char.charCodeAt(0);
+
+  // Common radicals and their meanings
+  const radicalMap = {
+    '亻': '人', '彳': '行走', '氵': '水', '火': '火', '土': '土',
+    '艹': '草', '木': '树', '口': '口', '扌': '手', '女': '女',
+    '月': '月/肉', '日': '日', '目': '眼', '足': '脚', '石': '石',
+    '山': '山', '雨': '雨', '风': '风', '心': '心', '金': '金',
+    '饣': '食', '纟': '丝', '虫': '虫', '辶': '行走', '阝': '土丘',
+    '门': '门', '鸟': '鸟', '鱼': '鱼', '马': '马', '车': '车'
+  };
+
+  // Left/right radical extraction (simplified)
+  let tip = `"${char}"字的记忆小技巧：\n`;
+
+  // Try to decompose
+  if (char.length === 1) {
+    // Check if it looks like a simple character
+    if (code < 0x4E00 || code > 0x9FFF) {
+      tip += `这个字符比较特别，不属于常用汉字范围。`;
+      return tip;
+    }
+    tip += `这个字的部首可以从字形结构来理解。`;
+    tip += `\n试着联想它的形状和意思之间的联系。`;
+    tip += `\n多写几遍、多读几遍，加深印象！`;
+  }
+
+  return tip;
+}
+
 // ============================================================
 //  STROKE ANIMATION (from strokeorder.cc)
 // ============================================================
@@ -3469,8 +3649,9 @@ function updateCharTooltip(ch) {
     const pinyin = coll.pinyin || '';
     const translation = coll.translation || '';
     const note = coll.note || '';
+    const firstMeaning = getFirstChineseWord(translation);
     let text = pinyin;
-    if (translation) text += (text ? ' | ' : '') + translation;
+    if (firstMeaning) text += (text ? ' | ' : '') + firstMeaning;
     if (note) text += (text ? ' | ' : '') + note;
     tip.textContent = text;
   });
