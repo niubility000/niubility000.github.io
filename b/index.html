@@ -1309,7 +1309,7 @@
   <div class="collections-header">
     <h2><span id="colPanelToggle" onclick="toggleCollectionsFullscreen()" style="cursor:pointer;display:inline-block;transition:transform .2s;" title="展开/收起">◀</span> 收藏夹<span class="col-filter-wrap">
       <button class="col-filter-btn" onclick="toggleColFilter(event)">
-        <span class="filter-arrow" id="filterArrow">掌握程度 ▾</span>
+        <span class="filter-arrow" id="filterArrow">0 ▾</span>
       </button>
       <div class="col-filter-dropdown" id="colFilterDropdown"></div>
     </span></h2>
@@ -3882,8 +3882,11 @@ function renderCollections() {
     } else {
       body.innerHTML = `<div class="empty-hint">没有掌握度为 ${colMasteryFilter} 的字/词<br>点击下拉箭头切换筛选条件</div>`;
     }
+    document.getElementById('filterArrow').textContent = '0 ▾';
     return;
   }
+
+  document.getElementById('filterArrow').textContent = keys.length + ' ▾';
 
   // Use array join instead of string concatenation for better performance with large lists
   const parts = [];
@@ -3936,7 +3939,7 @@ function adjustMastery(ch, delta) {
 //  COLLECTIONS MASTERY FILTER
 // ============================================================
 const masteryColors = ['','#E53935','#F4511E','#FF9800','#FFC107','#CDDC39','#8BC34A','#4CAF50','#009688','#2196F3'];
-const masteryLabels = ['全部','1 ★','2 ★★','3 ★★★','4 ★★★★','5 ★★★★★','6 ★★★★★★','7 ★★★★★★★','8 ★★★★★★★★','9 ★★★★★★★★★'];
+const masteryLabels = ['掌握程度：全部','1 ★','2 ★★','3 ★★★','4 ★★★★','5 ★★★★★','6 ★★★★★★','7 ★★★★★★★','8 ★★★★★★★★','9 ★★★★★★★★★'];
 
 function toggleColFilter(e) {
   e.stopPropagation();
