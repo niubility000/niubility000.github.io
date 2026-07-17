@@ -16,7 +16,6 @@
     --text: #333;
     --border: #DDD;
     --star-color: #FFB300;
-    --highlight-bg: #FFF9C4;
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
@@ -57,10 +56,6 @@
   .btn-primary { background: #fff; color: var(--primary-dark); font-weight: 600; }
   .btn-secondary { background: rgba(255,255,255,.2); color: #fff; }
   .btn-secondary:hover { background: rgba(255,255,255,.35); }
-  .btn-star { font-size: 22px; background: none; border: none; cursor: pointer; padding: 4px; transition: transform .2s; }
-  .btn-star:hover { transform: scale(1.2); }
-  .btn-star.active { animation: starPop .4s ease; }
-  @keyframes starPop { 0%{transform:scale(1)} 50%{transform:scale(1.4)} 100%{transform:scale(1)} }
 
   /* ===== TOOLBAR (removed, now in settings panel) ===== */
 
@@ -136,7 +131,8 @@
     box-shadow: 0 2px 12px rgba(0,0,0,.06);
     line-height: 2;
     white-space: pre-wrap;
-    word-break: break-all;
+    word-break: normal;
+    overflow-wrap: break-word;
     text-align: justify;
     cursor: default;
   }
@@ -161,6 +157,17 @@
     font-weight: 900;
     color: #D84315;
     border-bottom: 2px solid #FFB300;
+  }
+  .reader-content .char.collected.collected-phrase {
+    font-weight: normal;
+    color: inherit;
+    border-bottom: none;
+    background: yellow;
+    border-radius: 3px;
+  }
+  .reader-content .char.collected.collected-phrase.collected-single {
+    font-weight: 900;
+    color: #D84315;
   }
   .reader-content .char.speaking {
     background: rgba(74,144,217,.18);
@@ -254,21 +261,6 @@
   }
   .para-checkbox:checked {
     cursor: default;
-  }
-  .para-check-date {
-    font-size: 0.6em;
-    vertical-align: super;
-    color: #66BB6A;
-    margin-left: 4px;
-    user-select: none;
-  }
-  .para-read-stats {
-    font-size: 13px;
-    color: #888;
-    margin-top: 6px;
-  }
-  .para-read-stats strong {
-    color: var(--primary-dark);
   }
 
   /* Clickable total read words */
@@ -590,19 +582,6 @@
   }
   .stroke-controls .btn { font-size: 13px; padding: 6px 14px; }
 
-  .modal-section .ai-tips {
-    background: linear-gradient(135deg, #E8F5E9, #FFF8E1);
-    border-left: 4px solid #66BB6A;
-    padding: 12px 16px;
-    border-radius: 0 8px 8px 0;
-    font-size: 15px;
-    line-height: 1.8;
-    color: #555;
-  }
-  .modal-section .ai-tips::before {
-    content: '💡 ';
-  }
-
   .modal-section textarea {
     width: 100%;
     min-height: 120px;
@@ -617,13 +596,6 @@
   .modal-section textarea:focus {
     outline: none;
     border-color: var(--primary);
-  }
-
-  .loading-hint {
-    text-align: center;
-    padding: 12px;
-    color: #999;
-    font-size: 14px;
   }
 
   /* ===== COLLECTIONS PANEL ===== */
@@ -651,6 +623,7 @@
     flex-direction: column;
   }
   .collections-panel.show { right: 0; }
+  .collections-panel.show.fullscreen { width: 100vw; max-width: 100vw; }
 
   .collections-header {
     padding: 20px;
@@ -1183,6 +1156,22 @@
         <option value="宋体, SimSun, STSong">宋体</option>
         <option value="黑体, SimHei, STHeiti">黑体</option>
         <option value="仿宋, FangSong, STFangsong">仿宋</option>
+        <optgroup label="── 英文字体 ──">
+          <option value="Times New Roman, Times, serif">Times New Roman</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="Arial, Helvetica, sans-serif">Arial</option>
+          <option value="Verdana, Geneva, sans-serif">Verdana</option>
+          <option value="Trebuchet MS, Helvetica, sans-serif">Trebuchet MS</option>
+          <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+          <option value="Segoe UI, Helvetica, Arial, sans-serif">Segoe UI</option>
+          <option value="Calibri, Segoe UI, sans-serif">Calibri</option>
+          <option value="Cambria, Georgia, serif">Cambria</option>
+          <option value="Consolas, Monaco, monospace">Consolas</option>
+          <option value="Courier New, Courier, monospace">Courier New</option>
+          <option value="Garamond, Times New Roman, serif">Garamond</option>
+          <option value="Palatino Linotype, Palatino, serif">Palatino</option>
+          <option value="Book Antiqua, Palatino, serif">Book Antiqua</option>
+        </optgroup>
       </select>
     </div>
     <div style="border-top:1px solid #eee;margin:20px 0;"></div>
@@ -1278,7 +1267,7 @@
 <div class="collections-overlay" id="collectionsOverlay" onclick="closeCollections()"></div>
 <div class="collections-panel" id="collectionsPanel">
   <div class="collections-header">
-    <h2>⭐ 收藏夹<span class="col-filter-wrap">
+    <h2><span id="colPanelToggle" onclick="toggleCollectionsFullscreen()" style="cursor:pointer;display:inline-block;transition:transform .2s;" title="展开/收起">◀</span> 收藏夹<span class="col-filter-wrap">
       <button class="col-filter-btn" onclick="toggleColFilter(event)">
         <span class="filter-arrow" id="filterArrow">掌握程度 ▾</span>
       </button>
@@ -1911,71 +1900,6 @@ function scrollToRawIdxInEditable(rawIdx) {
   }
 }
 
-// Helper: find the raw text index at the top of the viewport in editable mode
-function getRawIdxAtViewportTopEditable() {
-  const container = document.getElementById('readerContent');
-  const containerRect = container.getBoundingClientRect();
-  const tryY = Math.max(10, containerRect.top + 35);
-  let targetNode = null, targetOffset = 0;
-
-  if (document.caretRangeFromPoint) {
-    const range = document.caretRangeFromPoint(50, tryY);
-    if (range && range.startContainer.nodeType === 3) {
-      targetNode = range.startContainer;
-      targetOffset = range.startOffset;
-    }
-  }
-
-  if (!targetNode) {
-    const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-    targetNode = walker.nextNode();
-    targetOffset = 0;
-  }
-  if (!targetNode) return 0;
-
-  // Walk text nodes, accumulating offset to find the raw index of targetNode
-  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT);
-  let cumulative = 0;
-  let node;
-  while (node = walker.nextNode()) {
-    const text = node.textContent;
-    if (node === targetNode) {
-      return cumulative + Math.min(targetOffset, text.length);
-    }
-    cumulative += text.length;
-  }
-  return 0;
-}
-
-// Helper: scroll to a raw text index in reading mode (find nearest char span)
-function scrollToRawIdxInReading(rawIdx) {
-  const chars = document.querySelectorAll('#readerContent .char');
-  let bestChar = null;
-  let bestIdx = Infinity;
-  for (const char of chars) {
-    const idx = parseInt(char.dataset.rawIdx) || 0;
-    if (idx >= rawIdx && idx < bestIdx) {
-      bestIdx = idx;
-      bestChar = char;
-    }
-  }
-  if (!bestChar && chars.length > 0) {
-    // Find the closest char before rawIdx
-    let closestIdx = -1;
-    for (const char of chars) {
-      const idx = parseInt(char.dataset.rawIdx) || 0;
-      if (idx <= rawIdx && idx > closestIdx) {
-        closestIdx = idx;
-        bestChar = char;
-      }
-    }
-  }
-  if (bestChar) {
-    const rect = bestChar.getBoundingClientRect();
-    window.scrollTo(0, rect.top + window.scrollY - 80);
-  }
-}
-
 function enterEditMode() {
   isEditMode = true;
   if (isReadAloud) stopReadAloud();
@@ -2301,9 +2225,8 @@ function renderText(text) {
             const pinyin = collections[ew].pinyin || '';
             const translation = collections[ew].translation || '';
             const note = collections[ew].note || '';
-            const firstMeaning = getFirstChineseWord(translation);
             let tip = pinyin;
-            if (firstMeaning) tip += (tip ? ' | ' : '') + firstMeaning;
+            if (translation) tip += (tip ? ' | ' : '') + translation;
             if (note) tip += (tip ? ' | ' : '') + note;
             html += `<span class="char-tooltip">${escapeHtml(tip)}</span>`;
           }
@@ -2442,11 +2365,41 @@ function highlightCollectedWords() {
   const text = charList.map(span => span.dataset.char).join('');
 
   for (const word of wordKeys) {
+    // English multi-word phrase (contains space): match consecutive word spans separated by space text nodes
+    if (word.indexOf(' ') !== -1) {
+      const parts = word.split(' ');
+      for (let si = 0; si <= charList.length - parts.length; si++) {
+        let match = true;
+        for (let p = 0; p < parts.length; p++) {
+          if (!charList[si + p] || charList[si + p].dataset.char !== parts[p]) {
+            match = false; break;
+          }
+          // Check that word spans are adjacent (only whitespace between them)
+          if (p > 0) {
+            const prevSpan = charList[si + p - 1];
+            const currSpan = charList[si + p];
+            const between = document.createRange();
+            between.setStartAfter(prevSpan);
+            between.setEndBefore(currSpan);
+            const betweenText = between.toString();
+            if (!/^\s*$/.test(betweenText)) { match = false; break; }
+          }
+        }
+        if (match) {
+          for (let p = 0; p < parts.length; p++) {
+            charList[si + p].classList.add('collected', 'collected-phrase');
+            if (collections[parts[p]]) charList[si + p].classList.add('collected-single');
+          }
+        }
+      }
+      continue;
+    }
+
     let idx = 0;
     while ((idx = text.indexOf(word, idx)) !== -1) {
       // For English word span (one span = whole word), match directly
       if (charList[idx] && charList[idx].dataset.char === word) {
-        charList[idx].classList.add('collected');
+        charList[idx].classList.add('collected', 'collected-phrase');
       } else {
         // For Chinese multi-char word: highlight each individual char span,
         // but only if the word fits within consecutive single-char spans
@@ -2459,7 +2412,9 @@ function highlightCollectedWords() {
         }
         if (valid) {
           for (let i = 0; i < word.length; i++) {
-            charList[idx + i].classList.add('collected');
+            const span = charList[idx + i];
+            span.classList.add('collected', 'collected-phrase');
+            if (collections[span.dataset.char]) span.classList.add('collected-single');
           }
         }
       }
@@ -2481,17 +2436,6 @@ function updateFontFamily(val) {
 
 function escapeHtml(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-// Extract the first Chinese word/phrase from a definition string (e.g. "vt. 采用；收养" -> "采用")
-function getFirstChineseWord(text) {
-  return '';
-  // if (!text) return '';
-  // // Remove leading English POS tags like "vt.", "n.", "adj." etc.
-  // text1 = text.replace(/^[a-zA-Z]+\.\s*/, '');  
-  // // Match the first continuous Chinese character sequence
-  // const match = text1.match(/[\u4e00-\u9fff]+/);
-  // return match ? text.split(match[0])[0] + match[0] : '';
 }
 
 // ============================================================
@@ -2608,13 +2552,32 @@ function handleTextSelection(e) {
   const selectedText = selection.toString().trim();
 
   if (queryEngine === 'en') {
-    // English mode: detect English words
+    // English mode: detect English words, highlight them like Chinese word selection
     const engWords = selectedText.match(/[a-zA-Z'-]+/g);
     if (!engWords || engWords.length === 0) return;
     const word = engWords.join(' ').trim();
     if (word.length < 2) return;
     clearWordSelection();
-    openWordModal(word);
+
+    // Find all .char spans within the selection range and highlight them
+    const range = selection.getRangeAt(0);
+    const chars = [];
+    document.querySelectorAll('#readerContent .char').forEach(span => {
+      const spanRange = document.createRange();
+      spanRange.selectNodeContents(span);
+      const isBefore = range.compareBoundaryPoints(Range.START_TO_END, spanRange) < 0;
+      const isAfter = range.compareBoundaryPoints(Range.END_TO_START, spanRange) > 0;
+      if (!isBefore && !isAfter) chars.push(span);
+    });
+    if (chars.length < 1) return;
+
+    chars.forEach(span => {
+      span.classList.add('word-selection');
+      span.dataset.selectedWord = word;
+    });
+    selection.removeAllRanges();
+    justSelectedWord = true;
+    e.stopPropagation();
     return;
   }
 
@@ -2933,32 +2896,6 @@ function clearSpeakingHighlight() {
     el.classList.remove('speaking');
   });
   lastSpeakingEl = null;
-}
-
-function highlightCharAtRawIdx(idx) {
-  clearSpeakingHighlight();
-  if (idx < 0 || idx >= rawText.length) return;
-  const el = document.querySelector(`#readerContent .char[data-raw-idx="${idx}"]`);
-  if (el) {
-    el.classList.add('speaking');
-    // Only scroll when the element is outside the visible viewport
-    const rect = el.getBoundingClientRect();
-    const viewH = window.innerHeight;
-    if (rect.top < 80 || rect.bottom > viewH - 40) {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }
-    lastSpeakingEl = el;
-  }
-}
-
-// Move to the next CJK char in rawText starting from idx (inclusive)
-function nextCjkIdx(idx) {
-  let i = idx;
-  while (i < rawText.length) {
-    if (/[\u4e00-\u9fff\u3400-\u4dbf]/.test(rawText[i])) return i;
-    i++;
-  }
-  return -1;
 }
 
 // Split a paragraph text into sentence segments by punctuation
@@ -3479,43 +3416,6 @@ async function fetchCharInfo(char) {
   }
 }
 
-function generateAiTips(char, pinyin, defs) {
-  // Simple AI-style mnemonic generation based on character structure
-  const tips = generateMnemonic(char);
-  document.getElementById('modalAiTips').textContent = tips;
-}
-
-function generateMnemonic(char) {
-  const code = char.charCodeAt(0);
-
-  // Common radicals and their meanings
-  const radicalMap = {
-    '亻': '人', '彳': '行走', '氵': '水', '火': '火', '土': '土',
-    '艹': '草', '木': '树', '口': '口', '扌': '手', '女': '女',
-    '月': '月/肉', '日': '日', '目': '眼', '足': '脚', '石': '石',
-    '山': '山', '雨': '雨', '风': '风', '心': '心', '金': '金',
-    '饣': '食', '纟': '丝', '虫': '虫', '辶': '行走', '阝': '土丘',
-    '门': '门', '鸟': '鸟', '鱼': '鱼', '马': '马', '车': '车'
-  };
-
-  // Left/right radical extraction (simplified)
-  let tip = `"${char}"字的记忆小技巧：\n`;
-
-  // Try to decompose
-  if (char.length === 1) {
-    // Check if it looks like a simple character
-    if (code < 0x4E00 || code > 0x9FFF) {
-      tip += `这个字符比较特别，不属于常用汉字范围。`;
-      return tip;
-    }
-    tip += `这个字的部首可以从字形结构来理解。`;
-    tip += `\n试着联想它的形状和意思之间的联系。`;
-    tip += `\n多写几遍、多读几遍，加深印象！`;
-  }
-
-  return tip;
-}
-
 // ============================================================
 //  STROKE ANIMATION (from strokeorder.cc)
 // ============================================================
@@ -3569,9 +3469,8 @@ function updateCharTooltip(ch) {
     const pinyin = coll.pinyin || '';
     const translation = coll.translation || '';
     const note = coll.note || '';
-    const firstMeaning = getFirstChineseWord(translation);
     let text = pinyin;
-    if (firstMeaning) text += (text ? ' | ' : '') + firstMeaning;
+    if (translation) text += (text ? ' | ' : '') + translation;
     if (note) text += (text ? ' | ' : '') + note;
     tip.textContent = text;
   });
@@ -3581,16 +3480,61 @@ function updateCharTooltip(ch) {
 function removeCharHighlight(ch) {
   const safeCh = ch.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
   const els = document.querySelectorAll('.reader-content .char[data-char="' + safeCh + '"]');
-  // If no direct match and ch is a multi-char word, fallback to full re-render
-  if (els.length === 0 && ch.length > 1) {
-    renderText(rawText);
+  if (els.length > 0) {
+    els.forEach(el => {
+      el.classList.remove('collected-phrase', 'collected-single');
+      // If this single char/word is still collected on its own, keep collected style
+      const spanChar = el.dataset.char;
+      if (collections[spanChar]) {
+        el.classList.add('collected');
+        updateCharTooltip(spanChar);
+      } else {
+        el.classList.remove('collected');
+        const tip = el.querySelector('.char-tooltip');
+        if (tip) tip.remove();
+      }
+    });
     return;
   }
-  els.forEach(el => {
-    el.classList.remove('collected');
-    const tip = el.querySelector('.char-tooltip');
-    if (tip) tip.remove();
-  });
+  // For multi-char word with no direct span match, try localized removal
+  if (ch.length > 1 && ch.indexOf(' ') !== -1) {
+    // English multi-word phrase: find and unhighlight consecutive word spans
+    const parts = ch.split(' ');
+    const charList = Array.from(document.querySelectorAll('#readerContent .char'));
+    for (let si = 0; si <= charList.length - parts.length; si++) {
+      let match = true;
+      for (let p = 0; p < parts.length; p++) {
+        if (!charList[si + p] || charList[si + p].dataset.char !== parts[p]) {
+          match = false; break;
+        }
+        if (p > 0) {
+          const between = document.createRange();
+          between.setStartAfter(charList[si + p - 1]);
+          between.setEndBefore(charList[si + p]);
+          if (!/^\s*$/.test(between.toString())) { match = false; break; }
+        }
+      }
+      if (match) {
+        for (let p = 0; p < parts.length; p++) {
+          const span = charList[si + p];
+          span.classList.remove('collected-phrase', 'collected-single');
+          if (collections[span.dataset.char]) {
+            span.classList.add('collected');
+            updateCharTooltip(span.dataset.char);
+          } else {
+            span.classList.remove('collected');
+            const tip = span.querySelector('.char-tooltip');
+            if (tip) tip.remove();
+          }
+        }
+      }
+    }
+    return;
+  }
+  // Fallback: full re-render for other multi-char words (Chinese phrases)
+  if (ch.length > 1) {
+    renderText(rawText);
+  }
 }
 
 // ============================================================
@@ -3667,9 +3611,24 @@ function deleteCollection(ch) {
 
 function openCollections() {
   closeSettings();
+  document.getElementById('collectionsPanel').classList.remove('fullscreen');
+  document.getElementById('colPanelToggle').textContent = '◀';
   document.getElementById('collectionsOverlay').classList.add('show');
   document.getElementById('collectionsPanel').classList.add('show');
   renderCollections();
+}
+
+function toggleCollectionsFullscreen() {
+  const panel = document.getElementById('collectionsPanel');
+  const toggle = document.getElementById('colPanelToggle');
+  if (panel.classList.contains('fullscreen')) {
+    panel.classList.remove('fullscreen');
+    toggle.textContent = '◀';
+  } else {
+    closeModal();
+    panel.classList.add('fullscreen');
+    toggle.textContent = '▶';
+  }
 }
 
 function toggleCollections() {
