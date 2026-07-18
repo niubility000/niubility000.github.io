@@ -876,11 +876,15 @@
   }
   .collection-item:hover { background: #F5F5F5; }
   .collection-item .col-char {
-    font-size: 32px;
+    font-size: 26px;
     font-weight: 700;
     color: var(--primary-dark);
-    min-width: 44px;
-    text-align: center;
+    text-align: left;
+    max-width: 50%;
+    overflow-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
   }
   .collection-item .col-info { flex: 1; }
   .collection-item .col-pinyin { font-size: 16px; color: #666; }
@@ -1216,7 +1220,7 @@
         <button class="star-btn" id="modalStar" onclick="toggleCollect()" title="收藏此字">☆</button>
         <div class="category-selector" id="modalCategorySelector" onclick="toggleModalCategoryDropdown(event)">
           <span class="category-label">类别</span>
-          <span class="category-value" id="modalCategoryValue">不会</span>
+          <span class="category-value" id="modalCategoryValue">未掌握</span>
           <span class="category-arrow">▾</span>
           <div class="category-dropdown" id="modalCategoryDropdown" onclick="event.stopPropagation()"></div>
         </div>
@@ -1405,6 +1409,7 @@ let removedNotes = {};       // { "字": note } — 已删除收藏的笔记缓�
 let colCategoryFilter = '';   // '' = 全部, 其他值 = 筛选对应类别
 let colSearchText = '';       // 搜索文字，匹配字/词、拼音、笔记
 let userCategories = [];      // 用户自定义类别列表
+let lastUsedCategory = '未掌握'; // 查询框中最后一次选择的类别，用于新收藏默认值
 let currentChar = '';
 let queryEngine = 'zh'; // 'zh' = 中文查询, 'en' = 英文查询
 let ecdictData = null;    // ECDICT 本地词典数据（大对象，惰性加载）
@@ -2420,8 +2425,8 @@ function renderText(text) {
       if (engBuf) {
         const ew = engBuf.trim();
         if (ew.length > 0) {
-          const isCollected = collections[ew];
-          html += `<span class="char${isCollected ? ' collected' : ''}" data-char="${ew}" data-raw-idx="${engStartIdx}" onclick="openCharModal(this)" style="cursor:pointer;">${escapeHtml(engBuf)}`;
+          const isCollected = isInFilteredCollection(ew);
+          html += `<span class="char${isCollected ? ' collected' : ''}" data-char="${ew}" data-raw-idx="${engStartIdx}" onclick="openEnglishSpan(this)" style="cursor:pointer;">${escapeHtml(engBuf)}`;
           if (isCollected) {
             const pinyin = collections[ew].pinyin || '';
             const translation = collections[ew].translation || '';
@@ -2448,7 +2453,7 @@ function renderText(text) {
         const isEng = /[a-zA-Z'-]/.test(ch);
         if (isCJK) {
           flushEngBuf();
-          const isCollected = collections[ch];
+          const isCollected = isInFilteredCollection(ch);
           html += `<span class="char${isCollected ? ' collected' : ''}" data-char="${ch}" data-raw-idx="${rawIdx - 1}" onclick="openCharModal(this)">${ch}`;
           if (isCollected) {
             const pinyin = collections[ch].pinyin || '';
@@ -2557,7 +2562,7 @@ async function onParaCheckboxChange(checkbox) {
 }
 
 function highlightCollectedWords() {
-  const wordKeys = Object.keys(collections).filter(k => k.length > 1);
+  const wordKeys = Object.keys(collections).filter(k => k.length > 1 && isInFilteredCollection(k));
   if (wordKeys.length === 0) return;
 
   const chars = document.querySelectorAll('#readerContent .char');
@@ -2590,7 +2595,7 @@ function highlightCollectedWords() {
         if (match) {
           for (let p = 0; p < parts.length; p++) {
             charList[si + p].classList.add('collected', 'collected-phrase');
-            if (collections[parts[p]]) charList[si + p].classList.add('collected-single');
+            if (isInFilteredCollection(parts[p])) charList[si + p].classList.add('collected-single');
           }
         }
       }
@@ -2616,7 +2621,7 @@ function highlightCollectedWords() {
           for (let i = 0; i < word.length; i++) {
             const span = charList[idx + i];
             span.classList.add('collected', 'collected-phrase');
-            if (collections[span.dataset.char]) span.classList.add('collected-single');
+            if (isInFilteredCollection(span.dataset.char)) span.classList.add('collected-single');
           }
         }
       }
@@ -2714,13 +2719,13 @@ function openCharModal(el) {
   // Category selector
   const categorySelector = document.getElementById('modalCategorySelector');
   const categoryVal = document.getElementById('modalCategoryValue');
-  categoryVal.textContent = collections[ch] ? (collections[ch].category || '不会') : '不会';
+  categoryVal.textContent = collections[ch] ? (collections[ch].category || '未掌握') : lastUsedCategory;
   categorySelector.classList.toggle('disabled', !collections[ch]);
 
   // Auto-collect immediately if enabled (pinyin will be filled in later by fetchCharInfo)
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (autoCollect && autoCollect.checked && !collections[ch]) {
-    collections[ch] = { pinyin: '', translation: '', note: removedNotes[ch] || '', category: '不会', order: Date.now() };
+    collections[ch] = { pinyin: '', translation: '', note: removedNotes[ch] || '', category: lastUsedCategory, order: Date.now() };
     persistCollections();
     renderCollections();
     starBtn.textContent = '★';
@@ -2830,6 +2835,15 @@ function handleTextSelection(e) {
   e.stopPropagation();
 }
 
+// English span click handler: use selected phrase if available, else single word
+function openEnglishSpan(el) {
+  if (el.classList.contains('word-selection') && el.dataset.selectedWord) {
+    openWordModal(el.dataset.selectedWord);
+  } else {
+    openWordModal(el.dataset.char);
+  }
+}
+
 function openWordModal(word) {
   if (!word) return;
   // Close existing modal
@@ -2853,13 +2867,13 @@ function openWordModal(word) {
   // Category selector
   const categorySelector = document.getElementById('modalCategorySelector');
   const categoryVal = document.getElementById('modalCategoryValue');
-  categoryVal.textContent = collections[word] ? (collections[word].category || '不会') : '不会';
+  categoryVal.textContent = collections[word] ? (collections[word].category || '未掌握') : lastUsedCategory;
   categorySelector.classList.toggle('disabled', !collections[word]);
 
   // Auto-collect immediately if enabled (pinyin will be filled in later by fetchWordInfo)
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (autoCollect && autoCollect.checked && !collections[word]) {
-    collections[word] = { pinyin: '', translation: '', note: removedNotes[word] || '', category: '不会', order: Date.now() };
+    collections[word] = { pinyin: '', translation: '', note: removedNotes[word] || '', category: lastUsedCategory, order: Date.now() };
     persistCollections();
     renderCollections();
     starBtn.textContent = '★';
@@ -3404,7 +3418,7 @@ function autoCollectChar(char, pinyin, translation) {
     if (newTranslation) collections[char].translation = newTranslation;
   } else {
     const oldNote = removedNotes[char] || '';
-    collections[char] = { pinyin: pinyin, translation: newTranslation, note: oldNote, category: '不会', order: Date.now() };
+    collections[char] = { pinyin: pinyin, translation: newTranslation, note: oldNote, category: lastUsedCategory, order: Date.now() };
   }
   
   // Clear saved note since it's been restored
@@ -3782,7 +3796,7 @@ function updateCharTooltip(ch) {
   const chars = document.querySelectorAll('.reader-content .char[data-char="' + safeCh + '"]');
   chars.forEach(el => {
     const coll = collections[ch];
-    if (!coll) {
+    if (!coll || !isInFilteredCollection(ch)) {
       el.classList.remove('collected');
       const tip = el.querySelector('.char-tooltip');
       if (tip) tip.remove();
@@ -3813,9 +3827,9 @@ function removeCharHighlight(ch) {
   if (els.length > 0) {
     els.forEach(el => {
       el.classList.remove('collected-phrase', 'collected-single');
-      // If this single char/word is still collected on its own, keep collected style
+      // If this single char/word is still collected on its own (and matches filter), keep collected style
       const spanChar = el.dataset.char;
-      if (collections[spanChar]) {
+      if (isInFilteredCollection(spanChar)) {
         el.classList.add('collected');
         updateCharTooltip(spanChar);
       } else {
@@ -3848,7 +3862,7 @@ function removeCharHighlight(ch) {
         for (let p = 0; p < parts.length; p++) {
           const span = charList[si + p];
           span.classList.remove('collected-phrase', 'collected-single');
-          if (collections[span.dataset.char]) {
+          if (isInFilteredCollection(span.dataset.char)) {
             span.classList.add('collected');
             updateCharTooltip(span.dataset.char);
           } else {
@@ -3904,7 +3918,7 @@ function toggleCollect() {
       pinyin: document.getElementById('modalPinyin').textContent,
       translation: definition,
       note: document.getElementById('modalNotes').value || savedNote,
-      category: document.getElementById('modalCategoryValue').textContent || '不会',
+      category: document.getElementById('modalCategoryValue').textContent || '未掌握',
       order: Date.now()
     };
     // If there was a saved note and the textarea was empty, fill it in
@@ -4012,7 +4026,7 @@ function renderCollections() {
   // Apply category filter
   let keys = allKeys;
   if (colCategoryFilter && colCategoryFilter !== '') {
-    keys = allKeys.filter(ch => (collections[ch].category || '不会') === colCategoryFilter);
+    keys = allKeys.filter(ch => (collections[ch].category || '未掌握') === colCategoryFilter);
   }
 
   // Apply search filter
@@ -4049,20 +4063,22 @@ function renderCollections() {
     const ch = keys[i];
     const item = collections[ch];
     const hasChinese = /[\u4e00-\u9fa5]/.test(ch);
+    // 中文词组（多个汉字）时，展开只显示拼音和笔记，不显示基本解释
+    const isZhWord = hasChinese && ch.length > 1;
     const dblClick = hasChinese
       ? `openCharModal('${escapeHtml(ch)}')`
       : `openWordModal('${escapeHtml(ch)}')`;
     parts.push(`<div class="collection-item" onclick="toggleCollectionDetail(this)">
-      <span class="col-char" style="cursor:pointer;" onclick="event.stopPropagation();${dblClick}">${escapeHtml(ch)}</span>
+      <span class="col-char" lang="${hasChinese ? 'zh' : 'en'}" style="cursor:pointer;" onclick="event.stopPropagation();${dblClick}">${escapeHtml(ch)}</span>
       <div class="col-info">
         <div class="col-detail" style="display:none;">
           <div class="col-pinyin">${escapeHtml(item.pinyin || '')}</div>
-          ${item.translation ? `<div class="col-translation">${escapeHtml(item.translation.replace(/\\n/g, '; ').replace(/\n/g, '; '))}</div>` : ''}
+          ${(!isZhWord && item.translation) ? `<div class="col-translation">${escapeHtml(item.translation.replace(/\\n/g, '; ').replace(/\n/g, '; '))}</div>` : ''}
           ${item.note ? `<div class="col-note">${escapeHtml(item.note.replace(/\n/g, '; '))}</div>` : ''}
         </div>
       </div>
       <div class="col-category">
-        ${escapeHtml(item.category || '不会')}
+        ${escapeHtml(item.category || '未掌握')}
       </div>
       <button class="col-del" onclick="event.stopPropagation();deleteCollection('${escapeHtml(ch)}')" title="删除">✕</button>
     </div>`);
@@ -4070,10 +4086,30 @@ function renderCollections() {
   body.innerHTML = parts.join('');
 }
 
+// Check if a collected char/word matches the current collection filter (category + search).
+// Used to decide whether to apply color highlight in the reading body.
+function isInFilteredCollection(ch) {
+  if (!collections[ch]) return false;
+  if (colCategoryFilter && colCategoryFilter !== '') {
+    if ((collections[ch].category || '未掌握') !== colCategoryFilter) return false;
+  }
+  if (colSearchText) {
+    const q = colSearchText.toLowerCase();
+    const item = collections[ch];
+    const matches = ch.toLowerCase().includes(q) ||
+           (item.pinyin || '').toLowerCase().includes(q) ||
+           (item.translation || '').toLowerCase().includes(q) ||
+           (item.note || '').toLowerCase().includes(q) ||
+           (item.category || '').toLowerCase().includes(q);
+    if (!matches) return false;
+  }
+  return true;
+}
+
 // ============================================================
 //  COLLECTIONS CATEGORY FILTER
 // ============================================================
-const defaultCategories = ['不会', '好词好句'];
+const defaultCategories = ['未掌握', '好词好句'];
 
 function toggleColFilter(e) {
   e.stopPropagation();
@@ -4122,6 +4158,7 @@ function setColFilter(category) {
   document.getElementById('colFilterDropdown').classList.remove('show');
   document.getElementById('filterArrow').classList.remove('open');
   renderCollections();
+  if (rawText) renderText(rawText);
 }
 
 function setColSearch() {
@@ -4130,6 +4167,7 @@ function setColSearch() {
   document.getElementById('colFilterDropdown').classList.remove('show');
   document.getElementById('filterArrow').classList.remove('open');
   renderCollections();
+  if (rawText) renderText(rawText);
 }
 
 // Close dropdown when clicking outside
@@ -4180,6 +4218,11 @@ function buildModalCategoryDropdown() {
 function selectModalCategory(cat) {
   document.getElementById('modalCategoryValue').textContent = cat;
   document.getElementById('modalCategoryDropdown').classList.remove('show');
+  // 记录最后一次使用的类别并持久化
+  if (lastUsedCategory !== cat) {
+    lastUsedCategory = cat;
+    saveSettings();
+  }
   if (currentChar && collections[currentChar]) {
     collections[currentChar].category = cat;
     persistCollections();
@@ -4220,7 +4263,8 @@ async function saveSettings() {
       autoCollect: document.getElementById('autoCollectCheckbox').checked,
       queryEngine: document.getElementById('queryEngineSelect').value,
       userCategories: userCategories,
-      voiceByLang: voiceByLang
+      voiceByLang: voiceByLang,
+      lastUsedCategory: lastUsedCategory
     };
     await dbPut('settings', settings);
     // Also save per-article language settings
@@ -4270,6 +4314,9 @@ async function loadSettings() {
       }
       if (data.voiceByLang) {
         voiceByLang = data.voiceByLang;
+      }
+      if (data.lastUsedCategory) {
+        lastUsedCategory = data.lastUsedCategory;
       }
     }
   } catch(e) { console.error('Load settings failed:', e); }
@@ -4334,7 +4381,7 @@ async function loadCollections() {
     collections = {};
     items.sort((a, b) => (a.order || 0) - (b.order || 0));
     items.forEach(item => {
-      const category = item.category || '不会';
+      const category = item.category || '未掌握';
       collections[item.char] = { pinyin: item.pinyin || '', translation: item.translation || '', note: item.note || '', category: category, order: item.order || 0 };
       if (!item.category) {
         dbPut('collections', { ...item, category: category });
@@ -4433,7 +4480,7 @@ async function importAllData(file) {
       // Import collections
       if (data.collections && Array.isArray(data.collections)) {
         for (const item of data.collections) {
-          const category = item.category || '不会';
+          const category = item.category || '未掌握';
           collections[item.char] = { pinyin: item.pinyin || '', translation: item.translation || '', note: item.note || '', category: category, order: item.order || Date.now() };
           await dbPut('collections', { ...item, category: category });
           collectionCount++;
@@ -4479,6 +4526,10 @@ async function clearAllData() {
     rawText = '';
     currentArticleName = '';
     lastReadStartIndex = -1;
+    userCategories = [];
+    lastUsedCategory = '未掌握';
+    colCategoryFilter = '';
+    colSearchText = '';
 
     // 刷新 UI
     renderCollections();
