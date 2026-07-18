@@ -528,9 +528,9 @@
 
   .modal-header {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 16px 24px 12px;
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
@@ -538,24 +538,126 @@
     z-index: 1;
     border-radius: 20px 20px 0 0;
   }
+  .modal-header .header-actions {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .category-selector {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0 8px;
+    background: rgba(74,144,217,.1);
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: background .2s;
+    position: relative;
+    height: 28px;
+    line-height: 1;
+  }
+  .category-selector:hover {
+    background: rgba(74,144,217,.2);
+  }
+  .category-selector.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  .category-label {
+    color: #666;
+  }
+  .category-value {
+    color: var(--primary-dark);
+    font-weight: 600;
+    min-width: 40px;
+  }
+  .category-arrow {
+    font-size: 11px;
+    color: #999;
+  }
+  .category-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 4px;
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    padding: 6px 0;
+    z-index: 950;
+    min-width: 140px;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  .category-dropdown.show {
+    display: block;
+  }
+  .category-option {
+    padding: 8px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    color: #333;
+    white-space: nowrap;
+  }
+  .category-option:hover {
+    background: #F0F4FF;
+  }
+  .category-option.active {
+    color: var(--primary-dark);
+    font-weight: 600;
+    background: rgba(74,144,217,.1);
+  }
+  .category-custom-input {
+    margin: 6px 8px;
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 13px;
+    width: calc(100% - 16px);
+    outline: none;
+  }
+  .category-custom-input:focus {
+    border-color: var(--primary);
+  }
+  .category-custom-btn {
+    margin: 0 8px 6px;
+    padding: 6px 12px;
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 13px;
+    cursor: pointer;
+    width: calc(100% - 16px);
+  }
+  .category-custom-btn:hover {
+    opacity: 0.85;
+  }
   .modal-header .char-display {
     font-size: 48px;
     font-weight: 700;
     color: var(--primary-dark);
     line-height: 1;
   }
-  .modal-header .header-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
   .modal-header .star-btn {
     font-size: 28px;
     background: none;
     border: none;
     cursor: pointer;
-    padding: 6px;
+    padding: 2px 4px;
     transition: transform .25s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    height: 28px;
   }
   .modal-header .star-btn:hover { transform: scale(1.25); }
   .modal-header .star-btn.active { color: var(--star-color); }
@@ -566,8 +668,13 @@
     border: none;
     color: #999;
     cursor: pointer;
-    padding: 4px;
+    padding: 2px 4px;
     transition: color .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    height: 28px;
   }
   .modal-close:hover { color: #333; }
 
@@ -723,12 +830,6 @@
   }
   .col-filter-option:hover { background: #F0F4FF; }
   .col-filter-option.active { color: var(--primary-dark); font-weight: 600; }
-  .col-filter-option .mastery-dot {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-  }
   .col-filter-search {
     display: flex;
     align-items: center;
@@ -807,47 +908,17 @@
   }
   .collection-item .col-del:hover { color: #E53935; }
 
-  /* Mastery level control */
-  .col-mastery {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 15px;
-    color: #666;
-    margin-right: 8px;
-  }
-  .col-mastery-btn {
-    background: none;
-    border: 1px solid #ddd;
+  /* Category display in collection items */
+  .col-category {
+    padding: 4px 8px;
+    background: rgba(74,144,217,.1);
     border-radius: 6px;
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 14px;
-    color: #666;
-    transition: all .15s;
+    font-size: 13px;
+    color: var(--primary-dark);
+    font-weight: 500;
+    margin-right: 8px;
     flex-shrink: 0;
   }
-  .col-mastery-btn:hover { background: #f0f0f0; border-color: #bbb; }
-  .col-mastery-btn:active { background: #e0e0e0; }
-  .col-mastery-val {
-    font-weight: 700;
-    font-size: 16px;
-    min-width: 18px;
-    text-align: center;
-  }
-  .mastery-1 { color: #E53935; }
-  .mastery-2 { color: #F4511E; }
-  .mastery-3 { color: #FF9800; }
-  .mastery-4 { color: #FFC107; }
-  .mastery-5 { color: #CDDC39; }
-  .mastery-6 { color: #8BC34A; }
-  .mastery-7 { color: #4CAF50; }
-  .mastery-8 { color: #009688; }
-  .mastery-9 { color: #2196F3; }
 
   .collections-footer {
     padding: 16px 20px;
@@ -1083,8 +1154,6 @@
 
     .collection-item { padding: 10px; gap: 8px; }
     .collection-item .col-char { font-size: 26px; }
-    .col-mastery-btn { width: 32px; height: 32px; font-size: 16px; }
-
     .user-btn { padding: 6px 14px !important; font-size: 14px !important; }
   }
 </style>
@@ -1143,11 +1212,17 @@
 <div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
   <div class="modal" id="charModal">
     <div class="modal-header">
-      <span class="char-display" id="modalChar">字</span>
       <div class="header-actions">
         <button class="star-btn" id="modalStar" onclick="toggleCollect()" title="收藏此字">☆</button>
+        <div class="category-selector" id="modalCategorySelector" onclick="toggleModalCategoryDropdown(event)">
+          <span class="category-label">类别</span>
+          <span class="category-value" id="modalCategoryValue">不会</span>
+          <span class="category-arrow">▾</span>
+          <div class="category-dropdown" id="modalCategoryDropdown" onclick="event.stopPropagation()"></div>
+        </div>
         <button class="modal-close" onclick="closeModal()">✕</button>
       </div>
+      <span class="char-display" id="modalChar">字</span>
     </div>
     <div class="modal-body">
       <div class="modal-section">
@@ -1283,6 +1358,9 @@
       <button class="btn btn-primary" onclick="document.getElementById('importAllInput').click()" style="flex:1;background:#4A90D9;color:#fff;">📥 导入全部数据</button>
       <input type="file" id="importAllInput" accept=".json" style="display:none" onchange="importAllData(this.files[0])">
     </div>
+    <div style="margin-top:16px;">
+      <button class="btn btn-primary" onclick="clearAllData()" style="width:100%;background:#E74C3C;color:#fff;">🗑️ 清空当前用户的数据</button>
+    </div>
     <div style="margin-top:24px;">
       <label style="font-size:15px;color:#555;display:block;margin-bottom:8px;">🔄 软件更新地址</label>
       <a href="https://note.youdao.com/s/MI81scdr" target="_blank" style="font-size:14px;color:#4A90D9;text-decoration:none;">https://note.youdao.com/s/MI81scdr</a>
@@ -1324,8 +1402,9 @@
 // ============================================================
 let collections = {};        // { "字": { pinyin, note } }
 let removedNotes = {};       // { "字": note } — 已删除收藏的笔记缓存
-let colMasteryFilter = 0;     // 0 = 全部, 1-9 = 筛选对应掌握度
+let colCategoryFilter = '';   // '' = 全部, 其他值 = 筛选对应类别
 let colSearchText = '';       // 搜索文字，匹配字/词、拼音、笔记
+let userCategories = [];      // 用户自定义类别列表
 let currentChar = '';
 let queryEngine = 'zh'; // 'zh' = 中文查询, 'en' = 英文查询
 let ecdictData = null;    // ECDICT 本地词典数据（大对象，惰性加载）
@@ -1334,8 +1413,9 @@ let rawText = '';
 let speechVoices = [];
 let lastReadStartIndex = -1;  // index in rawText where the last clicked char's paragraph starts
 let justSelectedWord = false; // flag to prevent click from clearing selection immediately
+let voiceByLang = {};         // saved voice for each language, e.g., {'zh-CN': 'voice_name', 'en-US': 'voice_name'}
 
-const DB_VERSION = 6;
+const DB_VERSION = 7;
 const DB_STORE = 'articles';
 let currentUser = 'user1'; // 'user1' or 'user2'
 let currentArticleName = '';
@@ -1390,9 +1470,20 @@ function openDB() {
           db.createObjectStore('article_lang', { keyPath: 'name' });
         }
       }
+      if (oldVersion < 7) {
+      }
     };
     req.onsuccess = e => resolve(e.target.result);
-    req.onerror = e => reject(e.target.error);
+    req.onerror = e => {
+      const err = e.target.error;
+      if (err.name === 'VersionError') {
+        const req2 = indexedDB.open(getDBName());
+        req2.onsuccess = e2 => resolve(e2.target.result);
+        req2.onerror = e2 => reject(e2.target.error);
+      } else {
+        reject(err);
+      }
+    };
   });
 }
 
@@ -1833,7 +1924,7 @@ function handleFile(file) {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = async e => {
-    rawText = e.target.result;
+    rawText = e.target.result.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
     const name = file.name.replace(/\.txt$/i, '');
     currentArticleName = name;
     await detectAndSetLanguage(rawText);
@@ -2152,12 +2243,14 @@ function applyArticleLangSettings(settings) {
     queryEngine = settings.queryEngine;
     document.getElementById('queryEngineSelect').value = settings.queryEngine;
   }
+  const pendingVoice = settings.speechVoice;
   if (settings.speechLang) {
     document.getElementById('speechLangSelect').value = settings.speechLang;
+    populateVoices();
   }
-  if (settings.speechVoice) {
-    document.getElementById('speechVoiceSelect').value = settings.speechVoice;
-    window._pendingSpeechVoice = settings.speechVoice;
+  if (pendingVoice) {
+    document.getElementById('speechVoiceSelect').value = pendingVoice;
+    window._pendingSpeechVoice = pendingVoice;
   }
   if (settings.speechRate) {
     document.getElementById('speechRateRange').value = settings.speechRate;
@@ -2246,12 +2339,15 @@ async function detectAndSetLanguage(text) {
   queryEngine = newEngine;
   document.getElementById('queryEngineSelect').value = newEngine;
   // Auto-switch TTS language
-  if (isEnglish) {
-    document.getElementById('speechLangSelect').value = 'en-US';
-  } else {
-    document.getElementById('speechLangSelect').value = 'zh-CN';
-  }
+  const newLang = isEnglish ? 'en-US' : 'zh-CN';
+  document.getElementById('speechLangSelect').value = newLang;
   populateVoices();
+  // Switch to saved voice for this language, or use default
+  if (voiceByLang[newLang]) {
+    document.getElementById('speechVoiceSelect').value = voiceByLang[newLang];
+  }
+  // Save system settings to update voiceByLang mapping
+  await saveSettings();
   // Save as this article's language settings
   await saveArticleLangSettings();
 }
@@ -2565,6 +2661,8 @@ function openCharModal(el) {
   let ch, isElement = false;
   if (typeof el === 'string') {
     ch = el;
+    // Close existing modal when opened from collection
+    closeModal();
   } else {
     ch = el.dataset.char;
     isElement = true;
@@ -2605,49 +2703,41 @@ function openCharModal(el) {
   const restoredNote = collections[ch] ? (collections[ch].note || '') : (removedNotes[ch] || '');
   document.getElementById('modalNotes').value = restoredNote;
 
-  // Update labels based on query engine
-  document.getElementById('modalPinyinLabel').textContent = queryEngine === 'en' ? '音标 (Phonetic)' : '汉语拼音';
+  // Update labels for Chinese
+  document.getElementById('modalPinyinLabel').textContent = '汉语拼音';
 
   // Star state
   const starBtn = document.getElementById('modalStar');
   starBtn.textContent = collections[ch] ? '★' : '☆';
   starBtn.className = 'star-btn' + (collections[ch] ? ' active' : '');
 
+  // Category selector
+  const categorySelector = document.getElementById('modalCategorySelector');
+  const categoryVal = document.getElementById('modalCategoryValue');
+  categoryVal.textContent = collections[ch] ? (collections[ch].category || '不会') : '不会';
+  categorySelector.classList.toggle('disabled', !collections[ch]);
+
   // Auto-collect immediately if enabled (pinyin will be filled in later by fetchCharInfo)
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (autoCollect && autoCollect.checked && !collections[ch]) {
-    collections[ch] = { pinyin: '', translation: '', note: removedNotes[ch] || '', mastery: 5, order: Date.now() };
+    collections[ch] = { pinyin: '', translation: '', note: removedNotes[ch] || '', category: '不会', order: Date.now() };
     persistCollections();
     renderCollections();
     starBtn.textContent = '★';
     starBtn.className = 'star-btn active';
+    categorySelector.classList.remove('disabled');
     if (rawText) renderText(rawText);
   }
 
-  // Load stroke animation (only for Chinese mode)
-  if (queryEngine === 'zh') {
-    loadStrokeAnimation(ch);
-  } else {
-    document.getElementById('strokeImg').parentElement.parentElement.style.display = 'none';
-  }
+  // Load stroke animation for Chinese
+  loadStrokeAnimation(ch);
 
   document.getElementById('modalOverlay').classList.add('show');
 
-  // If already in collections (English mode), load pinyin directly, but always fetch definition for formatting
-  if (queryEngine === 'en' && collections[ch]) {
-    document.getElementById('modalPinyin').textContent = collections[ch].pinyin || '未知';
-    document.getElementById('modalDefinition').textContent = '加载中...';
-    fetchEnglishWordInfo(ch);
-  } else {
-    // Show loading and fetch
-    document.getElementById('modalPinyin').textContent = '加载中...';
-    document.getElementById('modalDefinition').textContent = '加载中...';
-    if (queryEngine === 'en') {
-      fetchEnglishWordInfo(ch);
-    } else {
-      fetchCharInfo(ch);
-    }
-  }
+  // Show loading and fetch using Chinese engine
+  document.getElementById('modalPinyin').textContent = '加载中...';
+  document.getElementById('modalDefinition').textContent = '加载中...';
+  fetchCharInfo(ch);
 
   // Auto-read after 1s
   setTimeout(() => {
@@ -2742,6 +2832,8 @@ function handleTextSelection(e) {
 
 function openWordModal(word) {
   if (!word) return;
+  // Close existing modal
+  closeModal();
   currentChar = word; // reuse currentChar for simplicity
 
   document.getElementById('modalChar').textContent = word;
@@ -2749,20 +2841,30 @@ function openWordModal(word) {
   const restoredNote = collections[word] ? (collections[word].note || '') : (removedNotes[word] || '');
   document.getElementById('modalNotes').value = restoredNote;
 
+  // Update labels for English
+  document.getElementById('modalPinyinLabel').textContent = '音标 (Phonetic)';
+
   // Star state
   const starBtn = document.getElementById('modalStar');
   starBtn.style.visibility = '';
   starBtn.textContent = collections[word] ? '★' : '☆';
   starBtn.className = 'star-btn' + (collections[word] ? ' active' : '');
 
+  // Category selector
+  const categorySelector = document.getElementById('modalCategorySelector');
+  const categoryVal = document.getElementById('modalCategoryValue');
+  categoryVal.textContent = collections[word] ? (collections[word].category || '不会') : '不会';
+  categorySelector.classList.toggle('disabled', !collections[word]);
+
   // Auto-collect immediately if enabled (pinyin will be filled in later by fetchWordInfo)
   const autoCollect = document.getElementById('autoCollectCheckbox');
   if (autoCollect && autoCollect.checked && !collections[word]) {
-    collections[word] = { pinyin: '', translation: '', note: removedNotes[word] || '', mastery: 5, order: Date.now() };
+    collections[word] = { pinyin: '', translation: '', note: removedNotes[word] || '', category: '不会', order: Date.now() };
     persistCollections();
     renderCollections();
     starBtn.textContent = '★';
     starBtn.className = 'star-btn active';
+    categorySelector.classList.remove('disabled');
     if (rawText) renderText(rawText);
   }
 
@@ -2771,20 +2873,16 @@ function openWordModal(word) {
 
   document.getElementById('modalOverlay').classList.add('show');
 
-  // If already in collections (English mode), load pinyin directly, but always fetch definition for formatting
-  if (queryEngine === 'en' && collections[word]) {
+  // If already in collections, load phonetic directly
+  if (collections[word]) {
     document.getElementById('modalPinyin').textContent = collections[word].pinyin || '未知';
     document.getElementById('modalDefinition').textContent = '加载中...';
     fetchEnglishWordInfo(word);
   } else {
-    // Show loading and fetch
+    // Show loading and fetch using English engine
     document.getElementById('modalPinyin').textContent = '加载中...';
     document.getElementById('modalDefinition').textContent = '加载中...';
-    if (queryEngine === 'en') {
-      fetchEnglishWordInfo(word);
-    } else {
-      fetchWordInfo(word);
-    }
+    fetchEnglishWordInfo(word);
   }
 
   // Auto-read after 1s
@@ -2898,20 +2996,38 @@ function speakSingleChar(ch) {
   if (!ch || !window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const utt = new SpeechSynthesisUtterance(ch);
-  // In English mode, force English language
-  if (queryEngine === 'en') {
-    utt.lang = 'en-US';
-  } else {
-    const lang = document.getElementById('speechLangSelect').value;
-    utt.lang = lang;
+  
+  const systemLang = document.getElementById('speechLangSelect').value;
+  const hasChinese = /[\u4e00-\u9fa5]/.test(ch);
+  let useLang = systemLang;
+  
+  if (hasChinese && systemLang !== 'zh-CN') {
+    useLang = 'zh-CN';
+  } else if (!hasChinese && systemLang !== 'en-US') {
+    useLang = 'en-US';
   }
+  
+  utt.lang = useLang;
   utt.rate = parseFloat(document.getElementById('speechRateRange').value);
   utt.pitch = 1;
-  const voiceName = document.getElementById('speechVoiceSelect').value;
-  if (voiceName) {
-    const voice = speechVoices.find(v => v.name === voiceName);
-    if (voice) utt.voice = voice;
+  
+  if (useLang === systemLang) {
+    const voiceName = document.getElementById('speechVoiceSelect').value;
+    if (voiceName) {
+      const voice = speechVoices.find(v => v.name === voiceName);
+      if (voice) utt.voice = voice;
+    }
+  } else {
+    if (voiceByLang[useLang]) {
+      const savedVoice = speechVoices.find(v => v.name === voiceByLang[useLang]);
+      if (savedVoice) utt.voice = savedVoice;
+    }
+    if (!utt.voice) {
+      const defaultVoice = speechVoices.find(v => v.lang.startsWith(useLang.split('-')[0]));
+      if (defaultVoice) utt.voice = defaultVoice;
+    }
   }
+  
   window.speechSynthesis.speak(utt);
 }
 
@@ -2931,7 +3047,11 @@ function updateSpeechPause(val) {
 }
 
 function onSpeechLangChange() {
+  const newLang = document.getElementById('speechLangSelect').value;
   populateVoices();
+  if (voiceByLang[newLang]) {
+    document.getElementById('speechVoiceSelect').value = voiceByLang[newLang];
+  }
 }
 
 function onQueryEngineChange() {
@@ -2943,6 +3063,7 @@ function onQueryEngineChange() {
 function populateVoices() {
   const lang = document.getElementById('speechLangSelect').value;
   const select = document.getElementById('speechVoiceSelect');
+  const savedVoice = select.value;
   select.innerHTML = '<option value="">系统默认</option>';
   const filtered = speechVoices.filter(v => v.lang.startsWith(lang.split('-')[0]));
   filtered.forEach(v => {
@@ -2951,6 +3072,9 @@ function populateVoices() {
     opt.textContent = v.name;
     select.appendChild(opt);
   });
+  if (savedVoice) {
+    select.value = savedVoice;
+  }
 }
 
 function loadSpeechVoices() {
@@ -3173,12 +3297,34 @@ function toggleReadAloud() {
 
     const text = paragraphs[paraIdx].trim();
     const utt = new SpeechSynthesisUtterance(text);
-    utt.lang = lang;
+    
+    const hasChinese = /[\u4e00-\u9fa5]/.test(text);
+    let useLang = lang;
+    
+    if (hasChinese && lang !== 'zh-CN') {
+      useLang = 'zh-CN';
+    } else if (!hasChinese && lang !== 'en-US') {
+      useLang = 'en-US';
+    }
+    
+    utt.lang = useLang;
     utt.rate = rate;
     utt.pitch = 1;
-    if (voiceName) {
-      const voice = speechVoices.find(v => v.name === voiceName);
-      if (voice) utt.voice = voice;
+    
+    if (useLang === lang) {
+      if (voiceName) {
+        const voice = speechVoices.find(v => v.name === voiceName);
+        if (voice) utt.voice = voice;
+      }
+    } else {
+      if (voiceByLang[useLang]) {
+        const savedVoice = speechVoices.find(v => v.name === voiceByLang[useLang]);
+        if (savedVoice) utt.voice = savedVoice;
+      }
+      if (!utt.voice) {
+        const defaultVoice = speechVoices.find(v => v.lang.startsWith(useLang.split('-')[0]));
+        if (defaultVoice) utt.voice = defaultVoice;
+      }
     }
 
     // Use boundary event to advance sentence highlight when TTS reaches a word boundary
@@ -3250,23 +3396,26 @@ function saveCurrentNote() {
 // ============================================================
 function autoCollectChar(char, pinyin, translation) {
   const wasNew = !collections[char];
-  // Use existing note, or fall back to saved removed note
-  const oldNote = collections[char] ? collections[char].note : (removedNotes[char] || '');
-  const oldMastery = collections[char] ? collections[char].mastery : 5;
-  const oldOrder = collections[char] ? collections[char].order : Date.now();
-  const oldTranslation = collections[char] ? (collections[char].translation || '') : '';
-  // Delete first then re-add to move to end of object (renderCollections shows newest first)
-  if (collections[char]) delete collections[char];
-  collections[char] = { pinyin: pinyin, translation: translation || oldTranslation, note: oldNote, mastery: oldMastery, order: Date.now() };
+  // Only keep translation for English mode
+  const newTranslation = queryEngine !== 'zh' ? (translation || '') : '';
+  
+  if (collections[char]) {
+    collections[char].pinyin = pinyin;
+    if (newTranslation) collections[char].translation = newTranslation;
+  } else {
+    const oldNote = removedNotes[char] || '';
+    collections[char] = { pinyin: pinyin, translation: newTranslation, note: oldNote, category: '不会', order: Date.now() };
+  }
+  
   // Clear saved note since it's been restored
   if (removedNotes[char]) {
     delete removedNotes[char];
     removeRemovedNote(char);
   }
   // If still viewing this char, fill the textarea with restored note
-  if (currentChar === char && oldNote) {
+  if (currentChar === char && collections[char].note) {
     const notesArea = document.getElementById('modalNotes');
-    if (notesArea && !notesArea.value) notesArea.value = oldNote;
+    if (notesArea && !notesArea.value) notesArea.value = collections[char].note;
   }
   persistCollections();
   renderCollections();
@@ -3726,6 +3875,7 @@ function toggleCollect() {
   if (!ch) return;
 
   const starBtn = document.getElementById('modalStar');
+  const categorySelector = document.getElementById('modalCategorySelector');
 
   if (collections[ch]) {
     // Remove — save note to removedNotes for future re-add
@@ -3737,23 +3887,24 @@ function toggleCollect() {
     delete collections[ch];
     starBtn.textContent = '☆';
     starBtn.classList.remove('active');
+    categorySelector.classList.add('disabled');
   } else {
     // Add — use saved note if available, move to end of object
     const savedNote = removedNotes[ch] || '';
-    // Get definition text (strip HTML tags for English, or plain text for Chinese)
-    const defEl = document.getElementById('modalDefinition');
+    // Get definition text only for English mode
     let definition = '';
-    if (defEl) {
-      // For English: innerHTML may have <br> tags; convert to plain text with spaces
-      definition = defEl.innerText || defEl.textContent || '';
-      // Remove newlines and extra spaces for single-line display
-      definition = definition.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim();
+    if (queryEngine !== 'zh') {
+      const defEl = document.getElementById('modalDefinition');
+      if (defEl) {
+        definition = defEl.innerText || defEl.textContent || '';
+        definition = definition.replace(/[\n\r]+/g, ' ').replace(/\s+/g, ' ').trim();
+      }
     }
     collections[ch] = {
       pinyin: document.getElementById('modalPinyin').textContent,
       translation: definition,
       note: document.getElementById('modalNotes').value || savedNote,
-      mastery: 5,
+      category: document.getElementById('modalCategoryValue').textContent || '不会',
       order: Date.now()
     };
     // If there was a saved note and the textarea was empty, fill it in
@@ -3767,6 +3918,7 @@ function toggleCollect() {
     }
     starBtn.textContent = '★';
     starBtn.classList.add('active');
+    categorySelector.classList.remove('disabled');
   }
 
   persistCollections();
@@ -3828,12 +3980,11 @@ function closeCollections() {
 
 function toggleCollectionDetail(itemEl) {
   const detail = itemEl.querySelector('.col-detail');
-  const mastery = itemEl.querySelector('.col-mastery');
+  const category = itemEl.querySelector('.col-category');
   if (!detail) return;
   const isExpanding = detail.style.display === 'none';
   detail.style.display = isExpanding ? '' : 'none';
-  // Show mastery control when detail is hidden, hide when shown
-  if (mastery) mastery.style.display = isExpanding ? 'none' : '';
+  if (category) category.style.display = isExpanding ? 'none' : '';
 
   // Speak the character when expanding detail
   if (isExpanding) {
@@ -3854,14 +4005,14 @@ function renderCollections() {
   }
 
   if (allKeys.length === 0) {
-    body.innerHTML = '<div class="empty-hint">还没有收藏任何字/词<br>阅读时点击汉字或划词即可收藏</div>';
+    body.innerHTML = '<div class="empty-hint">还没有收藏任何字/词<br>阅读时单击一个字或选中的文本都可调出查询窗口，点击五角星即可加入\取消收藏</div>';
     return;
   }
 
-  // Apply mastery filter
+  // Apply category filter
   let keys = allKeys;
-  if (colMasteryFilter > 0) {
-    keys = allKeys.filter(ch => (collections[ch].mastery || 5) === colMasteryFilter);
+  if (colCategoryFilter && colCategoryFilter !== '') {
+    keys = allKeys.filter(ch => (collections[ch].category || '不会') === colCategoryFilter);
   }
 
   // Apply search filter
@@ -3872,44 +4023,46 @@ function renderCollections() {
       return ch.toLowerCase().includes(q) ||
              (item.pinyin || '').toLowerCase().includes(q) ||
              (item.translation || '').toLowerCase().includes(q) ||
-             (item.note || '').toLowerCase().includes(q);
+             (item.note || '').toLowerCase().includes(q) ||
+             (item.category || '').toLowerCase().includes(q);
     });
   }
 
   if (keys.length === 0) {
     if (colSearchText) {
       body.innerHTML = `<div class="empty-hint">没有匹配"${escapeHtml(colSearchText)}"的字/词<br>点击下拉箭头修改搜索</div>`;
+    } else if (colCategoryFilter) {
+      body.innerHTML = `<div class="empty-hint">没有类别为"${colCategoryFilter}"的字/词<br>点击下拉箭头切换筛选条件</div>`;
     } else {
-      body.innerHTML = `<div class="empty-hint">没有掌握度为 ${colMasteryFilter} 的字/词<br>点击下拉箭头切换筛选条件</div>`;
+      body.innerHTML = `<div class="empty-hint">还没有收藏任何字/词</div>`;
     }
-    document.getElementById('filterArrow').textContent = '0 ▾';
+    document.getElementById('filterArrow').textContent = '全部 0 ▾';
     return;
   }
 
-  document.getElementById('filterArrow').textContent = keys.length + ' ▾';
+  const categoryText = colCategoryFilter ? colCategoryFilter : '全部';
+  document.getElementById('filterArrow').textContent = categoryText + ' ' + keys.length + ' ▾';
 
   // Use array join instead of string concatenation for better performance with large lists
   const parts = [];
   for (let i = keys.length - 1; i >= 0; i--) {
     const ch = keys[i];
     const item = collections[ch];
-    const isWord = ch.length > 1;
-    const dblClick = isWord
-      ? `openWordModal('${escapeHtml(ch)}')`
-      : `openCharModal('${escapeHtml(ch)}')`;
-    parts.push(`<div class="collection-item" onclick="toggleCollectionDetail(this)" ondblclick="event.preventDefault();${dblClick}">
-      <span class="col-char" style="cursor:pointer;">${escapeHtml(ch)}</span>
+    const hasChinese = /[\u4e00-\u9fa5]/.test(ch);
+    const dblClick = hasChinese
+      ? `openCharModal('${escapeHtml(ch)}')`
+      : `openWordModal('${escapeHtml(ch)}')`;
+    parts.push(`<div class="collection-item" onclick="toggleCollectionDetail(this)">
+      <span class="col-char" style="cursor:pointer;" onclick="event.stopPropagation();${dblClick}">${escapeHtml(ch)}</span>
       <div class="col-info">
         <div class="col-detail" style="display:none;">
           <div class="col-pinyin">${escapeHtml(item.pinyin || '')}</div>
-          ${item.translation ? `<div class="col-translation">${escapeHtml(item.translation)}</div>` : ''}
-          ${item.note ? `<div class="col-note">${escapeHtml(item.note)}</div>` : ''}
+          ${item.translation ? `<div class="col-translation">${escapeHtml(item.translation.replace(/\\n/g, '; ').replace(/\n/g, '; '))}</div>` : ''}
+          ${item.note ? `<div class="col-note">${escapeHtml(item.note.replace(/\n/g, '; '))}</div>` : ''}
         </div>
       </div>
-      <div class="col-mastery" id="mastery_${escapeHtml(ch)}">
-        <button class="col-mastery-btn" onclick="event.stopPropagation();adjustMastery('${escapeHtml(ch)}',-1)" ondblclick="event.stopPropagation()" title="降低掌握度">▼</button>
-        <span class="col-mastery-val mastery-${item.mastery || 5}">${item.mastery || 5}</span>
-        <button class="col-mastery-btn" onclick="event.stopPropagation();adjustMastery('${escapeHtml(ch)}',1)" ondblclick="event.stopPropagation()" title="提高掌握度">▲</button>
+      <div class="col-category">
+        ${escapeHtml(item.category || '不会')}
       </div>
       <button class="col-del" onclick="event.stopPropagation();deleteCollection('${escapeHtml(ch)}')" title="删除">✕</button>
     </div>`);
@@ -3918,28 +4071,9 @@ function renderCollections() {
 }
 
 // ============================================================
-//  MASTERY LEVEL
+//  COLLECTIONS CATEGORY FILTER
 // ============================================================
-function adjustMastery(ch, delta) {
-  if (!collections[ch]) return;
-  let level = collections[ch].mastery || 5;
-  level = Math.max(1, Math.min(9, level + delta));
-  collections[ch].mastery = level;
-  persistCollections();
-  // Update display without full re-render
-  const item = document.getElementById('mastery_' + ch);
-  if (item) {
-    const valEl = item.querySelector('.col-mastery-val');
-    valEl.textContent = level;
-    valEl.className = 'col-mastery-val mastery-' + level;
-  }
-}
-
-// ============================================================
-//  COLLECTIONS MASTERY FILTER
-// ============================================================
-const masteryColors = ['','#E53935','#F4511E','#FF9800','#FFC107','#CDDC39','#8BC34A','#4CAF50','#009688','#2196F3'];
-const masteryLabels = ['掌握程度：全部','1 ★','2 ★★','3 ★★★','4 ★★★★','5 ★★★★★','6 ★★★★★★','7 ★★★★★★★','8 ★★★★★★★★','9 ★★★★★★★★★'];
+const defaultCategories = ['不会', '好词好句'];
 
 function toggleColFilter(e) {
   e.stopPropagation();
@@ -3959,22 +4093,31 @@ function toggleColFilter(e) {
 function buildFilterDropdown() {
   const dd = document.getElementById('colFilterDropdown');
   let html = '';
-  for (let i = 0; i <= 9; i++) {
-    const active = colMasteryFilter === i ? ' active' : '';
-    const dot = i > 0 ? `<span class="mastery-dot" style="background:${masteryColors[i]}"></span>` : '';
-    html += `<div class="col-filter-option${active}" onclick="setColFilter(${i})">${dot}${masteryLabels[i]}</div>`;
+  html += `<div class="col-filter-option${!colCategoryFilter ? ' active' : ''}" onclick="setColFilter('')">全部类别</div>`;
+  const allCategories = getAllCategories();
+  for (const cat of allCategories) {
+    const active = colCategoryFilter === cat ? ' active' : '';
+    html += `<div class="col-filter-option${active}" onclick="setColFilter('${escapeHtml(cat)}')">${escapeHtml(cat)}</div>`;
   }
-  // Search box at the bottom
   html += `<div class="col-filter-search" onclick="event.stopPropagation()">
-    <input type="text" id="colSearchInput" placeholder="搜索字/拼音/笔记" value="${escapeHtml(colSearchText)}" onkeydown="if(event.key==='Enter'){setColSearch();}">
+    <input type="text" id="colSearchInput" placeholder="搜索字/拼音/笔记/类别" value="${escapeHtml(colSearchText)}" onkeydown="if(event.key==='Enter'){setColSearch();}">
     <button onclick="setColSearch()">确定</button>
   </div>`;
   dd.innerHTML = html;
 }
 
-function setColFilter(level) {
-  colMasteryFilter = level;
-  // Clear search when switching mastery filter
+function getAllCategories() {
+  const cats = new Set([...defaultCategories, ...userCategories]);
+  for (const ch in collections) {
+    if (collections[ch].category) {
+      cats.add(collections[ch].category);
+    }
+  }
+  return Array.from(cats).sort();
+}
+
+function setColFilter(category) {
+  colCategoryFilter = category;
   colSearchText = '';
   document.getElementById('colFilterDropdown').classList.remove('show');
   document.getElementById('filterArrow').classList.remove('open');
@@ -3991,18 +4134,80 @@ function setColSearch() {
 
 // Close dropdown when clicking outside
 document.addEventListener('click', function(e) {
+  const target = e.target;
+  if (target.closest('.category-dropdown') || 
+      target.closest('.category-selector')) {
+    return;
+  }
   const dd = document.getElementById('colFilterDropdown');
   if (dd && dd.classList.contains('show')) {
     dd.classList.remove('show');
     document.getElementById('filterArrow').classList.remove('open');
   }
+  const modalDd = document.getElementById('modalCategoryDropdown');
+  if (modalDd && modalDd.classList.contains('show')) {
+    modalDd.classList.remove('show');
+  }
 });
+
+function toggleModalCategoryDropdown(e) {
+  if (e) e.stopPropagation();
+  const dd = document.getElementById('modalCategoryDropdown');
+  const isOpen = dd.classList.contains('show');
+  if (isOpen) {
+    dd.classList.remove('show');
+  } else {
+    buildModalCategoryDropdown();
+    dd.classList.add('show');
+  }
+}
+
+function buildModalCategoryDropdown() {
+  const dd = document.getElementById('modalCategoryDropdown');
+  const currentVal = document.getElementById('modalCategoryValue').textContent;
+  let html = '';
+  const allCats = getAllCategories();
+  for (const cat of allCats) {
+    const active = cat === currentVal ? ' active' : '';
+    html += `<div class="category-option${active}" onclick="event.stopPropagation();selectModalCategory('${escapeHtml(cat)}')">${escapeHtml(cat)}</div>`;
+  }
+  html += `<div style="border-top:1px solid var(--border);margin:4px 0;"></div>
+    <input type="text" class="category-custom-input" id="modalCustomCategoryInput" placeholder="新建类别..." onkeydown="if(event.key==='Enter'){createModalCustomCategory();}" onclick="event.stopPropagation()">
+    <button class="category-custom-btn" onclick="event.stopPropagation();createModalCustomCategory()">创建</button>`;
+  dd.innerHTML = html;
+}
+
+function selectModalCategory(cat) {
+  document.getElementById('modalCategoryValue').textContent = cat;
+  document.getElementById('modalCategoryDropdown').classList.remove('show');
+  if (currentChar && collections[currentChar]) {
+    collections[currentChar].category = cat;
+    persistCollections();
+    renderCollections();
+  }
+}
+
+function createModalCustomCategory() {
+  const input = document.getElementById('modalCustomCategoryInput');
+  const val = input.value.trim();
+  if (!val) return;
+  if (!userCategories.includes(val)) {
+    userCategories.push(val);
+    persistUserCategories();
+  }
+  selectModalCategory(val);
+}
 
 // ============================================================
 //  SETTINGS PERSISTENCE
 // ============================================================
 async function saveSettings() {
   try {
+    const currentLang = document.getElementById('speechLangSelect').value;
+    const currentVoice = document.getElementById('speechVoiceSelect').value;
+    if (currentLang && currentVoice) {
+      voiceByLang[currentLang] = currentVoice;
+    }
     const settings = {
       id: 'app_settings',
       fontSize: document.getElementById('fontSizeRange').value,
@@ -4013,7 +4218,9 @@ async function saveSettings() {
       speechMode: document.getElementById('speechModeSelect').value,
       speechPause: document.getElementById('speechPauseRange').value,
       autoCollect: document.getElementById('autoCollectCheckbox').checked,
-      queryEngine: document.getElementById('queryEngineSelect').value
+      queryEngine: document.getElementById('queryEngineSelect').value,
+      userCategories: userCategories,
+      voiceByLang: voiceByLang
     };
     await dbPut('settings', settings);
     // Also save per-article language settings
@@ -4058,8 +4265,24 @@ async function loadSettings() {
         document.getElementById('queryEngineSelect').value = data.queryEngine;
         queryEngine = data.queryEngine;
       }
+      if (data.userCategories) {
+        userCategories = data.userCategories;
+      }
+      if (data.voiceByLang) {
+        voiceByLang = data.voiceByLang;
+      }
     }
   } catch(e) { console.error('Load settings failed:', e); }
+}
+
+async function persistUserCategories() {
+  try {
+    const db = await openDB();
+    const data = await dbGet('settings', 'app_settings');
+    if (data) {
+      await dbPut('settings', { ...data, userCategories: userCategories });
+    }
+  } catch(e) { console.error('Save user categories failed:', e); }
 }
 
 // ============================================================
@@ -4109,10 +4332,13 @@ async function loadCollections() {
   try {
     const items = await dbGetAll('collections');
     collections = {};
-    // Sort by order (add timestamp) so Object.keys preserves insertion order
     items.sort((a, b) => (a.order || 0) - (b.order || 0));
     items.forEach(item => {
-      collections[item.char] = { pinyin: item.pinyin || '', translation: item.translation || '', note: item.note || '', mastery: item.mastery || 5, order: item.order || 0 };
+      const category = item.category || '不会';
+      collections[item.char] = { pinyin: item.pinyin || '', translation: item.translation || '', note: item.note || '', category: category, order: item.order || 0 };
+      if (!item.category) {
+        dbPut('collections', { ...item, category: category });
+      }
     });
   } catch(e) {
     console.error('Load collections failed:', e);
@@ -4207,8 +4433,9 @@ async function importAllData(file) {
       // Import collections
       if (data.collections && Array.isArray(data.collections)) {
         for (const item of data.collections) {
-          collections[item.char] = { pinyin: item.pinyin || '', translation: item.translation || '', note: item.note || '', mastery: item.mastery || 5, order: item.order || Date.now() };
-          await dbPut('collections', item);
+          const category = item.category || '不会';
+          collections[item.char] = { pinyin: item.pinyin || '', translation: item.translation || '', note: item.note || '', category: category, order: item.order || Date.now() };
+          await dbPut('collections', { ...item, category: category });
           collectionCount++;
         }
       }
@@ -4231,6 +4458,36 @@ async function importAllData(file) {
   };
   reader.readAsText(file, 'UTF-8');
   document.getElementById('importAllInput').value = '';
+}
+
+async function clearAllData() {
+  if (!confirm('是否要清空当前用户的数据？请提前做好备份。')) return;
+  try {
+    const db = await openDB();
+    const storeNames = Array.from(db.objectStoreNames);
+    await new Promise((resolve, reject) => {
+      const tx = db.transaction(storeNames, 'readwrite');
+      storeNames.forEach(name => tx.objectStore(name).clear());
+      tx.oncomplete = resolve;
+      tx.onerror = e => reject(e.target.error);
+    });
+    db.close();
+
+    // 重置内存状态
+    collections = {};
+    paraReadRecords = {};
+    rawText = '';
+    currentArticleName = '';
+    lastReadStartIndex = -1;
+
+    // 刷新 UI
+    renderCollections();
+    await loadSettings();
+    goHome();
+    alert('当前用户的数据已清空。');
+  } catch(e) {
+    alert('清空失败：' + e.message);
+  }
 }
 
 </script>
