@@ -1329,16 +1329,80 @@
       }
     }
 
+    // 音频缓存
+    const AUDIO_CACHE_KEYS = {
+      correct: 'audio_cache_1',
+      wrong: 'audio_cache_2'
+    };
+    const AUDIO_URLS = {
+      correct: './1.mp3',
+      wrong: './2.mp3'
+    };
+    const audioMemoryCache = {};
+
+    async function fetchAudioAsBase64(url) {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    function preloadAudioToMemory(type, src) {
+      const audio = new Audio(src);
+      audio.preload = 'auto';
+      audio.load();
+      audioMemoryCache[type] = audio;
+    }
+
+    async function initAudioCache() {
+      const isFileProtocol = location.protocol === 'file:';
+
+      for (const type of ['correct', 'wrong']) {
+        const cacheKey = AUDIO_CACHE_KEYS[type];
+        const url = AUDIO_URLS[type];
+        const cached = localStorage.getItem(cacheKey);
+
+        if (cached) {
+          preloadAudioToMemory(type, cached);
+        } else if (!isFileProtocol) {
+          try {
+            const base64 = await fetchAudioAsBase64(url);
+            localStorage.setItem(cacheKey, base64);
+            preloadAudioToMemory(type, base64);
+          } catch (e) {
+            preloadAudioToMemory(type, url);
+          }
+        } else {
+          preloadAudioToMemory(type, url);
+        }
+      }
+    }
+
+    function playCachedAudio(type) {
+      const cached = audioMemoryCache[type];
+      if (cached) {
+        try {
+          cached.currentTime = 0;
+          cached.play().catch(() => {});
+          return;
+        } catch (e) {}
+      }
+      const fallback = new Audio(AUDIO_URLS[type]);
+      fallback.play().catch(() => {});
+    }
+
     // 音效播放器
     function playSound(type) {
       if (!soundEnabled) return;
 
       if (type === 'correct') {
-        const audio = new Audio('./1.mp3');
-        audio.play().catch(() => {});
+        playCachedAudio('correct');
       } else if (type === 'wrong') {
-        const audio = new Audio('./2.mp3');
-        audio.play().catch(() => {});
+        playCachedAudio('wrong');
       } else if (type === 'key') {
         // 模拟键盘打字声 - Web Audio API 生成短促点击音
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2119,6 +2183,8 @@
       document.getElementById('userSwitch').style.display = 'flex';
       document.getElementById('voiceIndicator').style.display = 'none';
     }
+
+    initAudioCache();
   </script>
 </body>
 </html>
