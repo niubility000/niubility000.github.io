@@ -148,6 +148,16 @@
   .reader-content .para-block {
     contain: layout;
   }
+  .reader-content.zh-mode .para-block {
+    text-indent: 1em;
+  }
+  .reader-content.zh-mode .para-block.no-indent {
+    text-indent: 0;
+  }
+  .reader-content.zh-mode .para-block:not(.no-indent) .para-speaker {
+    margin-left: -1.3em;
+    margin-right: 2px;
+  }
   .reader-content .char {
     cursor: pointer;
     transition: background .15s, color .15s, border-radius .15s;
@@ -2359,6 +2369,8 @@ async function detectAndSetLanguage(text) {
 
 function renderText(text) {
   const container = document.getElementById('readerContent');
+  // Set language mode class for paragraph indentation
+  container.classList.toggle('zh-mode', queryEngine === 'zh');
   // Split into paragraphs for speaker icons
   const paragraphs = text.split(/\n/);
 
@@ -2402,7 +2414,9 @@ function renderText(text) {
     paraIndex++;
 
     // Start paragraph block wrapper for content-visibility optimization
-    html += `<div class="para-block">`;
+    // Chinese mode: skip text-indent if original paragraph already has leading whitespace
+    const hasLeadingSpace = queryEngine === 'zh' && /^\s/.test(para);
+    html += `<div class="para-block${hasLeadingSpace ? ' no-indent' : ''}">`;
 
     // In alternate mode, wrap with zh-en-para for tooltip
     if (altMode) {
