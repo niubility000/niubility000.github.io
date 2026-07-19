@@ -108,6 +108,7 @@
       font-size: 16px;
       cursor: pointer;
       transition: all 0.3s ease;
+      margin-top: 8px;
     }
 
     .btn-start {
@@ -929,6 +930,11 @@
     }
 
     function getAnswerValue() {
+      // 桌面端用户可能直接用键盘输入到 input 框，需同步实际值
+      if (!isMobile()) {
+        const input = document.getElementById('answerInput');
+        if (input) answerValue = input.value;
+      }
       return answerValue;
     }
 
