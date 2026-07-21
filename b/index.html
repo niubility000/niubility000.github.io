@@ -145,8 +145,19 @@
     display: block;
     height: 4px;
   }
+  .reader-content .para-gap.empty-line {
+    height: 2em;
+  }
   .reader-content .para-block {
     contain: layout;
+  }
+  .reader-content .para-block.para-heading-bold {
+    font-weight: bold;
+  }
+  .reader-content .para-block.para-heading-large {
+    font-weight: bold;
+    font-size: 1.4em;
+    margin: 0.5em 0;
   }
   .reader-content.zh-mode .para-block {
     text-indent: 0em;
@@ -169,19 +180,15 @@
   }
   .reader-content .char.collected {
     font-weight: 900;
-    color: #D84315;
-    border-bottom: 2px solid #FFB300;
+    color: #FF0000;
   }
   .reader-content .char.collected.collected-phrase {
     font-weight: normal;
-    color: inherit;
-    border-bottom: none;
-    background: yellow;
-    border-radius: 3px;
+    color: blue;
   }
   .reader-content .char.collected.collected-phrase.collected-single {
     font-weight: 900;
-    color: #D84315;
+    color: #FF0000;
   }
   .reader-content .char.speaking {
     background: rgba(74,144,217,.18);
@@ -1206,7 +1213,7 @@
 <!-- ===== PASTE AREA ===== -->
 <div class="paste-area" id="pasteArea">
   <h3>📋 或直接粘贴文本开始阅读</h3>
-  <textarea id="pasteTextarea" placeholder="在此粘贴文章内容。支持中文文章、英文文章、中英对照文本(格式为一行英文，一行中文...，可用豆包ai生成)"></textarea>
+  <textarea id="pasteTextarea" placeholder="在此粘贴文章内容。支持中文文章、英文文章、中英对照文本(格式为一行英文，一行中文...，可用豆包ai生成)&#10;若为.pdf文件，可使用免费tools.pdf24.org/zh/compress-pdf在线压缩，再用豆包提取文字版即可。"></textarea>
   <button class="paste-btn" onclick="handlePasteText()">开始阅读</button>
 </div>
 
@@ -1815,6 +1822,7 @@ async function openArticle(name) {
 }
 
 async function deleteArticle(name) {
+  if (!confirm('确定要删除这篇文章吗？\n\n单击右键可先复制到剪贴板以便备份。')) return;
   await dbDeleteArticle(name);
   dbDelete('scroll_pos', name).catch(() => {});
   renderArticleList();
@@ -2386,17 +2394,22 @@ function renderText(text) {
   let html = '';
   let rawIdx = 0; // track position in rawText
   let paraIndex = 0; // actual paragraph index (skipping empty lines)
-  let nonEmptyIdx = 0; // index into non-emptyIndices (for alternate mode)
+  let nonEmptyIdx = 0; // index into nonEmptyIndices (for alternate mode)
+  let lastWasEmpty = false; // for collapsing consecutive empty lines to at most 1
 
   for (let p = 0; p < paragraphs.length; p++) {
     const para = paragraphs[p];
 
-    // Empty line = line break
+    // Empty line = line break (collapse consecutive empty lines to at most 1)
     if (para.trim().length === 0) {
-      html += '<span class="para-gap"></span>';
+      if (!lastWasEmpty) {
+        html += '<span class="para-gap empty-line"></span>';
+      }
+      lastWasEmpty = true;
       rawIdx += para.length + 1; // +1 for the \n
       continue;
     }
+    lastWasEmpty = false;
 
     // In alternate mode, skip Chinese lines
     if (altMode) {
@@ -2412,10 +2425,22 @@ function renderText(text) {
     const currentParaIdx = paraIndex;
     paraIndex++;
 
+    // Check for # heading prefix (1 or more #, treated as heading)
+    const headingMatch = para.match(/^(#+)\s*/);
+    let paraContent = para;
+    let headingLevel = 0;
+    if (headingMatch) {
+      const prefixLen = headingMatch[0].length;
+      headingLevel = headingMatch[1].length;
+      paraContent = para.substring(prefixLen);
+      rawIdx += prefixLen; // advance rawIdx past the # prefix
+    }
+
     // Start paragraph block wrapper for content-visibility optimization
     // Chinese mode: skip text-indent if original paragraph already has leading whitespace
     const hasLeadingSpace = queryEngine === 'zh' && /^\s/.test(para);
-    html += `<div class="para-block${hasLeadingSpace ? ' no-indent' : ''}">`;
+    const headingClass = headingMatch ? (headingLevel >= 2 ? ' para-heading-large' : ' para-heading-bold') : '';
+    html += `<div class="para-block${hasLeadingSpace ? ' no-indent' : ''}${headingClass}">`;
 
     // In alternate mode, wrap with zh-en-para for tooltip
     if (altMode) {
@@ -2455,8 +2480,8 @@ function renderText(text) {
         engBuf = '';
       }
     }
-    for (let i = 0; i < para.length; i++) {
-      const ch = para[i];
+    for (let i = 0; i < paraContent.length; i++) {
+      const ch = paraContent[i];
       rawIdx++;
       if (ch === ' ' || ch === '\t' || ch === '\r') {
         flushEngBuf();
@@ -2488,7 +2513,7 @@ function renderText(text) {
     flushEngBuf();
 
     // Add word count (superscript, small font)
-    const wordCount = countWordsWithoutPunctuation(para);
+    const wordCount = countWordsWithoutPunctuation(paraContent);
     if (altMode) {
       const neIdx = nonEmptyIdx - 1;
       const zhText = altMode.enToZh[neIdx] || '';
@@ -2512,8 +2537,8 @@ function renderText(text) {
     // Close paragraph block wrapper
     html += `</div>`;
 
-    // Add line break after paragraph (unless last)
-    if (p < paragraphs.length - 1) {
+    // Add line break after paragraph (unless last or next is empty line)
+    if (p < paragraphs.length - 1 && paragraphs[p + 1].trim().length > 0) {
       html += '<span class="para-gap"></span>';
       rawIdx++; // for the \n
     }
@@ -3320,9 +3345,17 @@ function toggleReadAloud() {
       return;
     }
 
+    // Strip ## heading prefix for TTS (consistent with renderText display)
+    let rawParaText = paragraphs[paraIdx];
+    const headingMatch = rawParaText.match(/^##(?!#)\s*/);
+    if (headingMatch) {
+      paraRawStart += headingMatch[0].length;
+      rawParaText = rawParaText.substring(headingMatch[0].length);
+    }
+
     setActiveParaSpeaker(paraRawStart);
 
-    const text = paragraphs[paraIdx].trim();
+    const text = rawParaText.trim();
     const utt = new SpeechSynthesisUtterance(text);
     
     const hasChinese = /[\u4e00-\u9fa5]/.test(text);
